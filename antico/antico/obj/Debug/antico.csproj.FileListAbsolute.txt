@@ -1,0 +1,10 @@
+D:\antico\antico\obj\Debug\antico.csprojAssemblyReference.cache
+D:\antico\antico\obj\Debug\antico.MainFrame.resources
+D:\antico\antico\obj\Debug\antico.csproj.GenerateResource.cache
+D:\antico\antico\bin\Debug\antico.exe.config
+D:\antico\antico\bin\Debug\antico.exe
+D:\antico\antico\bin\Debug\antico.pdb
+D:\antico\antico\obj\Debug\antico.Properties.Resources.resources
+D:\antico\antico\obj\Debug\antico.csproj.CoreCompileInputs.cache
+D:\antico\antico\obj\Debug\antico.exe
+D:\antico\antico\obj\Debug\antico.pdb
