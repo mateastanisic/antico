@@ -63,10 +63,30 @@ namespace antico.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap images {
+            get {
+                object obj = ResourceManager.GetObject("images", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap kissclipart_close_icon_cross_icon_delete_icon_873686c9a26fc318 {
             get {
                 object obj = ResourceManager.GetObject("kissclipart-close-icon-cross-icon-delete-icon-873686c9a26fc318", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] UnicaOne_Regular {
+            get {
+                object obj = ResourceManager.GetObject("UnicaOne_Regular", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }
