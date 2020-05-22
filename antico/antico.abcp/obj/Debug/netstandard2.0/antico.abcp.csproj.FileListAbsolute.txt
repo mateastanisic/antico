@@ -1,0 +1,4 @@
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.csprojAssemblyReference.cache
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.csproj.CoreCompileInputs.cache
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.AssemblyInfoInputs.cache
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.AssemblyInfo.cs

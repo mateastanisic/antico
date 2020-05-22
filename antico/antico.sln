@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29911.84
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "antico", "antico\antico.csproj", "{E02FB710-F1B5-4572-B0EB-D256C355CA85}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "antico.app", "antico\antico.app.csproj", "{E02FB710-F1B5-4572-B0EB-D256C355CA85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "antico.abcp", "antico.abcp\antico.abcp.csproj", "{CAF4F82F-5D21-4A55-945C-957C5C78C923}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "antico.data", "antico.data\antico.data.csproj", "{A9CBCFFF-BA77-4152-949E-6FEA7E65BFC4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{E02FB710-F1B5-4572-B0EB-D256C355CA85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E02FB710-F1B5-4572-B0EB-D256C355CA85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E02FB710-F1B5-4572-B0EB-D256C355CA85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAF4F82F-5D21-4A55-945C-957C5C78C923}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAF4F82F-5D21-4A55-945C-957C5C78C923}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAF4F82F-5D21-4A55-945C-957C5C78C923}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAF4F82F-5D21-4A55-945C-957C5C78C923}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9CBCFFF-BA77-4152-949E-6FEA7E65BFC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9CBCFFF-BA77-4152-949E-6FEA7E65BFC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9CBCFFF-BA77-4152-949E-6FEA7E65BFC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9CBCFFF-BA77-4152-949E-6FEA7E65BFC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

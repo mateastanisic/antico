@@ -1,4 +1,14 @@
-﻿using System;
+﻿//////////////////////////////////////////////////////////////////////////////////////////
+// antico --- artificial bee colony programming based malware detection                 //
+// Copyright 2020 Matea Stanišić                                                        //
+//                                                                                      //
+//                                                                                      //
+// Matea Stanišić                                                                       //
+// mateastanisic@outlook.com                                                            //
+// Zagreb, Hrvatska                                                                     //
+//////////////////////////////////////////////////////////////////////////////////////////
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -21,25 +31,32 @@ namespace antico
         private Point dragCursorPoint;
         private Point dragFormPoint;
 
+        #region Initialize
         /// <summary>
         /// Function for initializing components on Main frame.
         /// </summary>
         public MainFrame()
         {
             InitializeComponent();
+
+            // Load text font.
             PrivateFontCollection anticoFont = new PrivateFontCollection();
             anticoFont.AddFontFile("../../../../[FONTS]/UnicaOne-Regular.ttf");
             anticoLabel.Font = new Font(anticoFont.Families[0], 35, FontStyle.Regular);
         }
+        #endregion
 
+        #region Closing form when pressing Exit sign
         /// <summary>
         /// Closing form when pressing Exit sign.
         /// </summary>
         /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void exitPictureBox_Click(object sender, EventArgs e)
         {
             Application.Exit();
         }
+        #endregion
 
         #region Functions for enabling moving MainFrame on user screen.
 

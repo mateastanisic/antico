@@ -1,0 +1,10 @@
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\bin\Debug\antico.exe.config
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\bin\Debug\antico.exe
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\bin\Debug\antico.pdb
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\obj\Debug\antico.app.csprojAssemblyReference.cache
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\obj\Debug\antico.MainFrame.resources
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\obj\Debug\antico.Properties.Resources.resources
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\obj\Debug\antico.app.csproj.GenerateResource.cache
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\obj\Debug\antico.app.csproj.CoreCompileInputs.cache
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\obj\Debug\antico.exe
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico\obj\Debug\antico.pdb

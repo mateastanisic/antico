@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "n/p7nwSAE2WdXGyR+MRGhIR3mPNl0K4ShFRikTpS2pxoAjLa05Ll6OwVQ1VS1Jojmw9Zvz9+MetXwi/lc66gvA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\antico.data.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Matea\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\Matea\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

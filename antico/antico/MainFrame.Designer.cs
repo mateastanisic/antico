@@ -1,4 +1,14 @@
-﻿namespace antico
+﻿//////////////////////////////////////////////////////////////////////////////////////////
+// antico --- artificial bee colony programming based malware detection                 //
+// Copyright 2020 Matea Stanišić                                                        //
+//                                                                                      //
+//                                                                                      //
+// Matea Stanišić                                                                       //
+// mateastanisic@outlook.com                                                            //
+// Zagreb, Hrvatska                                                                     //
+//////////////////////////////////////////////////////////////////////////////////////////
+
+namespace antico
 {
     partial class MainFrame
     {
