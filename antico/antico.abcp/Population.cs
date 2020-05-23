@@ -9,43 +9,45 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace antico.abcp
 {
+    #region Population class
     internal class Population
     {
         #region ATTRIBUTES 
 
         #region population size
         // Variable that represents size of population.
+        // (READONLY - Setting only through constructor) 
         private int _populationSize;
 
         // Property for the population_size variable.
         public int populationSize
         {
             get { return _populationSize; }
-            set { _populationSize = value; }
         }
         #endregion
 
         #region population
         // Variable that represents population of symbolic trees.
-        private SymbolicTree[] _population;
+        private Chromosome[] _chromosomes;
 
         // Property for the population variable.
-        public SymbolicTree[] population
+        public Chromosome[] chromosomes
         {
-            get { return _population; }
+            get { return _chromosomes; }
             set 
             {
                 // Allocate memory for the new population of models.
-                _population = new SymbolicTree[value.Length];
+                _chromosomes = new Chromosome[value.Length];
 
                 // Deep copy every model.
                 for ( var i = 0; i < value.Length; i++)
                 {
-                    _population[i].Clone(value[i]);
+                    _chromosomes[i].Clone(value[i]);
                 }
             }
         }
@@ -89,28 +91,73 @@ namespace antico.abcp
         /// </summary>
         /// <param name="index"> Variable that represents index of desired symbolic tree in population. </param>
         /// <returns>Desired symbolic tree.</returns>
-        public SymbolicTree this[int index]
+        public Chromosome this[int index]
         {
             get
             {
-                if (index < 0 && index >= this._population.Length)
+                if (index < 0 && index >= this._chromosomes.Length)
                 {
                     throw new IndexOutOfRangeException("Index out of range");
                 }
 
-                return this._population[index];
+                return this._chromosomes[index];
             }
             set
             {
-                if (index < 0 && index >= this._population.Length)
+                if (index < 0 && index >= this._chromosomes.Length)
                 {
                     throw new IndexOutOfRangeException("Index out of range");
                 }
 
-                this._population[index].Clone(value);
+                this._chromosomes[index].Clone(value);
             }
         }
 
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Constructor with given values for variables.
+        /// </summary>
+        /// <param name="popSize">Size of population to be generated.</param>
+        /// <param name="initialMaxDepth">Initial maximal depth of symbolic tree.</param>
+        /// <param name="nonTerminals">String representations of non temrinals <-> mathematical operations.</param>
+        /// <param name="terminalNames">String representations of terminal names.</param>
+        /// <param name="terminals">Actual values for each terminal for each training example.</param>
+        /// <param name="generatingTreesMethod">Method for generating symbolic tree.</param>
+        public Population(int popSize, int initialMaxDepth, string[] nonTerminals, string[] terminalNames, DataTable terminals, string generatingTreesMethod )
+        {
+            // Set population size.
+            this._populationSize = popSize;
+
+            // Allocate memory.
+            this._chromosomes = new Chromosome[popSize];
+
+            // Generate population of chromosomes.
+            for( var i = 0; i < popSize; i++)
+            {
+                // Check depending on symbolic tree generating method.
+
+                if( generatingTreesMethod == "ramped" )
+                {
+                    if( i < popSize / 2)
+                    {
+                        _chromosomes[i].Generate("full", initialMaxDepth, terminalNames, terminals, nonTerminals);
+                    }
+                    else
+                    {
+                        _chromosomes[i].Generate("grow", initialMaxDepth, terminalNames, terminals, nonTerminals);
+                    }
+                    
+                }
+                else
+                {
+                    _chromosomes[i].Generate(generatingTreesMethod, initialMaxDepth, terminalNames, terminals, nonTerminals);
+                }
+
+                
+            }
+        }
         #endregion
 
         #region Deep copy
@@ -126,7 +173,7 @@ namespace antico.abcp
             this._populationSize = p.populationSize;
 
             // Deep copy with variable property set.
-            this.population = p.population;
+            this.chromosomes = p.chromosomes;
         }
         #endregion
 
@@ -137,7 +184,7 @@ namespace antico.abcp
         /// <param name="parent1"> First chromosome (parent) that is part of the crossover. </param>
         /// <param name="parent2"> Second chromosome (parent) that is part of the crossover. </param>
         /// <returns> Child chromosome. </returns>
-        public SymbolicTree crossover( SymbolicTree parent1, SymbolicTree parent2)
+        public Chromosome crossover( Chromosome parent1, Chromosome parent2)
         {
             // TODO
             throw new NotImplementedException();
@@ -146,4 +193,5 @@ namespace antico.abcp
 
         #endregion
     }
+    #endregion
 }

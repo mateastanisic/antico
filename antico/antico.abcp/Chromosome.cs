@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 using System.Threading;
 
@@ -638,7 +639,7 @@ namespace antico.abcp
     /// Finally, all instances of this class have defined numberOfPossibleTerminals which represents
     /// number of possible features that can be part of the model.
     /// </summary>
-    public class SymbolicTree : IEquatable<SymbolicTree>
+    public class Chromosome : IEquatable<Chromosome>
     {
         #region ATTRIBUTES
 
@@ -703,7 +704,7 @@ namespace antico.abcp
         /// Helper method for deep copying values of model st to values of this model.
         /// </summary>
         /// <param name="st">Model whose values will be deep copied to this model.</param>
-        public void Clone( SymbolicTree st )
+        public void Clone( Chromosome st )
         {
             // Copy fitness from model st to this model.
             this._fitness = st.fitness;
@@ -726,7 +727,7 @@ namespace antico.abcp
         /// <param name="obj1">First chromosome.</param>
         /// <param name="obj2">Second chromosome.</param>
         /// <returns>True if chromosomes are equal, otherwise false. </returns>
-        public static bool operator ==(SymbolicTree obj1, SymbolicTree obj2)
+        public static bool operator ==(Chromosome obj1, Chromosome obj2)
         {
             if (ReferenceEquals(obj1, obj2))
             {
@@ -755,7 +756,7 @@ namespace antico.abcp
         /// <param name="obj1">First chromosome.</param>
         /// <param name="obj2">Second chromosome.</param>
         /// <returns>False if chromosomes are equal, otherwise true. </returns>
-        public static bool operator !=(SymbolicTree obj1, SymbolicTree obj2)
+        public static bool operator !=(Chromosome obj1, Chromosome obj2)
         {
             return !(obj1 == obj2);
         }
@@ -765,7 +766,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="other">Chromosome to compare current chromosome.</param>
         /// <returns>True if chromosomes are equal, otherwise false. </returns>
-        public bool Equals(SymbolicTree other)
+        public bool Equals(Chromosome other)
         {
             return other != null 
                     && _fitness == other._fitness 
@@ -790,7 +791,7 @@ namespace antico.abcp
                 return true;
             }
 
-            return obj.GetType() == this.GetType() && Equals((SymbolicTree)obj);
+            return obj.GetType() == this.GetType() && Equals((Chromosome)obj);
         }
 
         /// <summary>
@@ -828,7 +829,7 @@ namespace antico.abcp
         /// </summary>
         /// 
         /// <param name="method"> 
-        /// Methode for generating initial symbolic tree. Options are:
+        /// Method for generating initial symbolic tree. Options are:
         /// *full method where chromosome has maximal possible size - the distance from the root node to each leaf is equal to the maximum tree depth;
         /// *grow method where chromosome has random size, but not greater than maxDepth;
         /// </param>
@@ -836,9 +837,9 @@ namespace antico.abcp
         /// <param name="terminals"> Array of possible terminals of to-be generated symbolic tree.</param>
         /// <param name="nonTerminals"> Array of possible terminals of to-be generated symbolic tree. </param>
         /// <returns></returns>
-        public SymbolicTree Generate(string method, int maxDepth, string[] terminals, string[] nonTerminals)
+        public Chromosome Generate(string method, int maxDepth, string[] terminalsMarks, DataTable terminals, string[] nonTerminals)
         {
-            SymbolicTree chromosome = new SymbolicTree();
+            Chromosome chromosome = new Chromosome();
 
             switch (method)
             {
@@ -846,19 +847,20 @@ namespace antico.abcp
                     {
                         // TODO
                         throw new NotImplementedException();
-                        break;
+                        // break;
                     }
                 case "grow":
                     {
                         // TODO
                         throw new NotImplementedException();
-                        break;
+                        // break;
                     }
                 default:
                     throw new System.ArgumentException("Method is not supported", "method");
+                    // break;
             }
 
-            return chromosome;
+            //return chromosome;
         }
         #endregion
 

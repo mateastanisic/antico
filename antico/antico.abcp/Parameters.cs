@@ -13,6 +13,10 @@ using System.Text;
 
 namespace antico.abcp
 {
+    #region Parameters class
+    /// <summary>
+    /// Class for parameters used in artificial bee colony programming algorithm.
+    /// </summary>
     class Parameters
     {
         #region ATTRIBUTES 
@@ -20,123 +24,71 @@ namespace antico.abcp
         #region population size <-> number of models
         // Variable for number of chromosomes in population. 
         // Meaning - number of models (SymbolicTrees) in the population.
+        // (READONLY - Setting only through constructor)
         private int _populationSize;
 
         // Property for the population_size variable.
         public int populationSize   
         {
             get { return _populationSize; }
-            set { _populationSize = value; }
         }
         #endregion
 
         #region number of iterations
         // Variable that represents number of loop iterations after we stop 
         // searching for the best solution.
+        // (READONLY - Setting only through constructor)
         private int _maxNumberOfIterations;
 
         // Variable that represents number of loop iterations, when better 
         // solution is not found, after we stop searching for the best solution.
+        // (READONLY - Setting only through constructor)
         private int _maxNumberOfNotImprovingIterations;
 
         // Property for the population_size variable.
         public int maxNumberOfIterations
         {
             get { return _maxNumberOfIterations; }
-            set { _maxNumberOfIterations = value; }
         }
 
         // Property for the population_size variable.
         public int maxNumberOfNotImprovingIterations
         {
             get { return _maxNumberOfNotImprovingIterations; }
-            set { _maxNumberOfNotImprovingIterations = value; }
         }
         #endregion
 
         #region depths of symbolic trees
         // Variable for maximal initial depth of the symbolic tree.
+        // (READONLY - Setting only through constructor)
         private int _initialMaxDepth;
 
         // Variable for maximal depth at any point of algorithm of the symbolic tree.
+        // (READONLY - Setting only through constructor)
         private int _maxDepth;
 
         // Property for the initial_max_depth variable.
         public int initialMaxDepth
         {
             get { return _initialMaxDepth; }
-            set { _initialMaxDepth = value; }
         }
 
         // Property for the max_depth variable.
         public int maxDepth
         {
             get { return _maxDepth; }
-            set { _maxDepth = value; }
         }
         #endregion
 
-        #region (non)terminals <-> mathematical operations and features
-        // Variable that represents number of possible non-terminals. 
-        // In our perspective, that means number of possible mathematical operations on inner nodes in symbolic tree.
-        private int _numberOfNonTerminals;
+        #region method for generating symbolic trees
+        // Variable that represents method for generating symbolic trees - full/grow/combination.
+        // (READONLY - Setting only through constructor)
+        private string _generatingTreesMethod;
 
-        // Variable that represents non terminals (mathematical operations) as strings.
-        private string[] _nonTerminals;
-
-        // Variable that represents number of possible terminals. 
-        // In our perspective, that means number of possible features on leaf nodes in symbolic tree.
-        private int _numberOfTerminals;
-
-        // Variable that represents terminals (features) as strings.
-        private string[] _Terminals;
-
-        // Property for the number_of_non_terminals variable.
-        public int numberOfNonTerminals
+        // Property for the population_size variable.
+        public string generatingTreesMethod
         {
-            get { return _numberOfNonTerminals; }
-            set { _numberOfNonTerminals = value; }
-        }
-
-        // Property for the number_of_terminals variable.
-        public int numberOfTerminals
-        {
-            get { return _numberOfTerminals; }
-            set { _numberOfTerminals = value; }
-        }
-
-        // Property for the non_terminals variable.
-        public string[] nonTerminals
-        {
-            get { return _nonTerminals; }
-            set 
-            {
-                // Allocate resources.
-                _nonTerminals = new string[value.Length];
-
-                // Deep copy all non terminals.
-                for ( var i = 0; i < value.Length; i++)
-                {
-                    _nonTerminals[i] = value[i];
-                }
-            }
-        }
-
-        // Property for the terminals variable.
-        public string[] Terminals
-        {
-            get { return _Terminals; }
-            set
-            {
-                // Allocate resources.
-                _Terminals = new string[value.Length];
-
-                // Deep copy all terminals.
-                for (var i = 0; i < value.Length; i++)
-                {
-                    _Terminals[i] = value[i];
-                }
-            }
+            get { return _generatingTreesMethod; }
         }
         #endregion
 
@@ -157,12 +109,8 @@ namespace antico.abcp
             this._maxNumberOfNotImprovingIterations = 50;
             this._initialMaxDepth = 6;
             this._maxDepth = 15;
+            this._generatingTreesMethod = "full";
 
-            this._nonTerminals = new string[9] { "+", "-", "*", "/", "sin", "cos", "exp", "iff", "log" };
-            this._numberOfNonTerminals = 9;
-
-            // Flag that terminals are not initialed.
-            this._numberOfTerminals = -1;
         }
 
         /// <summary>
@@ -175,7 +123,8 @@ namespace antico.abcp
         /// <param name="md">maxDepth</param>
         /// <param name="nontermi">nonTerminals</param>
         /// <param name="termi">Terminals</param>
-        public Parameters(int ps, int maxnoi, int maxnonii, int imd, int md, string[] nontermi, string[] termi)
+        /// <param name="method">Mehod for generating symbolic trees</param>
+        public Parameters(int ps, int maxnoi, int maxnonii, int imd, int md, string method)
         {
             // Associate values sent by parameters to the class variables.
             this._populationSize = ps;
@@ -183,13 +132,7 @@ namespace antico.abcp
             this._maxNumberOfNotImprovingIterations = maxnonii;
             this._initialMaxDepth = imd;
             this._maxDepth = md;
-
-            this._numberOfNonTerminals = nontermi.Length;
-            this._numberOfTerminals = termi.Length;
-
-            // Deep copy with variable property set.
-            this.nonTerminals = nontermi;
-            this.Terminals = termi;
+            this._generatingTreesMethod = method;
         }
 
         /// <summary>
@@ -204,17 +147,11 @@ namespace antico.abcp
             this._maxNumberOfNotImprovingIterations = p.maxNumberOfNotImprovingIterations;
             this._initialMaxDepth = p.initialMaxDepth;
             this._maxDepth = p.maxDepth;
-
-            this._numberOfNonTerminals = p.nonTerminals.Length;
-            this._numberOfTerminals = p.Terminals.Length;
-
-            // Deep copy with variable property set.
-            this.nonTerminals = p.nonTerminals;
-            this.Terminals = p.Terminals;
+            this._generatingTreesMethod = p.generatingTreesMethod;
         }
         #endregion
 
-        #region Deep copy
+        #region Copy
         /// <summary>
         /// Helper method for cloning Parameters p values to this values.
         /// </summary>
@@ -227,16 +164,12 @@ namespace antico.abcp
             this._maxNumberOfNotImprovingIterations = p.maxNumberOfNotImprovingIterations;
             this._initialMaxDepth = p.initialMaxDepth;
             this._maxDepth = p.maxDepth;
+            this._generatingTreesMethod = p.generatingTreesMethod;
 
-            this._numberOfNonTerminals = p.nonTerminals.Length;
-            this._numberOfTerminals = p.Terminals.Length;
-
-            // Deep copy with variable property set.
-            this.nonTerminals = p.nonTerminals;
-            this.Terminals = p.Terminals;
         }
         #endregion
 
         #endregion
     }
+    #endregion
 }
