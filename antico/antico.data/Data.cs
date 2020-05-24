@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Runtime.CompilerServices;
 using Npgsql;
+// using Microsoft.ML;
 
 namespace antico.data
 {
@@ -35,10 +36,11 @@ namespace antico.data
         #region ATTRIBUTES
 
         #region mathematical operations
+        // (READONLY - Setting only through constructor)
         // Dictionary variable that represents mathematical operations. 
         // Key is the operation name and integer value represents possible arrity of the operation.
         // This variable is constant and it is never changed.
-        private Dictionary<string, int> mathOperationsArity = new Dictionary<string, int>()
+        private Dictionary<string, int> _mathOperationsArity = new Dictionary<string, int>()
         {
             { "+", 2 },
             { "-", 2 },
@@ -46,9 +48,15 @@ namespace antico.data
             { "/", 2 },
             { "sin", 1 },
             { "cos", 1 },
-            { "log", 1 },
-            { "exp", 2 }
+            { "rlog", 1 },
+            { "exp", 1 }
         };
+
+        // Property for the _mathOperationsArity variable.
+        public Dictionary<string, int> mathOperationsArity
+        {
+            get { return _mathOperationsArity; }
+        }
 
         // Number of mathematical operators.
         // (READONLY - Setting only through constructor)
@@ -157,7 +165,7 @@ namespace antico.data
         public Data( )
         {
             // Deafult mathematical operations.
-            _mathOperations = new string[] { "+", "-", "*", "/", "sin", "cos", "log", "exp"};
+            _mathOperations = new string[] { "+", "-", "*", "/", "sin", "cos", "rlog", "exp"};
             
             // Setting number of mathematical operations.
             _numberOfMathOperators = _mathOperations.Length;
