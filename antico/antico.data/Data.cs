@@ -10,6 +10,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Npgsql;
 // using Microsoft.ML;
@@ -180,12 +181,16 @@ namespace antico.data
                 connection.Open();
 
                 // SQL query.
-                string sql_features = "SELECT * FROM malware_detection_features";
+                string sql_features = "SELECT * FROM clamp";
                 NpgsqlCommand command = new NpgsqlCommand(sql_features, connection);
 
                 // Loading data in DataTable variable.
                 _features = new DataTable();
                 _features.Load(command.ExecuteReader());
+
+                // Allocate memory for feature names. (Remove one for label column)
+                // TODO: prettier
+                _featureNames = new string[_features.Columns.Count - 1];
 
                 // Close the connection.
                 connection.Close();
@@ -204,22 +209,27 @@ namespace antico.data
                 connection.Open();
 
                 // SQL query.
-                string sql_feature_names = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'malware_detection_features'";
+                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = 'clamp'";
                 NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, connection);
 
                 // Loading feature names into _featureNames variable variable.
                 DataTable featureNamesDataTable = new DataTable();
                 featureNamesDataTable.Load(command2.ExecuteReader());
 
-                // Allocate memory for feature names.
-                _featureNames = new string[featureNamesDataTable.Rows.Count];
-
                 // Fill string array with feature names from DataTable.
                 var i = 0;
                 foreach (DataRow row in featureNamesDataTable.Rows)
                 {
-                    _featureNames[i] = (row.ItemArray).ToString();
-                    i++;
+                    foreach (var item in row.ItemArray)
+                    {
+                        // Column "label" is not a feature!
+                        if (item.ToString() == "label")
+                            continue;
+
+                        _featureNames[i] = item.ToString();
+                        i++;
+                    }
+
                 }
 
                 // Close the connection.
@@ -232,11 +242,12 @@ namespace antico.data
                 throw new NpgsqlException("Failed loading data from database!");
             }
 
+
             // Setting number of the features.
             _numberOfFeatures = _featureNames.Length;
 
             // Balanced division of data into train and test.
-            makeTrainAndTest();
+            // makeTrainAndTest();
         }
 
         /// <summary>
