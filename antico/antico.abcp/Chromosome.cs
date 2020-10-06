@@ -629,7 +629,7 @@ namespace antico.abcp
                 // cos, sin, rlog, exp
 
                 // Check that node type is non-teminal and that this node has 1 child node.
-                if (this.type != "non-termianl")
+                if (this.type != "non-terminal")
                 {
                     throw new Exception("Arity of node is zero but node is not terminal.");
                 }
@@ -664,7 +664,7 @@ namespace antico.abcp
                 // *, /, +, -
 
                 // Check that node type is non-teminal.
-                if (this.type != "non-termianl")
+                if (this.type != "non-terminal")
                 {
                     throw new Exception("Arity of node is 2 or greater but node is not terminal.");
                 }
@@ -963,7 +963,7 @@ namespace antico.abcp
             this._type = "non-terminal";
             this._depth = currentDepth;
             int indexOfNonTerminal = rand.Next(nonTerminals.Length);
-            this._content = terminalsMarks[indexOfNonTerminal];
+            this._content = nonTerminals[indexOfNonTerminal];
 
             // Get mathematical operation arity.
             int ar = getMathOperationArity(mathOperationsArity, this._content);
@@ -973,7 +973,7 @@ namespace antico.abcp
             {
                 // Since operations with arity different from 1 are +, -, *, / that all have arity >= 2.
                 // For simplicity, here are considered only operations with arity 2 and 3.
-                ar = rand.Next(2, 4);
+                ar = rand.Next(2, 3); // TODO: for now, aritiy can only be 2
             }
 
             // Set node arity.
@@ -1048,7 +1048,7 @@ namespace antico.abcp
                 this._type = "non-terminal";
                 this._depth = currentDepth;
                 int indexOfNonTerminal = rand.Next(nonTerminals.Length);
-                this._content = terminalsMarks[indexOfNonTerminal];
+                this._content = nonTerminals[indexOfNonTerminal];
 
                 // Get mathematical operation arity.
                 int ar = getMathOperationArity(mathOperationsArity, this._content);
@@ -1058,7 +1058,7 @@ namespace antico.abcp
                 {
                     // Since operations with arity different from 1 are +, -, *, / that all have arity >= 2.
                     // For simplicity, here are considered only operations with arity 2 and 3.
-                    ar = rand.Next(2, 4);
+                    ar = rand.Next(2, 3); // TODO: for now, aritiy can only be 2
                 }
 
                 // Set node arity.
@@ -1533,7 +1533,7 @@ namespace antico.abcp
             foreach(DataRow row in data.Rows)
             {
                 double evaluation = this._symbolicTree.Evaluate(row);
-                int classification = Convert.ToInt32(row["classification"]);
+                int classification = Convert.ToInt32(row["label"]);
 
                 if( evaluation > 0 && classification == 1)
                 {

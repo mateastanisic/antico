@@ -17,7 +17,7 @@ namespace antico.abcp
     /// <summary>
     /// Class for parameters used in artificial bee colony programming algorithm.
     /// </summary>
-    class Parameters
+    public class Parameters
     {
         #region ATTRIBUTES 
 

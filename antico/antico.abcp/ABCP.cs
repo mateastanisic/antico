@@ -29,7 +29,7 @@ namespace antico.abcp
     /// algorithm which is also implemented as a method of this class.
     /// 
     /// </summary>
-    class ABCP
+    public class ABCP
     {
         #region ATTRIBUTES 
 
@@ -48,7 +48,7 @@ namespace antico.abcp
         #region models <-> population 
         // (READONLY - Setting only through constructor) 
         // Variable that represents class with models - population.
-        private Population _population;
+        Population _population;
 
         // Property for the _population variable.
         public Population population

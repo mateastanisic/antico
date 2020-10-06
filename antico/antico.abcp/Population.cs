@@ -24,7 +24,7 @@ namespace antico.abcp
     /// This class contains of population size variable and array of chromosomes.
     /// 
     /// </summary>
-    internal class Population
+    public class Population
     {
         #region ATTRIBUTES 
 
@@ -174,10 +174,12 @@ namespace antico.abcp
                 {
                     if( i < popSize / 2)
                     {
+                        _chromosomes[i] = new Chromosome();
                         _chromosomes[i].Generate("full", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
                     }
                     else
                     {
+                        _chromosomes[i] = new Chromosome();
                         _chromosomes[i].Generate("grow", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
                     }
                     
@@ -185,6 +187,7 @@ namespace antico.abcp
                 else
                 {
                     // Full or grow method.
+                    _chromosomes[i] = new Chromosome();
                     _chromosomes[i].Generate(generatingTreesMethod, initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
                 }
 
