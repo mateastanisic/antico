@@ -143,7 +143,7 @@ namespace antico.abcp
             // Associate initial values. 
 
             this._populationSize = 50; // 500
-            this._maxNumberOfIterations = 100;
+            this._maxNumberOfIterations = 10; // 100
             this._maxNumberOfNotImprovingIterations = 50;
             this._initialMaxDepth = 6; //6
             this._maxDepth = 7; //15

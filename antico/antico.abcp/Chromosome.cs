@@ -1266,102 +1266,6 @@ namespace antico.abcp
                 // Node with given arity is not expected. 
                 throw new Exception("[CalculateDepths] Given node arity = " + this.arity + " is not expected! Arity higher than 2 is not covered yet!");
             }
-
-        }
-
-        /// <summary>
-        /// Calculate depth of subtree.
-        /// </summary>
-        /// <param name="maxDepth">Reference to variable that remembers current maximal depth of a tree.</param>
-        public void CalculateDepth(ref int maxDepth)
-        {
-            // If node is null call to the method should not be preformed.
-            if (this == null)
-            {
-                throw new Exception("[CalculateDepth] Node is null. Not possible since all cases should be already covered.");
-            }
-
-            if (this.arity == 0)
-            {
-                // If terminal node.
-
-                #region exceptions
-                // Check that node type is terminal.
-                if (this.type != "terminal")
-                {
-                    throw new Exception("[CalculateDepth] Node has arity = 0 but his type is: " + this.type + " (not terminal).");
-                }
-
-                // Check that this node has no child node.
-                if (this.children != null)
-                {
-                    throw new Exception("[CalculateDepth] Node has arity = 0 but has " + this.children.Count + " child nodes.");
-                }
-                #endregion
-
-                // Check if higher depth.
-                if (this.depth > maxDepth)
-                {
-                    maxDepth = this.depth;
-                }
-
-                // Done.
-                return;
-            }
-            else if (this.arity == 1)
-            {
-                // If non-terminal node with arity 1.
-
-                #region exceptions
-                // Check that node type is non-teminal.
-                if (this.type != "non-terminal")
-                {
-                    throw new Exception("[CalculateDepth] Node has arity = 1 but his type is: " + this.type + " (not non-terminal).");
-                }
-
-                // Check that this node has 1 child node.
-                if (this.children.Count != 1)
-                {
-                    throw new Exception("[CalculateDepth] Node has arity = 1 but has " + this.children.Count + " child nodes.");
-                }
-                #endregion
-
-                // Update depth of the child node.
-                this.children[0].CalculateDepth(ref maxDepth);
-
-                // Done.
-                return;
-            }
-            else if (this.arity == 2)
-            {
-                // If non-terminal node with arity 2.
-
-                #region exceptions 
-                // Check that node type is non-teminal.
-                if (this.type != "non-terminal")
-                {
-                    throw new Exception("[CalculateDepth] Node has arity = 2 but his type is: " + this.type + " (not non-terminal).");
-                }
-
-                // Check that this node has 2 child nodes.
-                if (this.children.Count != 2)
-                {
-                    throw new Exception("[CalculateDepth] Node has arity = 2 but has " + this.children.Count + " child nodes.");
-                }
-                #endregion
-
-                // Update depth of the child nodes.
-                this.children[0].CalculateDepth(ref maxDepth);
-                this.children[1].CalculateDepth(ref maxDepth);
-
-                // Done.
-                return;
-            }
-            else
-            {
-                // Node with given arity is not expected. 
-                throw new Exception("[CalculateDepth] Given node arity = " + this.arity + " is not expected! Arity higher than 2 is not covered yet!");
-            }
         }
         #endregion
 
@@ -1715,18 +1619,6 @@ namespace antico.abcp
 
             // Calculate accuracy and return.
             return correct / (double) (data.Rows.Count);
-        }
-        #endregion
-
-        #region Calculate new depth of chromosome tree
-        /// <summary>
-        /// Helper method for updating new depth of chromosome tree structure.
-        /// </summary>
-        internal void CalculateNewDepthOfTree()
-        {
-            int newDepth = 0;
-            this.symbolicTree.CalculateDepth(ref newDepth);
-            this.depth = newDepth;
         }
         #endregion
 

@@ -146,8 +146,10 @@ namespace antico.abcp
             // -- DONE IN CONSTRUCTOR --
 
             // 3: Memorize the best. 
-            Tuple<Chromosome, int> BestSolution = this.population.BestSolution();
-            double BestFitness = BestSolution.Item1.fitness;
+            Tuple<Chromosome, int> BestSolutionAndIndex = this.population.BestSolution();
+            Chromosome BestSolution = BestSolutionAndIndex.Item1;
+            double BestFitness = BestSolution.fitness;
+            int BestIndex = BestSolutionAndIndex.Item2;
 
             // 4: Set the cycle counter(cycle = 0)
             int Iteration = 0;
@@ -206,56 +208,65 @@ namespace antico.abcp
                 }
                 #endregion
 
+                // Find new best solution.
+                Tuple<Chromosome, int> BestSolutionAfterE = this.population.BestSolution();
                 // Calculate the probability values ( P_i ) for the solutions.
-                this.population.CalculateProbabilities(BestSolution.Item2, this.parameters.alpha);
+                this.population.CalculateProbabilities(BestSolutionAfterE.Item2, this.parameters.alpha);
 
                 #region ----- ONLOOK BEES PHASE -----
+                // Number of onlookers.
+                int o = 0;
+                // Food source index <-> Chromosome index.
+                int f = 0;
+
                 // For all onlooker bees do ...
                 // (number of onlookers bees are same as population size)
-                for ( var o = 0; o < this.parameters.populationSize; o++)
+                while (o < this.parameters.populationSize)
                 {
-
                     // Select a solution OldSolution depending on P_i. 
                     // Better solutions have higher probabilities so we will select this solution if it has higher probability.
-                    bool SelectThisSolution = rand.Next(100) < (this.population.probabilities[o] * 100) ? true : false;
+                    bool SelectThisSolution = rand.Next(100) < (this.population.probabilities[f] * 100) ? true : false;
 
-                    if( !SelectThisSolution)
+                    #region food source not selected by onlooker bee
+                    // It is choosed not to select this solution.
+                    if (!SelectThisSolution)
                     {
-                        // It is choosed not to select this solution.
+                        // Update source.
+                        f++;
+                        // Check if came to the end.
+                        if (f == this.population.populationSize)
+                        {
+                            f = 0;
+                        }
                         continue;
                     }
+                    #endregion
+
+                    #region food source selected by onlooker bee
+                    // Use onlooker bee for this source.
+                    o++;
 
                     // Calculate NewSolution using information sharing mechanism.
-                    Chromosome NewSolutionOnlook;
+                    Chromosome NewSolutionOnlook = new Chromosome();
 
                     double OldFitnessOnlook, NewFitnessOnlook;
 
                     // Save the cost function value of the current solution.
-                    OldFitnessOnlook = this.population[o].fitness;
+                    OldFitnessOnlook = this.population[f].fitness;
 
                     #region information sharing mechanism
-                    // If current solution is the best solution, choose randomly second parent.
-                    if (o == BestSolution.Item2)
-                    {
-                        // Randomly choose another solution.
-                        
-                        int i;
+                    // Randomly choose another solution.
+                    int r;
 
-                        // Check that randomly choosen solution is noth current solution.
-                        while (true)
-                        {
-                            i = rand.Next(this.parameters.populationSize);
-                            if (i != o)
-                                break;
-                        }
-
-                        NewSolutionOnlook = this.population.Crossover(this.population[o], this.population[i], this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
-                    }
-                    else
+                    // Check that randomly choosen solution is noth current solution.
+                    while (true)
                     {
-                        // Crossover current solution with the best solution.
-                        NewSolutionOnlook = this.population.Crossover(this.population[o], BestSolution.Item1, this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
+                        r = rand.Next(this.parameters.populationSize);
+                        if (r != f)
+                            break;
                     }
+
+                    NewSolutionOnlook = (Chromosome)this.population.Crossover((Chromosome)this.population[f].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
                     #endregion
 
                     // Calculate the cost function value of new solution.
@@ -268,13 +279,22 @@ namespace antico.abcp
                     // Update solution if better.
                     if (NewFitnessOnlook > OldFitnessOnlook)
                     {
-                        this.population[o] = NewSolutionOnlook.Clone();
+                        this.population[f] = (Chromosome)NewSolutionOnlook.Clone();
 
                         // Solution has become better. Put Limit of that solution to 0.
-                        Limits[o] = 0;
+                        Limits[f] = 0;
 
                         // Solution has become better. Put TestLimit of that solution to 1.
-                        TestLimits[o] = 1;
+                        TestLimits[f] = 1;
+                    }
+                    #endregion
+
+                    // Update source.
+                    f++;
+                    // Check if came to the end.
+                    if (f == this.population.populationSize)
+                    {
+                        f = 0;
                     }
                     #endregion
                 }
@@ -296,19 +316,26 @@ namespace antico.abcp
                     if ( Limits[s] >= this.parameters.limit )
                     {
                         // If that is so, generate new solution using "grow" method.
-                        this.population[s].Generate("grow", this.parameters.initialMaxDepth, this.data.featureNames, this.data.trainFeatures, this.data.mathOperations, this.data.mathOperationsArity);
+                        Chromosome NewSolutionScout = new Chromosome();
+                        NewSolutionScout.Generate("grow", this.parameters.initialMaxDepth, this.data.featureNames, this.data.trainFeatures, this.data.mathOperations, this.data.mathOperationsArity);
+                        this.population[s] = (Chromosome)NewSolutionScout.Clone();
                     }
                 }
                 #endregion
 
                 // Save new best solution.
-                BestSolution = this.population.BestSolution();
+                var NewBestSolutionAndIndex = this.population.BestSolution();
 
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
-                if ( BestSolution.Item1.fitness != BestFitness)
+                if (NewBestSolutionAndIndex.Item1.fitness != BestFitness )
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
                     IterationNotImproving = 0;
+
+                    // Update BestSolution, BestFitness and bestIndex.
+                    BestSolution = (Chromosome)NewBestSolutionAndIndex.Item1.Clone();
+                    BestFitness = BestSolution.fitness;
+                    BestIndex = NewBestSolutionAndIndex.Item2;
                 }
                 else
                 {
@@ -316,18 +343,14 @@ namespace antico.abcp
                     IterationNotImproving++;
                 }
 
-                // Update BestFitness.
-                BestFitness = BestSolution.Item1.fitness;
-
                 // Increase number of done iterations.
                 Iteration++;
 
                 // Maybe this?
                 // if( BestFitness == 1 ) break;
-
             }
 
-            return BestSolution.Item1;
+            return BestSolution;
         }
         #endregion
 

@@ -210,7 +210,7 @@ namespace antico.abcp
             }
 
             // Probabilities are calculated in ABCP algorithm.
-            this._probabilities = null;
+            this._probabilities = new double[popSize];
         }
         #endregion
 
@@ -246,7 +246,7 @@ namespace antico.abcp
                 SeparateIndices(primaryParentClone.symbolicTree, ref nonTerminalIndicesOfPrimaryParent, ref terminalIndicesOfPrimaryParent);
 
                 // Randomly select non-terminal or terminal (probability of selecting non-terminal is predefined) from secundary parent.
-                if ((rand.Next(100) < (probability * 100)) && (nonTerminalIndicesOfPrimaryParent.Count != 0))
+                if ((rand.Next(100) < (probability * 100)) && (nonTerminalIndicesOfPrimaryParent.Count > 1))
                 {
                     // Index of the (to-be) selected non-terminal.
                     int crossoverPointOfPrimaryParent;
@@ -323,7 +323,7 @@ namespace antico.abcp
             // Update number of nodes in child solution.
             child.numberOfNodesInTree = child.symbolicTree.NumberOfNodes();
             // Update depth of child solution.
-            child.CalculateNewDepthOfTree();
+            child.symbolicTree.DepthOfSymbolicTree();
             // Update fitness.
             child.CalculateFitness(data);
 
@@ -750,14 +750,14 @@ namespace antico.abcp
             // Array for function fit ( fit(Solution_i) = (1 + fitness(Solution_i))/2 [cannot be zero!] ).
             double[] fit = new double[this.populationSize];
 
-            // First, calculate fit for the best solution.
+            // First, calculate fit for the best solution (quality).
             fit[bestSolutionIndex] = (1 + this.chromosomes[bestSolutionIndex].fitness) / 2;
 
             // Calculate probabilities for all solutions.
             for (var i = 0; i < this.populationSize; i++)
             {
-                fit[i] = (1 + this.chromosomes[i].fitness) / 2;
-                this.probabilities[i] = (1 - alpha) + ( (alpha * fit[i]) / fit[bestSolutionIndex] );
+                fit[i] = (double)(1 + this.chromosomes[i].fitness) / (double)2;
+                this.probabilities[i] = (double)(1 - alpha) + (double)( (alpha * fit[i]) / fit[bestSolutionIndex] );
             }
         }
         #endregion
