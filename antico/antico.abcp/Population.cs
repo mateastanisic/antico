@@ -28,6 +28,11 @@ namespace antico.abcp
     {
         #region ATTRIBUTES 
 
+        #region random
+        // Variable for generating random numbers.
+        private static Random rand;
+        #endregion
+
         #region population size
         // Variable that represents size of population.
         private int _populationSize;
@@ -54,7 +59,7 @@ namespace antico.abcp
                 _probabilities = new double[value.Length];
 
                 // Deep copy.
-                for( var i = 0; i < value.Length; i++)
+                for (var i = 0; i < value.Length; i++)
                 {
                     _probabilities[i] = value[i];
                 }
@@ -76,9 +81,9 @@ namespace antico.abcp
                 _chromosomes = new Chromosome[value.Length];
 
                 // Deep copy every model.
-                for ( var i = 0; i < value.Length; i++)
+                for (var i = 0; i < value.Length; i++)
                 {
-                    _chromosomes[i] = value[i].Clone();
+                    _chromosomes[i] = (Chromosome)value[i].Clone();
                 }
             }
         }
@@ -88,13 +93,23 @@ namespace antico.abcp
 
         #region OPERATIONS
 
+        #region Static constructor
+        /// <summary>
+        /// New static random.
+        /// </summary>
+        static Population()
+        {
+            rand = new Random();
+        }
+        #endregion
+
         #region Overloading operators
         /// <summary>
         /// Overloading Equals.
         /// </summary>
         /// <param name="obj">Another population.</param>
         /// <returns> True if current population and object are same, otherwise false. </returns>
-        public override bool Equals(object obj)
+        public override bool Equals( object obj )
         {
             return base.Equals(obj);
         }
@@ -128,7 +143,7 @@ namespace antico.abcp
             {
                 if (index < 0 && index >= this._chromosomes.Length)
                 {
-                    throw new IndexOutOfRangeException("Index out of range");
+                    throw new IndexOutOfRangeException("[Population indexer - overloading operator] Index out of range");
                 }
 
                 return this._chromosomes[index];
@@ -137,10 +152,10 @@ namespace antico.abcp
             {
                 if (index < 0 && index >= this._chromosomes.Length)
                 {
-                    throw new IndexOutOfRangeException("Index out of range");
+                    throw new IndexOutOfRangeException("[Population indexer - overloading operator] Index out of range");
                 }
 
-                this._chromosomes[index] = value.Clone();
+                this._chromosomes[index] = (Chromosome)value.Clone();
             }
         }
 
@@ -156,7 +171,7 @@ namespace antico.abcp
         /// <param name="terminalNames">String representations of terminal names.</param>
         /// <param name="terminals">Actual values for each terminal for each training example.</param>
         /// <param name="generatingTreesMethod">Method for generating symbolic tree.</param>
-        public Population(int popSize, int initialMaxDepth, string[] nonTerminals, Dictionary<string,int> mathOperationsArity, string[] terminalNames, DataTable terminals, string generatingTreesMethod )
+        public Population( int popSize, int initialMaxDepth, string[] nonTerminals, Dictionary<string,int> mathOperationsArity, string[] terminalNames, DataTable terminals, string generatingTreesMethod )
         {
             // Set population size.
             this._populationSize = popSize;
@@ -165,21 +180,24 @@ namespace antico.abcp
             this._chromosomes = new Chromosome[popSize];
 
             // Generate population of chromosomes.
-            for( var i = 0; i < popSize; i++)
+            for (var i = 0; i < popSize; i++)
             {
+                // Create new solution.
+                _chromosomes[i] = new Chromosome();
+
                 // Check depending on symbolic tree generating method.
 
                 // Ramped half and half method has half of population generated with full method, and other half with grow method.
-                if( generatingTreesMethod == "ramped" )
+                if (generatingTreesMethod == "ramped")
                 {
-                    if( i < popSize / 2)
+                    if (i < popSize / 2)
                     {
-                        _chromosomes[i] = new Chromosome();
+                        // Half population generate with full method.
                         _chromosomes[i].Generate("full", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
                     }
                     else
                     {
-                        _chromosomes[i] = new Chromosome();
+                        // Other half generate with grow method.
                         _chromosomes[i].Generate("grow", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
                     }
                     
@@ -187,123 +205,502 @@ namespace antico.abcp
                 else
                 {
                     // Full or grow method.
-                    _chromosomes[i] = new Chromosome();
                     _chromosomes[i].Generate(generatingTreesMethod, initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
                 }
-
-                
             }
 
-            // Probabilities are calculated from algorithm.
+            // Probabilities are calculated in ABCP algorithm.
             this._probabilities = null;
-
         }
         #endregion
 
         #region Crossover
+
         /// <summary>
         /// Crossover of the two chromosomes.
         /// </summary>
-        /// <param name="parent1"> First chromosome (parent) that is part of the crossover. </param>
-        /// <param name="parent2"> Second chromosome (parent) that is part of the crossover. </param>
-        /// <returns> Child chromosome. </returns>
-        public Chromosome Crossover( Chromosome parent1, Chromosome parent2, int maxDepth, DataTable data, double probability )
+        /// <param name="primaryParent"> First - primary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="secundaryParent"> Secondary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="maxDepth">Maximal depth of trees in population.</param>
+        /// <param name="data">Feature values - for calculating fitness.</param>
+        /// <param name="probability">Probability of choosing non-terminal.</param>
+        /// <returns> New solution created with crossover. </returns>
+        public Chromosome Crossover( Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable data, double probability )
         {
-            // Child chromosome that will be created using crossover of parent1 and parent2.
-            Chromosome child = new Chromosome();
+            // Make clones of solutions.
+            Chromosome primaryParentClone = (Chromosome)primaryParent.Clone();
+            Chromosome secundaryParentClone = (Chromosome)secundaryParent.Clone();
 
-            // Using random for generating random position of crossover point.
-            var rand = new Random();
+            // Index of crossover point in primary parent.
+            int indexOfCrossoverPointOfPrimaryParent;
+            // Subtree of crossover point in secundary parent.
+            SymbolicTreeNode crossoverSubtreeOfSecundaryParent = new SymbolicTreeNode();
 
-            // With probability sent by parameter, choose if crossoverPoint will be terminal or non terminal.
-            bool chooseNonTerminal = rand.Next(100) < (probability * 100) ? true : false;
-
-            // Randomly select breaking points of parent chromosomes.
-            // Those integers will represent index of the node in preorder touring of tree.
-            // Do not consider crossover point at root node in first parent since in that way we would be cloning second parent into a child.
-            int crossoverPoint1 = rand.Next(1, parent1.numberOfNodesInTree);
-            int crossoverPoint2 = rand.Next(parent2.numberOfNodesInTree);
-
-            // Variables to be used in loop.
-            int depth1, depth2;
-            SymbolicTreeNode nodeAtPoint1, nodeAtPoint2;
-
-            // Until we found crossover points that satisfy condition on depth of child tree.
-            while ( true )
+            // Search for crossover points in parents until they that satisfy condition on depth of child.
+            while (true)
             {
-                // Find nodes from parents with randomly choosen index (index of preorder touring of the tree).
-                nodeAtPoint1 = parent1.symbolicTree.FindNodeWithIndex(crossoverPoint1);
-                nodeAtPoint2 = parent2.symbolicTree.FindNodeWithIndex(crossoverPoint2);
+                #region primary parent crossover point selection
+                // Make list of nonTerminal and terminal indices in primaryParent.
+                List<int> nonTerminalIndicesOfPrimaryParent = new List<int>();
+                List<int> terminalIndicesOfPrimaryParent = new List<int>();
+                SeparateIndices(primaryParentClone.symbolicTree, ref nonTerminalIndicesOfPrimaryParent, ref terminalIndicesOfPrimaryParent);
 
-                // Check if choosen crossover points are nonterminals/terminals, depending on randomly 
-                // defined variable chooseNonTerminal.
-                if( (chooseNonTerminal && ( nodeAtPoint1.type != "non-terminal" || nodeAtPoint2.type != "non-terminal" ) )
-                    || (!chooseNonTerminal && (nodeAtPoint1.type != "terminal" || nodeAtPoint2.type != "terminal")))
+                // Randomly select non-terminal or terminal (probability of selecting non-terminal is predefined) from secundary parent.
+                if ((rand.Next(100) < (probability * 100)) && (nonTerminalIndicesOfPrimaryParent.Count != 0))
                 {
-                    // generate crossover points again since conditions are not met.
-                    crossoverPoint1 = rand.Next(1, parent1.numberOfNodesInTree);
-                    crossoverPoint2 = rand.Next(parent2.numberOfNodesInTree);
+                    // Index of the (to-be) selected non-terminal.
+                    int crossoverPointOfPrimaryParent;
+
+                    // Do not consider crossover point at root node (index = 0) in first parent since in that way we would be cloning second parent into a child.
+                    while (true)
+                    {
+                        // Chose index of a non-terminal node from secundary parent.
+                        crossoverPointOfPrimaryParent = rand.Next(nonTerminalIndicesOfPrimaryParent.Count);
+                        if (crossoverPointOfPrimaryParent != 0)
+                            break;
+                    }
+
+                    // Clone selected subtree.
+                    indexOfCrossoverPointOfPrimaryParent = nonTerminalIndicesOfPrimaryParent[crossoverPointOfPrimaryParent];
                 }
+                else
+                {
+                    // Chose index of a non-terminal node from secundary parent.
+                    int crossoverPointOfPrimaryParent = rand.Next(terminalIndicesOfPrimaryParent.Count);
 
+                    // Clone selected subtree.
+                    indexOfCrossoverPointOfPrimaryParent = terminalIndicesOfPrimaryParent[crossoverPointOfPrimaryParent];
+                }
+                #endregion
 
-                // Get depth of the selected node from the first parent.
-                depth1 = nodeAtPoint1.depth;
+                #region secundary parent crossover point selection
+                // Make list of nonTerminal and terminal nodes in secundaryParent.
+                List<SymbolicTreeNode> nonTerminalNodesOfSecundaryParent = new List<SymbolicTreeNode>();
+                List<SymbolicTreeNode> terminalNodesOfSecundaryParent = new List<SymbolicTreeNode>();
+                SeparateNodes(secundaryParentClone.symbolicTree, ref nonTerminalNodesOfSecundaryParent, ref terminalNodesOfSecundaryParent);
 
-                // Get depth of the subtree whose root node is selected node from second parent.
-                depth2 = nodeAtPoint2.DepthOfSymbolicTree();
+                // Randomly select non-terminal or terminal (probability of selecting non-terminal is predefined) from secundary parent.
+                if ((rand.Next(100) < (probability * 100)) && (nonTerminalNodesOfSecundaryParent.Count != 0))
+                {
+                    // Chose index of a non-terminal node from secundary parent.
+                    int crossoverPointOfSecundaryParent = rand.Next(nonTerminalNodesOfSecundaryParent.Count);
 
-                /// <summary>
-                /// Child node will be created from tree of first parent without subtree whose root node is 
-                /// the selected node from first parent 
-                /// AND 
-                /// from subtree whose root node is the selected node from second parent.
-                /// 
-                /// So, we need to check that child tree created in described way will not exceed maximal depth
-                /// of the tree defined by parameters.
-                /// </summary>
-                if ((depth1 + depth2) < maxDepth)
+                    // Clone selected subtree.
+                    crossoverSubtreeOfSecundaryParent = (SymbolicTreeNode)nonTerminalNodesOfSecundaryParent[crossoverPointOfSecundaryParent].Clone();
+                }
+                else
+                {
+                    // Chose index of a non-terminal node from secundary parent.
+                    int crossoverPointOfSecundaryParent = rand.Next(terminalNodesOfSecundaryParent.Count);
+
+                    // Clone selected subtree.
+                    crossoverSubtreeOfSecundaryParent = (SymbolicTreeNode)terminalNodesOfSecundaryParent[crossoverPointOfSecundaryParent].Clone();
+                }
+                #endregion
+
+                int depth1 = primaryParent.symbolicTree.FindNodeWithIndex(indexOfCrossoverPointOfPrimaryParent).depth;
+                int depth2 = crossoverSubtreeOfSecundaryParent.DepthOfSymbolicTree();
+                if (depth1 + depth2 < maxDepth)
                     break;
 
-                // Condition is not met. Randomly generate new crossover points.
-
-                // Randomly select breaking points of parent chromosomes.
-                // Those integers will represent index of the node in preorder touring of tree.
-                // Do not consider crossover point at root node in first parent since in that way we would be cloning second parent into a child.
-                crossoverPoint1 = rand.Next(1, parent1.numberOfNodesInTree);
-                crossoverPoint2 = rand.Next(parent2.numberOfNodesInTree);
             }
 
-            // We found crossover points. 
-            // Create child.
+            // Variable for tracking if we found the crossover point in PlaceNodeAtPoint method.
+            bool found = false;
 
-            // Number of possible terminals is same as on parents.
-            child.numberOfPossibleTerminals = parent1.numberOfPossibleTerminals;
+            // Place subtree of secondary parent in primary parent crossover point to create a child.
+            var ret = PlaceNodeAtPoint((SymbolicTreeNode)primaryParentClone.symbolicTree, indexOfCrossoverPointOfPrimaryParent, crossoverSubtreeOfSecundaryParent, ref found);
 
-            //Change depth of the created child.
-            if( parent1.depth > (depth1 + depth2))
+            // Solution created with crossover.
+            Chromosome child = new Chromosome();
+
+            // Update child tree.
+            child.symbolicTree = ret.Item1;
+            // Node indices should be re-calculated.
+            child.symbolicTree.CalculateIndices();
+            // Update number of possible terminals.
+            child.numberOfPossibleTerminals = primaryParent.numberOfPossibleTerminals;
+            // Update number of nodes in child solution.
+            child.numberOfNodesInTree = child.symbolicTree.NumberOfNodes();
+            // Update depth of child solution.
+            child.CalculateNewDepthOfTree();
+            // Update fitness.
+            child.CalculateFitness(data);
+
+            return child;
+        }
+
+        #region helper methods for crossover
+        /// <summary>
+        /// Recursive helper method for separating node indices based on terminal/non-terminal property.
+        /// </summary>
+        /// <param name="node">Root or current node.</param>
+        /// <param name="nonTerminalIndicesOfPrimaryParent">Reference of a list of non-terminal indices.</param>
+        /// <param name="terminalIndicesOfPrimaryParent">Reference of a list of terminal indices.</param>
+        private void SeparateIndices(SymbolicTreeNode node, ref List<int> nonTerminalIndicesOfPrimaryParent, ref List<int> terminalIndicesOfPrimaryParent)
+        {
+            if (node == null)
+                return;
+
+            if (node.arity == 0)
             {
-                // Adding subtree from second parent will not enlarge depth of a child.
-                child.depth = parent1.depth;
+                // If terminal node.
+
+                #region exceptions
+                // Check that node type is terminal.
+                if (node.type != "terminal")
+                {
+                    throw new Exception("[SeparateIndices] Node has arity = 0 but his type is: " + node.type + " (not terminal).");
+                }
+
+                // Check that this node has no child node.
+                if (node.children != null)
+                {
+                    throw new Exception("[SeparateIndices] Node has arity = 0 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Everything fine, add node to list of terminal nodes.
+                terminalIndicesOfPrimaryParent.Add(node.index);
+                return;
+            }
+            else if (node.arity == 1)
+            {
+                // If non-terminal node with arity 1.
+
+                #region exceptions
+                // Check that node type is non-teminal.
+                if (node.type != "non-terminal")
+                {
+                    throw new Exception("[SeparateIndices] Node has arity = 1 but his type is: " + node.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 1 child node.
+                if (node.children.Count != 1)
+                {
+                    throw new Exception("[SeparateIndices] Node has arity = 1 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Everything fine, add node to nonTerminal list and call SeparateNodes of his child node.
+                nonTerminalIndicesOfPrimaryParent.Add(node.index);
+                SeparateIndices(node.children[0], ref nonTerminalIndicesOfPrimaryParent, ref terminalIndicesOfPrimaryParent);
+                return;
+            }
+            else if (node.arity == 2)
+            {
+                // If non-terminal node with arity 2.
+
+                #region exceptions
+                // Check that node type is non-teminal.
+                if (node.type != "non-terminal")
+                {
+                    throw new Exception("[SeparateIndices] Node has arity = 2 but his type is: " + node.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 2 child nodes.
+                if (node.children.Count != 2)
+                {
+                    throw new Exception("[SeparateIndices] Node has arity = 2 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Everything fine, call SeparateNodes on his left child node, add node to nonTerminal list and call SeparateNodes on his right child node.
+                SeparateIndices(node.children[0], ref nonTerminalIndicesOfPrimaryParent, ref terminalIndicesOfPrimaryParent);
+                nonTerminalIndicesOfPrimaryParent.Add(node.index);
+                SeparateIndices(node.children[1], ref nonTerminalIndicesOfPrimaryParent, ref terminalIndicesOfPrimaryParent);
+                return;
             }
             else
             {
-                // Adding subtree from second parent enlarges depth of a child.
-                child.depth = depth1 + depth2;
+                // Node with given arity is not expected. 
+                throw new Exception("[SeparateIndices] Given node arity = " + node.arity + " is not expected! Arity higher than 2 is not covered yet!");
+            }
+        }
+
+        /// <summary>
+        /// Recursive helper method for creating preorder list of non-terminal and terminal nodes.
+        /// </summary>
+        /// <param name="node">Root or current node.</param>
+        /// <param name="nonTerminalNodesOfSecundaryParent">Reference of a list of non-terminal nodes.</param>
+        /// <param name="terminalNodesOfSecundaryParent">Reference of a list of terminal nodes.</param>
+        private void SeparateNodes(SymbolicTreeNode node, ref List<SymbolicTreeNode> nonTerminalNodesOfSecundaryParent, ref List<SymbolicTreeNode> terminalNodesOfSecundaryParent)
+        {
+            if (node == null)
+                return;
+
+            if (node.arity == 0)
+            {
+                // If terminal node.
+
+                #region exceptions
+                // Check that node type is terminal.
+                if (node.type != "terminal")
+                {
+                    throw new Exception("[SeparateNodes] Node has arity = 0 but his type is: " + node.type + " (not terminal).");
+                }
+
+                // Check that this node has no child node.
+                if (node.children != null)
+                {
+                    throw new Exception("[SeparateNodes] Node has arity = 0 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Everything fine, add node to list of terminal nodes.
+                terminalNodesOfSecundaryParent.Add(node);
+                return;
+            }
+            else if (node.arity == 1)
+            {
+                // If non-terminal node with arity 1.
+
+                #region exceptions
+                // Check that node type is non-teminal.
+                if (node.type != "non-terminal")
+                {
+                    throw new Exception("[SeparateNodes] Node has arity = 1 but his type is: " + node.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 1 child node.
+                if (node.children.Count != 1)
+                {
+                    throw new Exception("[SeparateNodes] Node has arity = 1 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Everything fine, add node to nonTerminal list and call SeparateNodes of his child node.
+                nonTerminalNodesOfSecundaryParent.Add(node);
+                SeparateNodes(node.children[0], ref nonTerminalNodesOfSecundaryParent, ref terminalNodesOfSecundaryParent);
+                return;
+            }
+            else if (node.arity== 2)
+            {
+                // If non-terminal node with arity 2.
+
+                #region exceptions
+                // Check that node type is non-teminal.
+                if (node.type != "non-terminal")
+                {
+                    throw new Exception("[SeparateNodes] Node has arity = 2 but his type is: " + node.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 2 child nodes.
+                if (node.children.Count != 2)
+                {
+                    throw new Exception("[SeparateNodes] Node has arity = 2 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Everything fine, call SeparateNodes on his left child node, add node to nonTerminal list and call SeparateNodes on his right child node.
+                SeparateNodes(node.children[0], ref nonTerminalNodesOfSecundaryParent, ref terminalNodesOfSecundaryParent);
+                nonTerminalNodesOfSecundaryParent.Add(node);
+                SeparateNodes(node.children[1], ref nonTerminalNodesOfSecundaryParent, ref terminalNodesOfSecundaryParent);
+                return;
+            }
+            else
+            {
+                // Node with given arity is not expected. 
+                throw new Exception("[SeparateNodes] Given node arity = " + node.arity +  " is not expected! Arity higher than 2 is not covered yet!");
+            }
+        }
+
+        /// <summary>
+        /// Recursive helper method for placing given subtree at the specific point (at node with index).
+        /// </summary>
+        /// <param name="node">Chromosome (or its child node) to be changed.</param>
+        /// <param name="indexOfCrossoverPointOfPrimaryParent">Index of changing point.</param>
+        /// <param name="crossoverSubtreeOfSecundaryParent">Subtree to be added at changing point.</param>
+        /// <param name="found">Reference to a variable that represents if node with given index is found. It is used for better preformance.</param>
+        /// /// <returns> New, or old, (sub)tree. </returns>
+        private Tuple<SymbolicTreeNode, bool> PlaceNodeAtPoint(SymbolicTreeNode node, int indexOfCrossoverPointOfPrimaryParent, SymbolicTreeNode crossoverSubtreeOfSecundaryParent, ref bool found)
+        {
+            // Node is previously found - return tuple of current node and found variable.
+            if (found)
+            {
+                return new Tuple<SymbolicTreeNode, bool>(node, found);
             }
 
-            // Create child from parents.
-            child.symbolicTree = parent1.symbolicTree.CreateUsing(crossoverPoint1, nodeAtPoint2);
+            // If node is null call to the method should not be preformed.
+            if (node == null)
+            {
+                throw new Exception("[PlaceNodeAtPoint] Node is null. Not possible since all cases should be already covered.");
+            }
 
-            // Calculate fitness of the newly created child.
-            child.CalculateFitness(data);
 
-            // Calculating number of nodes in newly created SYmbolicTree.
-            child.numberOfNodesInTree = child.symbolicTree.NumberOfNodes();
+            if (node.arity == 0)
+            {
+                // If terminal node.
 
-            // DONE.
-            return child;
+                #region exceptions
+                // Check that node type is terminal.
+                if (node.type != "terminal")
+                {
+                    throw new Exception("[PlaceNodeAtPoint] Node has arity = 0 but his type is: " + node.type + " (not terminal).");
+                }
+
+                // Check that this node has no child node.
+                if (node.children != null)
+                {
+                    throw new Exception("[PlaceNodeAtPoint] Node has arity = 0 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                #region check if current node is the one (return if true)
+                // Everything fine, check if we found right node.
+                if (indexOfCrossoverPointOfPrimaryParent == node.index)
+                {
+                    // Save current depth.
+                    int currentDepth = node.depth;
+                    // Update node.
+                    node = (SymbolicTreeNode)crossoverSubtreeOfSecundaryParent.Clone();
+                    // Update variable found.
+                    found = true;
+                    // Update depths of new subtree.
+                    node.CalculateDepths(currentDepth);
+
+                    return new Tuple<SymbolicTreeNode, bool>(node, found);
+                }
+                #endregion
+
+                // Node was not found.
+                return new Tuple<SymbolicTreeNode, bool>(node, found);
+            }
+            else if (node.arity == 1)
+            {
+                // If non-terminal node with arity 1.
+
+                #region exceptions
+                // Check that node type is non-teminal.
+                if (node.type != "non-terminal")
+                {
+                    throw new Exception("[PlaceNodeAtPoint] Node has arity = 1 but his type is: " + node.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 1 child node.
+                if (node.children.Count != 1)
+                {
+                    throw new Exception("[PlaceNodeAtPoint] Node has arity = 1 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                #region check if current node is the one (return if true)
+                // Everything fine, check if we found right node.
+                if (indexOfCrossoverPointOfPrimaryParent == node.index)
+                {
+                    // Save current depth.
+                    int currentDepth = node.depth;
+                    // Update node.
+                    node = (SymbolicTreeNode)crossoverSubtreeOfSecundaryParent.Clone();
+                    // Update variable found.
+                    found = true;
+                    // Update depths of new subtree.
+                    node.CalculateDepths(currentDepth);
+
+                    return new Tuple<SymbolicTreeNode, bool>(node, found);
+                }
+                #endregion
+
+                #region check child (return if found)
+                // Check subtree of current node since node is not yet found.
+                var retVal = PlaceNodeAtPoint((SymbolicTreeNode)node.children[0].Clone(), indexOfCrossoverPointOfPrimaryParent, crossoverSubtreeOfSecundaryParent, ref found);
+                // Update variable found.
+                found = retVal.Item2;
+
+                // Check if node is now found.
+                if (found)
+                {
+                    // Update node.
+                    node.children[0] = (SymbolicTreeNode)retVal.Item1.Clone();
+                    return new Tuple<SymbolicTreeNode, bool>(node, found);
+                }
+                #endregion
+
+                // Node was not found.
+                return new Tuple<SymbolicTreeNode, bool>(node, found);
+            }
+            else if (node.arity == 2)
+            {
+                // If non-terminal node with arity 2.
+
+                #region exceptions 
+                // Check that node type is non-teminal.
+                if (node.type != "non-terminal")
+                {
+                    throw new Exception("[PlaceNodeAtPoint] Node has arity = 2 but his type is: " + node.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 2 child nodes.
+                if (node.children.Count != 2)
+                {
+                    throw new Exception("[PlaceNodeAtPoint] Node has arity = 2 but has " + node.children.Count + " child nodes.");
+                }
+                #endregion
+
+                #region check if current node is the one (return if true)
+                // Everything fine, check if we found right node.
+                if (indexOfCrossoverPointOfPrimaryParent == node.index)
+                {
+                    // Save current depth.
+                    int currentDepth = node.depth;
+                    // Update node.
+                    node = (SymbolicTreeNode)crossoverSubtreeOfSecundaryParent.Clone();
+                    // Update variable found.
+                    found = true;
+                    // Update depths of new subtree.
+                    node.CalculateDepths(currentDepth);
+
+                    return new Tuple<SymbolicTreeNode, bool>(node, found);
+                }
+                #endregion
+
+                #region check left child (return if found)
+                // Check left subtree of current node.
+                Tuple<SymbolicTreeNode, bool> retValLeft = PlaceNodeAtPoint((SymbolicTreeNode)node.children[0].Clone(), indexOfCrossoverPointOfPrimaryParent, crossoverSubtreeOfSecundaryParent, ref found);
+
+                // Update variable found.
+                found = retValLeft.Item2;
+
+                // If node now found.
+                if (found)
+                {
+                    // Update node left child. Right child stays the same.
+                    node.children[0] = (SymbolicTreeNode)retValLeft.Item1.Clone();
+
+                    return new Tuple<SymbolicTreeNode, bool>(node, found);
+                }
+                #endregion
+
+                #region check right child (return if found)
+                // Node still not found.
+                // Check right subtree of current node.
+                Tuple<SymbolicTreeNode, bool> retValRight = PlaceNodeAtPoint((SymbolicTreeNode)node.children[1].Clone(), indexOfCrossoverPointOfPrimaryParent, crossoverSubtreeOfSecundaryParent, ref found);
+
+                // Update variable found.
+                found = retValRight.Item2;
+
+                // If node now found.
+                if (found)
+                {
+                    // Update node left child. Right child stays the same.
+                    node.children[1] = (SymbolicTreeNode)retValRight.Item1.Clone();
+
+                    return new Tuple<SymbolicTreeNode, bool>(node, found);
+                }
+                #endregion
+
+                // Node was not found.
+                return new Tuple<SymbolicTreeNode, bool>(node, found);
+            }
+            else
+            {
+                // Node with given arity is not expected. 
+                throw new Exception("[PlaceNodeAtPoint] Given node arity = " + node.arity + " is not expected! Arity higher than 2 is not covered yet!");
+            }
 
         }
+        #endregion
+
         #endregion
 
         #region Find best chromosome 
@@ -321,18 +718,17 @@ namespace antico.abcp
             int bestIndex = 0;
 
             // Iterating through all chromosomes.
-            for( var i = 0; i < this.chromosomes.Length; i++)
+            for (var i = 0; i < this.chromosomes.Length; i++)
             {
                 // If this chromosome has better fitness change best chromosome.
-                if ( this.chromosomes[i].fitness > best.fitness)
+                if (this.chromosomes[i].fitness > best.fitness)
                 {
                     // Deep copy.
-                    best = this.chromosomes[i].Clone();
+                    best = (Chromosome)this.chromosomes[i].Clone();
                     bestIndex = i;
                 }
             }
-
-            return Tuple.Create(best, bestIndex);
+            return new Tuple<Chromosome, int>(best, bestIndex);
         }
 
         #endregion
@@ -348,19 +744,20 @@ namespace antico.abcp
         /// 
         /// </summary>
         /// <param name="bestSolutionIndex"> Index of the best solution in the population. </param>
+        /// <param name="alpha"> Parametar alpha. </param>
         public void CalculateProbabilities( int bestSolutionIndex, double alpha )
         {
             // Array for function fit ( fit(Solution_i) = (1 + fitness(Solution_i))/2 [cannot be zero!] ).
-            double[] fit = new double[this._populationSize];
+            double[] fit = new double[this.populationSize];
 
             // First, calculate fit for the best solution.
-            fit[bestSolutionIndex] = (1 + this._chromosomes[bestSolutionIndex].fitness) / 2;
+            fit[bestSolutionIndex] = (1 + this.chromosomes[bestSolutionIndex].fitness) / 2;
 
             // Calculate probabilities for all solutions.
-            for ( var i = 0; i < this._populationSize; i++)
+            for (var i = 0; i < this.populationSize; i++)
             {
-                fit[i] = (1 + this._chromosomes[i].fitness) / 2;
-                this._probabilities[i] = (1 - alpha) + ( (alpha * fit[i]) / fit[bestSolutionIndex] );
+                fit[i] = (1 + this.chromosomes[i].fitness) / 2;
+                this.probabilities[i] = (1 - alpha) + ( (alpha * fit[i]) / fit[bestSolutionIndex] );
             }
         }
         #endregion

@@ -163,7 +163,7 @@ namespace antico.data
         /// Basic mathematical operators, loading features and feature names from postgresql database. 
         /// (FOR TESTING PURPOSES)
         /// </summary>
-        public Data( )
+        public Data()
         {
             // Deafult mathematical operations.
             _mathOperations = new string[] { "+", "-", "*", "/", "sin", "cos", "rlog", "exp"};
@@ -181,12 +181,15 @@ namespace antico.data
                 connection.Open();
 
                 // SQL query.
-                string sql_features = "SELECT * FROM clamp";
+                string sql_features = "SELECT * FROM clamp"; // TODO: HARDCODED
                 NpgsqlCommand command = new NpgsqlCommand(sql_features, connection);
 
                 // Loading data in DataTable variable.
                 _features = new DataTable();
                 _features.Load(command.ExecuteReader());
+
+                _trainFeatures = _features; // TODO
+                _testFeatures = _features; // TODO
 
                 // Allocate memory for feature names. (Remove one for label column)
                 // TODO: prettier
@@ -199,7 +202,7 @@ namespace antico.data
             {
                 // Could not open the database. Throw exception.
                 connection.Close();
-                throw new NpgsqlException("Failed loading data from database!");
+                throw new NpgsqlException("[Data constructor] Failed loading data from database!");
             }
 
             // Try loading feature names from database.
@@ -209,7 +212,7 @@ namespace antico.data
                 connection.Open();
 
                 // SQL query.
-                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = 'clamp'";
+                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = 'clamp'"; // TODO: HARDCODED
                 NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, connection);
 
                 // Loading feature names into _featureNames variable variable.
@@ -223,13 +226,12 @@ namespace antico.data
                     foreach (var item in row.ItemArray)
                     {
                         // Column "label" is not a feature!
-                        if (item.ToString() == "label")
+                        if (item.ToString() == "label") // TODO: HARDCODED
                             continue;
 
                         _featureNames[i] = item.ToString();
                         i++;
                     }
-
                 }
 
                 // Close the connection.
@@ -239,7 +241,7 @@ namespace antico.data
             {
                 // Could not open the database. Throw exception.
                 connection.Close();
-                throw new NpgsqlException("Failed loading data from database!");
+                throw new NpgsqlException("[Data constructor] Failed loading data from database!");
             }
 
 
@@ -261,7 +263,7 @@ namespace antico.data
         /// <param name="numberOfBestFeatures">Number of best features used in predicting a model.</param>
         public Data( string[] mathOperators, string featureExtractionMethod, string trainingDataType, int numberOfBestFeatures)
         {
-            // Choosed mathematical operations
+            // Choosed mathematical operations.
             _mathOperations = new string[mathOperators.Length];
 
             // Deep copy.
@@ -288,7 +290,7 @@ namespace antico.data
                     database = "malware_detection_features_fisher";
                     break;
                 default:
-                    throw new Exception("Desired feature extraction method is not available.");
+                    throw new Exception("[Data constructor with parameters] Desired feature extraction method is not available.");
             }
 
             // Depending on the desired number of the top features, define different database for loading data.
@@ -304,7 +306,7 @@ namespace antico.data
                     database += "_200";
                     break;
                 default:
-                    throw new Exception("Desired number of best features is not available.");
+                    throw new Exception("[Data constructor with parameters] Desired number of best features is not available.");
             }
 
             // Defining connection.
@@ -324,6 +326,10 @@ namespace antico.data
                 _features = new DataTable();
                 _features.Load(command.ExecuteReader());
 
+                // Allocate memory for feature names. (Remove one for label column)
+                // TODO: prettier
+                _featureNames = new string[_features.Columns.Count - 1];
+
                 // Close the connection.
                 connection.Close();
             }
@@ -331,7 +337,7 @@ namespace antico.data
             {
                 // Could not open the database. Throw exception.
                 connection.Close();
-                throw new NpgsqlException("Failed loading data from database!");
+                throw new NpgsqlException("[Data constructor with parameters] Failed loading data from database " + database + "!");
             }
 
             // Try loading feature names from database.
@@ -341,22 +347,26 @@ namespace antico.data
                 connection.Open();
 
                 // SQL query.
-                string sql_feature_names = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'malware_detection_features'";
+                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = '" + database + "'"; 
                 NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, connection);
 
                 // Loading feature names into _featureNames variable variable.
                 DataTable featureNamesDataTable = new DataTable();
                 featureNamesDataTable.Load(command2.ExecuteReader());
 
-                // Allocate memory for feature names.
-                _featureNames = new string[featureNamesDataTable.Rows.Count];
-
                 // Fill string array with feature names from DataTable.
                 var i = 0;
                 foreach (DataRow row in featureNamesDataTable.Rows)
                 {
-                    _featureNames[i] = (row.ItemArray).ToString();
-                    i++;
+                    foreach (var item in row.ItemArray)
+                    {
+                        // Column "label" is not a feature!
+                        if (item.ToString() == "label") // TODO: HARDCODED
+                            continue;
+
+                        _featureNames[i] = item.ToString();
+                        i++;
+                    }
                 }
 
                 // Close the connection.
@@ -366,7 +376,7 @@ namespace antico.data
             {
                 // Could not open the database. Throw exception.
                 connection.Close();
-                throw new NpgsqlException("Failed loading data from database!");
+                throw new NpgsqlException("[Data constructor with parameters] Failed loading data from database!");
             }
 
             // Setting number of the features.
@@ -382,7 +392,7 @@ namespace antico.data
                     makeTrainAndTestInbalanced();
                     break;
                 default:
-                    throw new Exception("Balanced and inbalanced division of the data is only allowed.");
+                    throw new Exception("[Data constructor with parameters] Balanced and inbalanced division of the data is only allowed.");
             }
         }
         #endregion
@@ -393,7 +403,7 @@ namespace antico.data
         /// </summary>
         /// <param name="mathOp">Mathematical operator string.</param>
         /// <returns>Aritiy of the sent mathematical operator.</returns>
-        public int getMathOperationArity(string mathOp)
+        public int getMathOperationArity( string mathOp )
         {
             if (mathOperationsArity.ContainsKey(mathOp))
             {
@@ -401,20 +411,26 @@ namespace antico.data
             }
             else
             {
-                throw new Exception("Sent mathematical operator is not knows.");
+                throw new Exception("[Data::getMathOperationArity] Sent mathematical operator is not knows.");
             }
         }
         #endregion
 
         #region divide features into train and test data
+        /// <summary>
+        /// Devide set into balanced train and test.
+        /// </summary>
         private void makeTrainAndTest()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException();  // TODO
         }
 
+        /// <summary>
+        /// Devide set into inbalanced train and test.
+        /// </summary>
         private void makeTrainAndTestInbalanced()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // TODO
         }
         #endregion
 

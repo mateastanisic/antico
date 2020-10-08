@@ -12,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-
 namespace antico.abcp
 {
     #region ABCP class
@@ -32,6 +31,11 @@ namespace antico.abcp
     public class ABCP
     {
         #region ATTRIBUTES 
+
+        #region random
+        // Variable for generating random numbers.
+        private static Random rand;
+        #endregion
 
         #region parametars
         // (READONLY - Setting only through constructor) 
@@ -74,6 +78,16 @@ namespace antico.abcp
 
         #region OPERATIONS
 
+        #region Static constructor
+        /// <summary>
+        /// New static random.
+        /// </summary>
+        static ABCP()
+        {
+            rand = new Random();
+        }
+        #endregion
+
         #region Constructor
 
         /// <summary>
@@ -102,7 +116,7 @@ namespace antico.abcp
         /// <param name="spliting_data_type">Type of splitting data into train and test set. (Balanced/Inbalanced)</param>
         /// <param name="number_of_top_features">Number of top features selected to be in model.</param>
         /// <param name="limit">Number of iterations when certain solution is not changed before in scout bee phase is generated new solution.</param>
-        public ABCP( int population_size, int max_number_of_iterations, int max_number_of_not_improving_iterations, int initial_max_depth, int max_depth, string generating_trees_method, string[] math_operations, string feature_extraction_method, string spliting_data_type, int number_of_top_features, int limit, double alpha, double probability)
+        public ABCP( int population_size, int max_number_of_iterations, int max_number_of_not_improving_iterations, int initial_max_depth, int max_depth, string generating_trees_method, string[] math_operations, string feature_extraction_method, string spliting_data_type, int number_of_top_features, int limit, double alpha, double probability )
         {
             // Setting the values with other constructors.
             _parameters = new Parameters(population_size, max_number_of_iterations, max_number_of_not_improving_iterations, initial_max_depth, max_depth, generating_trees_method, limit, alpha, probability);
@@ -141,8 +155,6 @@ namespace antico.abcp
 
             while (Iteration <= this.parameters.maxNumberOfIterations && IterationNotImproving <= this.parameters.maxNumberOfNotImprovingIterations)
             {
-                var rand = new Random();
-
                 #region ----- EMPLOYED BEES PHASE -----
                 // For all employed bees do ...
                 // (number of employed bees are same as population size)
@@ -158,27 +170,18 @@ namespace antico.abcp
                     OldFitnessEmployed = this.population[e].fitness;
 
                     #region information sharing mechanism
-                    // If current solution is the best solution, choose randomly second parent.
-                    if ( e == BestSolution.Item2 )
-                    {
-                        // Randomly choose another solution.
-                        int i;
+                    // Randomly choose another solution.
+                    int r;
 
-                        // Check that randomly choosen solution is noth current solution.
-                        while (true)
-                        {
-                            i = rand.Next(this.parameters.populationSize);
-                            if (i != e)
-                                break;
-                        }
-
-                        NewSolutionEmployed = this.population.Crossover(this.population[e], this.population[i], this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
-                    }
-                    else
+                    // Check that randomly choosen solution is noth current solution.
+                    while (true)
                     {
-                        // Crossover current solution with the best solution.
-                        NewSolutionEmployed = this.population.Crossover(this.population[e], BestSolution.Item1, this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability );
+                        r = rand.Next(this.parameters.populationSize);
+                        if (r != e)
+                            break;
                     }
+
+                    NewSolutionEmployed = (Chromosome)this.population.Crossover( (Chromosome)this.population[e].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
                     #endregion
 
                     // Calculate the cost function value of new solution.
@@ -186,17 +189,12 @@ namespace antico.abcp
 
                     #region greedy selection between OldSolution and NewSolution
                     // TODO
-                    // Considering the cost values, apply the greedy selection between OldSolution and NewSolution. 
-                    // If NewSolution is selected, set the trial counter of the i-th solution as 0, or else increase the value of the trial counter by adding 1.
-
-                    // Calculate the cost function value of new solution.
-                    // NewFitnessEmployed = NewSolutionEmployed.fitness;
-                    #endregion
+                    // Considering the cost values, apply the greedy selection between OldSolution and NewSolution.                     
 
                     // Update solution if better.
-                    if (NewFitnessEmployed < OldFitnessEmployed)
+                    if (NewFitnessEmployed > OldFitnessEmployed)
                     {
-                        this.population[e] = NewSolutionEmployed.Clone();
+                        this.population[e] = (Chromosome)NewSolutionEmployed.Clone();
 
                         // Solution has become better. Put Limit of that solution to 0.
                         Limits[e] = 0;
@@ -204,6 +202,7 @@ namespace antico.abcp
                         // Solution has become better. Put TestLimit of that solution to 1.
                         TestLimits[e] = 1;
                     }
+                    #endregion
                 }
                 #endregion
 
@@ -266,12 +265,8 @@ namespace antico.abcp
                     // TODO
                     // Considering the cost values, apply the greedy selection between OldSolution and NewSolution. 
 
-                    // Calculate the cost function value of new solution.
-                    // NewFitnessOnlook = NewSolutionOnlook.fitness;
-                    #endregion
-
                     // Update solution if better.
-                    if (NewFitnessOnlook < OldFitnessOnlook)
+                    if (NewFitnessOnlook > OldFitnessOnlook)
                     {
                         this.population[o] = NewSolutionOnlook.Clone();
 
@@ -281,6 +276,7 @@ namespace antico.abcp
                         // Solution has become better. Put TestLimit of that solution to 1.
                         TestLimits[o] = 1;
                     }
+                    #endregion
                 }
 
                 #endregion

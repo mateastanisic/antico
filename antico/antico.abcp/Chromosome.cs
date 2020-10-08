@@ -28,6 +28,11 @@ namespace antico.abcp
     {
         #region ATTRIBUTES
 
+        #region random
+        // Variable for generating random numbers.
+        private static Random rand;
+        #endregion
+
         #region node description
 
         #region node type (terminal/non-terminal)
@@ -95,21 +100,22 @@ namespace antico.abcp
 
         #region child nodes
         // Array variable that contains all child nodes of current node.
-        private SymbolicTreeNode[] _children;
+        private List<SymbolicTreeNode> _children;
 
         // Property for the content variable.
-        public SymbolicTreeNode[] children
+        public List<SymbolicTreeNode> children
         {
             get { return this._children; }
             set 
             {
                 // Allocate resources.
-                this._children = new SymbolicTreeNode[value.Length];
+                this._children = new List<SymbolicTreeNode>();
 
                 // Deep copy.
-                for (var i = 0; i < value.Length; i++)
+                for (var i = 0; i < value.Count; i++)
                 {
-                    this._children[i] = value[i].Clone();
+                    this._children.Add(new SymbolicTreeNode());
+                    this._children[i] = (SymbolicTreeNode)value[i].Clone();
                 }
             }
         }
@@ -134,23 +140,21 @@ namespace antico.abcp
             return new Queue<SymbolicTreeNode>(50);
         });
 
-        //Helper variable for handling with iteration throught tree structure.
-        private static ThreadLocal<Queue<SymbolicTreeNode>> _treeQueueParent1 = new ThreadLocal<Queue<SymbolicTreeNode>>(() =>
-        {
-            return new Queue<SymbolicTreeNode>(50);
-        });
-
-        //Helper variable for handling with iteration throught tree structure.
-        private static ThreadLocal<Queue<SymbolicTreeNode>> _treeQueueParent2 = new ThreadLocal<Queue<SymbolicTreeNode>>(() =>
-        {
-            return new Queue<SymbolicTreeNode>(50);
-        });
-
         #endregion
 
         #endregion
 
         #region OPERATIONS
+
+        #region Static constructor
+        /// <summary>
+        /// New static random.
+        /// </summary>
+        static SymbolicTreeNode()
+        {
+            rand = new Random();
+        }
+        #endregion
 
         #region Overloading operators
         /// <summary>
@@ -159,7 +163,7 @@ namespace antico.abcp
         /// <param name="obj1">First node.</param>
         /// <param name="obj2">Second node.</param>
         /// <returns>True if nodes are equal, otherwise false. </returns>
-        public static bool operator ==(SymbolicTreeNode obj1, SymbolicTreeNode obj2)
+        public static bool operator ==( SymbolicTreeNode obj1, SymbolicTreeNode obj2 )
         {
             if (ReferenceEquals(obj1, obj2))
             {
@@ -190,7 +194,7 @@ namespace antico.abcp
         /// <param name="obj1">First node.</param>
         /// <param name="obj2">Second node.</param>
         /// <returns>False if nodes are equal, otherwise true. </returns>
-        public static bool operator !=(SymbolicTreeNode obj1, SymbolicTreeNode obj2)
+        public static bool operator !=( SymbolicTreeNode obj1, SymbolicTreeNode obj2 )
         {
             return !(obj1 == obj2);
         }
@@ -200,7 +204,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="other">Node to compare current node.</param>
         /// <returns>True if nodes are equal, otherwise false. </returns>
-        public bool Equals(SymbolicTreeNode other)
+        public bool Equals( SymbolicTreeNode other )
         {
             return other != null
                     && _type == other.type
@@ -208,7 +212,7 @@ namespace antico.abcp
                     && _index == other.index
                     && _arity == other.arity
                     && _depth == other.depth
-                    && EqualityComparer<SymbolicTreeNode[]>.Default.Equals(_children, other.children);
+                    && EqualityComparer<List<SymbolicTreeNode>>.Default.Equals(_children, other.children);
         }
 
         /// <summary>
@@ -216,7 +220,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="obj">Node to compare current node.</param>
         /// <returns>True if nodes are equal, otherwise false.</returns>
-        public override bool Equals(object obj)
+        public override bool Equals( object obj )
         {
             if (ReferenceEquals(null, obj))
             {
@@ -242,7 +246,7 @@ namespace antico.abcp
             hashCode = hashCode * -1521134295 + _index.GetHashCode();
             hashCode = hashCode * -1521134295 + _depth.GetHashCode();
             hashCode = hashCode * -1521134295 + _arity.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<SymbolicTreeNode[]>.Default.GetHashCode(_children);
+            hashCode = hashCode * -1521134295 + EqualityComparer< List<SymbolicTreeNode> >.Default.GetHashCode(_children);
             return hashCode;
         }
 
@@ -309,19 +313,19 @@ namespace antico.abcp
                 clone.CopyNodeDescription(node);
 
                 // In case copy node has no children.
-                node.children = null;
+                // clone.children = null; ERROR IN SETTING <- 
 
                 // If the node has child nodes, add children nodes from the node to the dataTree 
                 // and for every child make new clone node and add it to the cloneTree.
                 if (node.children != null)
                 {
                     // Cloned node will have same child nodes as the node.
-                    clone.children = new SymbolicTreeNode[node.children.Length];
+                    clone.children = new List<SymbolicTreeNode>();
 
                     // Make clone child nodes and add children to the dataTree, cloneTree.
-                    for (int i = 0; i < node.children.Length; i++)
+                    for (int i = 0; i < node.children.Count; i++)
                     {
-                        clone.children[i] = new SymbolicTreeNode();
+                        clone.children.Add(new SymbolicTreeNode());
                         dataTree.Enqueue(node.children[i]);
                         cloneTree.Enqueue(clone.children[i]);
                     }
@@ -387,14 +391,15 @@ namespace antico.abcp
                 // Add value to string.
                 treeString.Append(node.content.ToString());
 
+                // If node has no child nodes, continue.
+                if (node.children == null)
+                    continue;
+
                 // Add all children of the current node into a stack made of tree nodes.
-                if (node.children != null)
+                for (var i = 0; i < node.children.Count ; i++)
                 {
-                    for (var i = 0; i < node.children.Length ; i++)
-                    {
-                        dataTree.Push(node.children[i]);
-                    }  
-                }
+                    dataTree.Push(node.children[i]);
+                }  
             }
 
             string treeStringString = treeString.ToString();
@@ -452,13 +457,14 @@ namespace antico.abcp
                 // Add value to string.
                 treeString.Append(node.content.ToString());
 
+                // If node has no child nodes, continue.
+                if (node.children == null)
+                    continue;
+
                 // Add all children of the current node into a stack made of tree nodes.
-                if (node.children != null)
+                for (int i = node.children.Count - 1; i >= 0; i--)
                 {
-                    for (int i = node.children.Length - 1; i >= 0; i--)
-                    {
-                        dataTree.Push(node.children[i]);
-                    }
+                    dataTree.Push(node.children[i]);
                 }
             }
             return treeString;
@@ -481,20 +487,10 @@ namespace antico.abcp
         /// <returns> StringBuilder variable that represents subtree whose root is current node. </returns>
         public StringBuilder ToStringBuilderInorder()
         {
-            return ReadInorder(this);
-        }
-
-        /// <summary>
-        /// Recursive helper method for converting SymbolicTree into a readable form.
-        /// </summary>
-        /// <param name="node"> Node whose inorder we want to show as stringBuilder. </param>
-        /// <returns> StringBuilder inorder of a symbolic tree. </returns>
-        private StringBuilder ReadInorder(SymbolicTreeNode node)
-        {
             // Check if node has content.
-            if ( node.content == null )
+            if (this.content == null)
             {
-                throw new Exception("Content of the node is null");
+                throw new Exception("[ToStringBuilderInorder] Content of the node is null.");
             }
 
             /// <summary>
@@ -504,78 +500,76 @@ namespace antico.abcp
             ///      '(' '(' readInorder(firstchild) + ')' + node.content + '(' readInorder(secondChild) + ')' + node.content + '(' readInorder(thirdChild) + ')'
             /// ELSE throw new exception.
             /// </summary>
-            if ( node.arity == 0 )
+            if (this.arity == 0)
             {
+                #region exceptions
                 // Check that node type is terminal.
-                if (node.type != "terminal")
+                if (this.type != "terminal")
                 {
-                    throw new Exception("Arity of node is zero but node is not terminal.");
+                    throw new Exception("[ToStringBuilderInorder] Node has arity = 0 but his type is: " + this.type + " (not terminal).");
                 }
 
+                // Check that this node has no child node.
+                if (this.children != null)
+                {
+                    throw new Exception("[ToStringBuilderInorder] Node has arity = 0 but has " + this.children.Count + " child nodes.");
+                }
+                #endregion
+
                 // Return node content.
-                return new StringBuilder(node.content);
+                return new StringBuilder(this.content);
             }
-            else if( node.arity == 1 )
+            else if (this.arity == 1)
             {
                 // cos, sin, log
 
-                // Check that node type is non-teminal and that this node has 1 child node.
-                if (node.type != "non-termianl")
+                #region exceptions
+                // Check that node type is non-teminal.
+                if (this.type != "non-terminal")
                 {
-                    throw new Exception("Arity of node is zero but node is not terminal.");
+                    throw new Exception("[ToStringBuilderInorder] Node has arity = 1 but his type is: " + this.type + " (not non-terminal).");
                 }
 
                 // Check that this node has 1 child node.
-                if (node.children.Length != 1)
+                if (this.children.Count != 1)
                 {
-                    throw new Exception("Arity of node is 1 but node has more than one child node.");
+                    throw new Exception("[ToStringBuilderInorder] Node has arity = 1 but has " + this.children.Count + " child nodes.");
                 }
+                #endregion
 
                 // Read inorder of a child node.
                 StringBuilder sb = new StringBuilder();
-                sb.Append(node.content);
+                sb.Append(this.content);
                 sb.Append("(");
-                sb.Append(ReadInorder(node.children[0]).ToString());
+                sb.Append(this.children[0].ToStringBuilderInorder().ToString());
                 sb.Append(")");
 
                 return sb;
-
             }
-            else if( node.arity == 2 )
+            else if (this.arity == 2)
             {
+                #region exceptions
                 // Check that node type is non-teminal.
-                if (node.type != "non-termianl" )
+                if (this.type != "non-terminal")
                 {
-                    throw new Exception("Arity of node is 2 or greater but node is not terminal.");
+                    throw new Exception("[ToStringBuilderInorder] Node has arity = 2 but his type is: " + this.type + " (not non-terminal).");
                 }
 
-                // Check that this node has 2 or 3 child nodes.
-                if ( node.children.Length < 2 || node.children.Length > 3)
+                // Check that this node has 2 child nodes.
+                if (this.children.Count != 2)
                 {
-                    throw new Exception("Arity of node is not 2 or 3.");
+                    throw new Exception("[ToStringBuilderInorder] Node has arity = 2 but has " + this.children.Count + " child nodes.");
                 }
-
-                // Check that arity of node is same as number of child nodes.
-                if ( node.children.Length != node.arity )
-                {
-                    throw new Exception("Arity of node is not same as the number of child nodes.");
-                }
+                #endregion
 
                 StringBuilder sb = new StringBuilder();
 
-                sb.Append("(");
+                sb.Append("(");    
+                // Read inorder of the left child node, then add content of the current node and finally read inorder of the right child node.
+                sb.Append(this.children[0].ToStringBuilderInorder().ToString());
                 // Any other mathematical operation - +,-,*,/ .
-                for( var i = 0; i < node.children.Length; i++)
-                {
-                    // Read inorder of a child node.
-                    sb.Append(ReadInorder(children[i]).ToString());
-
-                    // If this child node is not last child node add operation between two expressions.
-                    if (i + 1 != node.children.Length)
-                    {
-                        sb.Append(node.content);
-                    } 
-                }
+                sb.Append(this.content);
+                sb.Append(this.children[1].ToStringBuilderInorder().ToString());
                 sb.Append(")");
 
                 return sb;
@@ -583,10 +577,10 @@ namespace antico.abcp
             else
             {
                 // Node with given arity is not expected.
-                throw new Exception("Given node arity is not expected!");
+                throw new Exception("[ToStringBuilderInorder] Given node arity = " + this.arity + "  is not expected! Arity higher than 2 is not covered yet!");
             }
-
         }
+
         #endregion
 
         #endregion
@@ -597,13 +591,13 @@ namespace antico.abcp
         /// </summary>
         /// <param name="data"> Row of a table with all features. </param>
         /// <returns> Evaluation of symbolic tree whose root node is current node for given DataRow.</returns>
-        public double Evaluate(DataRow data)
+        public double Evaluate( DataRow data )
         {
 
             // Check if node has content.
             if (this.content == null)
             {
-                throw new Exception("Content of the node is null");
+                throw new Exception("[Evaluate] Content of the node is null");
             }
 
             /// <summary>
@@ -615,11 +609,19 @@ namespace antico.abcp
             /// </summary>
             if (this.arity == 0)
             {
+                #region exceptions
                 // Check that node type is terminal.
                 if (this.type != "terminal")
                 {
-                    throw new Exception("Arity of node is zero but node is not terminal.");
+                    throw new Exception("[Evaluate] Node has arity = 0 but his type is: " + this.type + " (not terminal).");
                 }
+
+                // Check that this node has no child node.
+                if (this.children != null)
+                {
+                    throw new Exception("[Evaluate] Node has arity = 0 but has " + this.children.Count + " child nodes.");
+                }
+                #endregion
 
                 // Evaluate feature with featureName ( == this.content ) using DataRow.
                 return Convert.ToDouble(data[this.content]);
@@ -628,21 +630,26 @@ namespace antico.abcp
             {
                 // cos, sin, rlog, exp
 
-                // Check that node type is non-teminal and that this node has 1 child node.
+                #region exceptions
+                // Check that node type is non-teminal.
                 if (this.type != "non-terminal")
                 {
-                    throw new Exception("Arity of node is zero but node is not terminal.");
+                    throw new Exception("[Evaluate] Node has arity = 1 but his type is: " + this.type + " (not non-terminal).");
                 }
 
                 // Check that this node has 1 child node.
-                if (this.children.Length != 1)
+                if (this.children.Count != 1)
                 {
-                    throw new Exception("Arity of node is 1 but node has more than one child node.");
+                    throw new Exception("[Evaluate] Node has arity = 1 but has " + this.children.Count + " child nodes.");
                 }
+                #endregion
 
+                #region evaluate child node
                 // Evaluate child node.
                 double childEvaluation = this.children[0].Evaluate(data);
+                #endregion
 
+                #region evaluate current non-terminal
                 // Evaluate function.
                 switch (this.content)
                 {
@@ -651,80 +658,67 @@ namespace antico.abcp
                     case "cos":
                         return Math.Cos(childEvaluation);
                     case "rlog":
+                        if (childEvaluation == 0)
+                        {
+                            return 0;
+                        }
                         return Math.Log(Math.Abs(childEvaluation));
                     case "exp":
-                        return Math.Exp(Math.Exp(childEvaluation));
+                        return Math.Exp(childEvaluation);
                     default:
-                        throw new Exception("Sent unary mathematical operation is not expected.");
+                        throw new Exception("[Evaluate] Sent unary mathematical operation is not expected.");
                 }
-
+                #endregion
             }
             else if (this.arity == 2)
             {
                 // *, /, +, -
 
+                #region exceptions
                 // Check that node type is non-teminal.
                 if (this.type != "non-terminal")
                 {
-                    throw new Exception("Arity of node is 2 or greater but node is not terminal.");
+                    throw new Exception("[Evaluate] Node has arity = 2 but his type is: " + this.type + " (not non-terminal).");
                 }
 
-                // Check that this node has 2 or 3 child nodes.
-                if (this.children.Length < 2 || this.children.Length > 3)
+                // Check that this node has 2 child nodes.
+                if (this.children.Count != 2)
                 {
-                    throw new Exception("Arity of node is not 2 or 3.");
+                    throw new Exception("[Evaluate] Node has arity = 2 but has " + this.children.Count + " child nodes.");
                 }
+                #endregion
 
-                // Check that arity of node is same as number of child nodes.
-                if (this.children.Length != this.arity)
+                #region evaluate child nodes
+                double child1Evaluation = this.children[0].Evaluate(data);
+                double child2Evaluation = this.children[1].Evaluate(data);
+                #endregion
+
+                #region evaluate current non-terminal
+                switch (this.content)
                 {
-                    throw new Exception("Arity of node is not same as the number of child nodes.");
-                }
-
-                double childEvaluation;
-                double result = 0;
-
-                // Evaluate.
-                for (var i = 0; i < this.children.Length; i++)
-                {
-                    // Evaluate child node.
-                    childEvaluation = this.children[i].Evaluate(data);
-
-                    switch (this.content)
-                    {
-                        case "+":
-                            result += childEvaluation;
-                            break;
-                        case "-":
-                            result -= childEvaluation;
-                            break;
-                        case "*":
-                            result *= childEvaluation;
-                            break;
-                        case "/":
-                            if( childEvaluation == 0)
-                            {
-                                // Protected division
-                                result = 1;
-                            }
-                            else
-                            {
-                                result /= childEvaluation;
-                            }
-                            break;
-                        default:
-                            throw new Exception("Sent binary mathematical operation is not expected.");
+                    case "+":
+                        return child1Evaluation + child2Evaluation;
+                    case "-":
+                        return child1Evaluation - child2Evaluation;
+                    case "*":
+                        return child1Evaluation * child2Evaluation;
+                    case "/":
+                        if (child2Evaluation == 0)
+                        {
+                            // Protected division
+                            return 1;
+                        }
+                        return child1Evaluation / child2Evaluation;
+                    default:
+                        throw new Exception("[Evaluate] Sent binary mathematical operation is not expected.");
                             
-                    }
-
                 }
-
-                return result;
+                #endregion
             }
             else
             {
                 // Node with given arity is not expected.
-                throw new Exception("Given node arity is not expected!");
+                throw new Exception("[Evaluate] Given node arity = " + this.arity + "  is not expected! Arity higher than 2 is not covered yet!");
             }
 
         }
@@ -765,13 +759,14 @@ namespace antico.abcp
                 // Increase number of nodes since we found one more.
                 noOfNodes++;
 
+                // If node doesn't have children, continue.
+                if (node.children == null)
+                    continue;
+
                 // Add all children of the current node into a stack made of tree nodes.
-                if (node.children != null)
+                for (int i = node.children.Count - 1; i >= 0; i--)
                 {
-                    for (int i = node.children.Length - 1; i >= 0; i--)
-                    {
-                        dataTree.Push(node.children[i]);
-                    }
+                    dataTree.Push(node.children[i]);
                 }
             }
             return noOfNodes;
@@ -783,14 +778,14 @@ namespace antico.abcp
         /// Helper method that returns node with wanted index from the subtree whose root 
         /// is the current node, based on Depth-First search method.
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="i">Index of a node to be fined.</param>
         /// <returns> Node with wanted index in a Subtree whose root is the current node. </returns>
-        public SymbolicTreeNode FindNodeWithIndex(int i)
+        public SymbolicTreeNode FindNodeWithIndex( int i )
         {
             // Make sure index is positive number.
-            if( i < 0 )
+            if (i < 0)
             {
-                throw new IndexOutOfRangeException("Index out of range");
+                throw new IndexOutOfRangeException("[FindNodeWithIndex] Given index = " + i +" is not positive.");
             }
 
             // Make sure variable _treeQueue is empty.
@@ -811,7 +806,7 @@ namespace antico.abcp
                 // Get next node from the beginning of the queue.
                 node = dataTree.Dequeue();
 
-                // If value of next node is null continue. 
+                // If value of the node is null continue. 
                 if (node.content == null)
                     continue;
 
@@ -821,18 +816,19 @@ namespace antico.abcp
                     return node;
                 }
 
+                // If current node has no child nodes, continue with loop.
+                if (node.children == null)
+                    continue;
+
                 // Add all children of the current node into a stack made of tree nodes.
-                if (node.children != null)
+                for (var j = 0; j < node.children.Count; j++)
                 {
-                    for (var j = 0; j < node.children.Length; j++)
-                    {
-                        dataTree.Enqueue(node.children[j]);
-                    }
+                    dataTree.Enqueue(node.children[j]);
                 }
             }
 
-            // In case we came to the end and still haven't found node with wanted index, return exception.
-            throw new IndexOutOfRangeException("Index out of tree length range");
+            // In case we came to the end and still haven't found node with wanted index, throw exception.
+            throw new IndexOutOfRangeException("[FindNodeWithIndex] Node with given index " + i + " is not found.");
         }
         #endregion
 
@@ -842,12 +838,12 @@ namespace antico.abcp
         /// </summary>
         /// <param name="i">Index of the node.</param>
         /// <returns>Level of the node in a Tree.</returns>
-        public int DepthOfNodeWithIndex(int i)
+        public int DepthOfNodeWithIndex( int i )
         {
             // Make sure index is positive number.
-            if ( i < 0 )
+            if (i < 0)
             {
-                throw new IndexOutOfRangeException("Index out of range");
+                throw new IndexOutOfRangeException("[DepthOfNodeWithIndex] Index out of range");
             }
 
             // Get node with helper method NodeAt.
@@ -887,7 +883,7 @@ namespace antico.abcp
                 // Get next node from the beginning of the queue.
                 node = dataTree.Dequeue();
 
-                // If value of next node is null continue. 
+                // If value of next node is null, continue. 
                 if (node.content == null)
                     continue;
 
@@ -897,22 +893,23 @@ namespace antico.abcp
                     MaxDepth = node.depth;
                 }
 
+                // If node has no child nodes, continue.
+                if (node.children == null)
+                    continue;
+
                 // Add all children of the current node into a stack made of tree nodes.
-                if (node.children != null)
+                for (var j = 0; j < node.children.Count; j++)
                 {
-                    for (var j = 0; j < node.children.Length; j++)
-                    {
-                        dataTree.Enqueue(node.children[j]);
-                    }
+                    dataTree.Enqueue(node.children[j]);
                 }
             }
 
             if ( MaxDepth == -1)
             {
-                throw new Exception("Symbolic tree is empty and depth is -1.");
+                throw new Exception("[DepthOfSymbolicTree] Symbolic tree is empty and depth is -1.");
             }
 
-            return MaxDepth;
+            return (MaxDepth - this.depth);
         }
         #endregion
 
@@ -932,12 +929,12 @@ namespace antico.abcp
         /// <param name="currentDepth"> Current depth - recursion. </param>
         /// <param name="terminalsMarks"> Marks for leaf nodes. </param>
         /// <param name="nonTerminals"> Marks for inner nodes. </param>
-        public void GenerateFullSymbolicTree(int maxDepth, int currentDepth, string[] terminalsMarks, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
+        /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
+        public void GenerateFullSymbolicTree( int maxDepth, int currentDepth, string[] terminalsMarks, string[] nonTerminals, Dictionary<string, int> mathOperationsArity )
         {
-            var rand = new Random();
-
+            #region leaf node
             // If we came to the leaf node.
-            if ( currentDepth == maxDepth )
+            if (currentDepth == maxDepth)
             {
                 // Set type of node as terminal.
                 this._type = "terminal";
@@ -958,36 +955,41 @@ namespace antico.abcp
                 // Done.
                 return;
             }
+            #endregion
 
+            #region inner node <-> non-terminal
             // Set content of current inner node. 
             this._type = "non-terminal";
             this._depth = currentDepth;
-            int indexOfNonTerminal = rand.Next(nonTerminals.Length);
-            this._content = nonTerminals[indexOfNonTerminal];
+            this._content = nonTerminals[rand.Next(nonTerminals.Length)];
 
             // Get mathematical operation arity.
             int ar = getMathOperationArity(mathOperationsArity, this._content);
 
+            // ****************************************************************************************
+            // FOR FUTURE USE - TODO - if node can have arity greater than 2.
             // If arity is not 1, choose random aritiy between 2 and 3.
-            if ( ar != 1 )
-            {
-                // Since operations with arity different from 1 are +, -, *, / that all have arity >= 2.
-                // For simplicity, here are considered only operations with arity 2 and 3.
-                ar = rand.Next(2, 3); // TODO: for now, aritiy can only be 2
-            }
+            // if (ar != 1)
+            // {
+            //    // Since operations with arity different from 1 are +, -, *, / that all have arity >= 2.
+            //    // For simplicity, here are considered only operations with arity 2 and 3.
+            //    ar = rand.Next(2, 3); // TODO: for now, aritiy can only be 2
+            // }
+            // ****************************************************************************************
 
             // Set node arity.
             this._arity = ar;
 
             // Allocate memory for child nodes and recurive set contents of those nodes.
-            this._children = new SymbolicTreeNode[this._arity];
+            this._children = new List<SymbolicTreeNode>();
 
-            for( var i = 0; i < this._arity; i++)
+            for (var i = 0; i < this._arity; i++)
             {
-                this._children[i] = new SymbolicTreeNode();
+                // Generate (sub)trees of all child nodes.
+                this._children.Add(new SymbolicTreeNode());
                 this._children[i].GenerateFullSymbolicTree(maxDepth, currentDepth + 1, terminalsMarks, nonTerminals,  mathOperationsArity);
             }
-            
+            #endregion
         }
 
         /// <summary>
@@ -1008,10 +1010,10 @@ namespace antico.abcp
         /// <param name="currentDepth"> Current depth - recursion. </param>
         /// <param name="terminalsMarks"> Marks for leaf nodes. </param>
         /// <param name="nonTerminals"> Marks for inner nodes. </param>
+        /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
         public void GenerateGrowSymbolicTree(int maxDepth, int currentDepth, string[] terminalsMarks, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
         {
-            var rand = new Random();
-
+            #region leaf node
             // If we came to the leaf node.
             if (currentDepth == maxDepth)
             {
@@ -1034,15 +1036,17 @@ namespace antico.abcp
                 // Done.
                 return;
             }
+            #endregion
 
             // Choose randomly if this node should be terminal or non-terminal.
-            bool chooseNonTerminal = rand.Next(100) < 50 ? true : false;
+            bool chooseNonTerminal = rand.Next(100) < 50 ? true : false; // TODO different probability?
 
+            #region non-terminal is choosen
             // If this node will be non-terminal (math.op) 
             // OR if it choosen that this node should be terminal, but we are at root node 
             // (since root node has to be non-terminal)
             // make this node non-terminal
-            if( (!chooseNonTerminal && currentDepth == 0) || chooseNonTerminal )
+            if ((!chooseNonTerminal && currentDepth == 0) || chooseNonTerminal)
             {
                 // Set content of current inner node. 
                 this._type = "non-terminal";
@@ -1053,31 +1057,36 @@ namespace antico.abcp
                 // Get mathematical operation arity.
                 int ar = getMathOperationArity(mathOperationsArity, this._content);
 
+                // ****************************************************************************************
+                // FOR FUTURE USE - TODO - if node can have arity greater than 2.
                 // If arity is not 1, choose random aritiy between 2 and 3.
-                if (ar != 1)
-                {
-                    // Since operations with arity different from 1 are +, -, *, / that all have arity >= 2.
-                    // For simplicity, here are considered only operations with arity 2 and 3.
-                    ar = rand.Next(2, 3); // TODO: for now, aritiy can only be 2
-                }
+                // if (ar != 1)
+                // {
+                //    // Since operations with arity different from 1 are +, -, *, / that all have arity >= 2.
+                //    // For simplicity, here are considered only operations with arity 2 and 3.
+                //    ar = rand.Next(2, 3); // TODO: for now, aritiy can only be 2
+                // }
+                // ****************************************************************************************
 
                 // Set node arity.
                 this._arity = ar;
 
                 // Allocate memory for child nodes and recurive set contents of those nodes.
-                this._children = new SymbolicTreeNode[this._arity];
+                this._children = new List<SymbolicTreeNode>();
 
                 for (var i = 0; i < this._arity; i++)
                 {
-                    this._children[i] = new SymbolicTreeNode();
+                    // Generate (sub)trees of all child nodes.
+                    this._children.Add(new SymbolicTreeNode());
                     this._children[i].GenerateGrowSymbolicTree(maxDepth, currentDepth + 1, terminalsMarks, nonTerminals, mathOperationsArity);
                 }
 
                 // Done.
                 return;
-
             }
+            #endregion
 
+            #region terminal is choosen
             // ELSE. This node will be terminal.
 
             // Set type of node as terminal.
@@ -1095,13 +1104,14 @@ namespace antico.abcp
 
             // No child nodes.
             this._children = null;
-
+            #endregion
         }
 
         /// <summary>
         /// Helper method for determinating aritiy of mathematical operators.
         /// </summary>
-        /// <param name="mathOp">Mathematical operator string.</param>
+        /// <param name="mathOperationsArity">Dictionary of all non-terminals with their arity.</param>
+        /// <param name="mathOperation">Non-terminal for which is needed to determinate his arity..</param>
         /// <returns>Aritiy of the sent mathematical operator.</returns>
         private int getMathOperationArity(Dictionary<string, int> mathOperationsArity, string mathOperation)
         {
@@ -1111,7 +1121,7 @@ namespace antico.abcp
             }
             else
             {
-                throw new Exception("Sent mathematical operator is not knows.");
+                throw new Exception("[SymbolicTreeNode::getMathOperationArity] Sent mathematical operator is not knows.");
             }
         }
         #endregion
@@ -1155,7 +1165,7 @@ namespace antico.abcp
                 // Add all children of the current node into a stack made of tree nodes.
                 if (node.children != null)
                 {
-                    for (int i = node.children.Length - 1; i >= 0; i--)
+                    for (int i = node.children.Count - 1; i >= 0; i--)
                     {
                         dataTree.Push(node.children[i]);
                     }
@@ -1164,136 +1174,194 @@ namespace antico.abcp
         }
         #endregion
 
-        #region Create new Symbolic Tree using current tree <- in crossover
+        #region Calculate depths
         /// <summary>
-        /// Creates new SymbolicTree from current tree and tree sent as parameter. 
+        /// Method for calculating depths of subtree with given starting depth.
         /// </summary>
-        /// <param name="crossoverPoint1"> Index of node in current tree that needs to be changed. </param>
-        /// <param name="t2"> Subtree to be copied at new node at position crossoverPoint1. </param>
-        /// <returns>New SymbolicTree.</returns>
-        public SymbolicTreeNode CreateUsing(int crossoverPoint1, SymbolicTreeNode st2)
+        /// <param name="currentDepth">Starting depth.</param>
+        public void CalculateDepths( int currentDepth )
         {
-            // Make new Symbolic tree whose root node will be 'child'.
-            SymbolicTreeNode child = new SymbolicTreeNode();
+            // Update depth of the node.
+            this.depth = currentDepth;
 
-            // Make sure variables _treeQueue, _treeQueueClone and _treeQueueParent are empty.
-            _treeQueue.Value.Clear();
-            _treeQueueClone.Value.Clear();
-            _treeQueueParent1.Value.Clear();
-            _treeQueueParent2.Value.Clear();
-
-            // Queues made of Tree Nodes.
-            Queue<SymbolicTreeNode> childTree = _treeQueue.Value;
-            Queue<SymbolicTreeNode> childSubtree = _treeQueueClone.Value;
-            Queue<SymbolicTreeNode> parent1Tree = _treeQueueParent1.Value;
-            Queue<SymbolicTreeNode> parent2Subtree = _treeQueueParent2.Value;
-
-            // Variables that will represent a current node in (child tree/parent tree) the loop 
-            // through all child nodes of the parents trees.
-            SymbolicTreeNode child_node = null;
-            SymbolicTreeNode parent1_node = null;
-            SymbolicTreeNode parent2_node = null;
-
-            // Add root node at queue.
-            childTree.Enqueue(child);
-
-            // Add root node at queue.
-            parent1Tree.Enqueue(this);
-
-            // Add root node at queue.
-            parent2Subtree.Enqueue(st2);
-
-            // Loop through all nodes in parent1Tree.
-            while (parent1Tree.Count > 0)
+            // If node is null call to the method should not be preformed.
+            if (this == null)
             {
-                // Get next nodes from the beginning of the queue.
-                child_node = childTree.Dequeue();
-                parent1_node = parent1Tree.Dequeue();
-
-                if( parent1_node.index == crossoverPoint1)
-                {
-                    // If this node is crossoverPoint, change that subtree from a second parent.
-                    // that is, copy subtree st2 to this node.
-
-                    // Helper variable for looping through nodes.
-                    SymbolicTreeNode child_subtree_node = null;
-
-                    // Add root node at queue for new node subtree.
-                    childSubtree.Enqueue(child_node);
-
-                    // Depth of root node of subtree in second parent.
-                    // Will be needed for calculating correct depth of new node in child tree.
-                    int initDepthParent2Subtree = st2.depth;
-
-                    // Loop through all nodes in parent2Subtree.
-                    while (parent2Subtree.Count > 0)
-                    {
-                        // Get next nodes from the beginning of the queue.
-                        parent2_node = parent2Subtree.Dequeue();
-                        child_subtree_node = childSubtree.Dequeue();
-
-                        // Copy values from the parent subtree node to the new child node.
-                        child_subtree_node.CopyNodeDescription(parent2_node);
-
-                        // Set correct depth.
-                        // Node from first parent has some depth. To that depth we need to add depth of the node from the 
-                        // subtree we are currently adding. That depth is calculated: (parent2_node.depth - initDepthParent2Subtree)
-                        // since nodes from subtree st2 have depth values like they are still part of the second parent.
-                        child_subtree_node.depth = parent1_node.depth + (parent2_node.depth - initDepthParent2Subtree) ;
-
-                        // In case parent subtree node has no children.
-                        child_subtree_node.children = null;
-
-                        // If the parent subtree node has children nodes, add children nodes from the parent node to the 
-                        // parent2Subtree and for every children make new children node for child and add it to the childSubtree.
-                        if (parent2_node.children != null)
-                        {
-                            // Child node will have same number of children nodes as parent subtree node.
-                            child_subtree_node.children = new SymbolicTreeNode[parent2_node.children.Length];
-
-                            // Make new children nodes for child node.
-                            for (int i = 0; i < parent2_node.children.Length; i++)
-                            {
-                                child_subtree_node.children[i] = new SymbolicTreeNode();
-                                parent2Subtree.Enqueue(parent2_node.children[i]);
-                                childSubtree.Enqueue(child_subtree_node.children[i]);
-                            }
-                        }
-                    }
-
-                    // Now we copied subtree st2 to node child_node. 
-                    // Skip this (main) iteration of loop.
-                    continue;
-
-                }
-
-                // Copy values from the parent node to the new child node.
-                child_node.CopyNodeDescription(parent1_node);
-
-                // In case parent node has no children.
-                child_node.children = null;
-
-                // If the parent node has children nodes, add children nodes from the parent node to the 
-                // parent1Tree and for every children make new children node for child and add it to the childTree.
-                if (parent1_node.children != null)
-                {
-                    // Child node will have same number of children nodes as parent node.
-                    child_node.children = new SymbolicTreeNode[parent1_node.children.Length];
-
-                    // Make new children nodes for child node.
-                    for (int i = 0; i < parent1_node.children.Length; i++)
-                    {
-                        child_node.children[i] = new SymbolicTreeNode();
-                        parent1Tree.Enqueue(parent1_node.children[i]);
-                        childTree.Enqueue(child_node.children[i]);
-                    }
-                }
+                throw new Exception("[CalculateDepths] Node is null. Not possible since all cases should be already covered.");
             }
 
-            // Calculate new indices.
-            child.CalculateIndices();
 
-            return child; 
+            if (this.arity == 0)
+            {
+                // If terminal node.
+
+                #region exceptions
+                // Check that node type is terminal.
+                if (this.type != "terminal")
+                {
+                    throw new Exception("[CalculateDepths] Node has arity = 0 but his type is: " + this.type + " (not terminal).");
+                }
+
+                // Check that this node has no child node.
+                if (this.children != null)
+                {
+                    throw new Exception("[CalculateDepths] Node has arity = 0 but has " + this.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Done.
+                return;
+            }
+            else if (this.arity == 1)
+            {
+                // If non-terminal node with arity 1.
+
+                #region exceptions
+                // Check that node type is non-teminal.
+                if (this.type != "non-terminal")
+                {
+                    throw new Exception("[CalculateDepths] Node has arity = 1 but his type is: " + this.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 1 child node.
+                if (this.children.Count != 1)
+                {
+                    throw new Exception("[CalculateDepths] Node has arity = 1 but has " + this.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Update depth of the child node.
+                this.children[0].CalculateDepths(currentDepth + 1);
+
+                // Done.
+                return;
+            }
+            else if (this.arity == 2)
+            {
+                // If non-terminal node with arity 2.
+
+                #region exceptions 
+                // Check that node type is non-teminal.
+                if (this.type != "non-terminal")
+                {
+                    throw new Exception("[CalculateDepths] Node has arity = 2 but his type is: " + this.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 2 child nodes.
+                if (this.children.Count != 2)
+                {
+                    throw new Exception("[CalculateDepths] Node has arity = 2 but has " + this.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Update depth of the child nodes.
+                this.children[0].CalculateDepths(currentDepth + 1);
+                this.children[1].CalculateDepths(currentDepth + 1);
+
+                // Done.
+                return;
+            }
+            else
+            {
+                // Node with given arity is not expected. 
+                throw new Exception("[CalculateDepths] Given node arity = " + this.arity + " is not expected! Arity higher than 2 is not covered yet!");
+            }
+
+        }
+
+        /// <summary>
+        /// Calculate depth of subtree.
+        /// </summary>
+        /// <param name="maxDepth">Reference to variable that remembers current maximal depth of a tree.</param>
+        public void CalculateDepth(ref int maxDepth)
+        {
+            // If node is null call to the method should not be preformed.
+            if (this == null)
+            {
+                throw new Exception("[CalculateDepth] Node is null. Not possible since all cases should be already covered.");
+            }
+
+            if (this.arity == 0)
+            {
+                // If terminal node.
+
+                #region exceptions
+                // Check that node type is terminal.
+                if (this.type != "terminal")
+                {
+                    throw new Exception("[CalculateDepth] Node has arity = 0 but his type is: " + this.type + " (not terminal).");
+                }
+
+                // Check that this node has no child node.
+                if (this.children != null)
+                {
+                    throw new Exception("[CalculateDepth] Node has arity = 0 but has " + this.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Check if higher depth.
+                if (this.depth > maxDepth)
+                {
+                    maxDepth = this.depth;
+                }
+
+                // Done.
+                return;
+            }
+            else if (this.arity == 1)
+            {
+                // If non-terminal node with arity 1.
+
+                #region exceptions
+                // Check that node type is non-teminal.
+                if (this.type != "non-terminal")
+                {
+                    throw new Exception("[CalculateDepth] Node has arity = 1 but his type is: " + this.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 1 child node.
+                if (this.children.Count != 1)
+                {
+                    throw new Exception("[CalculateDepth] Node has arity = 1 but has " + this.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Update depth of the child node.
+                this.children[0].CalculateDepth(ref maxDepth);
+
+                // Done.
+                return;
+            }
+            else if (this.arity == 2)
+            {
+                // If non-terminal node with arity 2.
+
+                #region exceptions 
+                // Check that node type is non-teminal.
+                if (this.type != "non-terminal")
+                {
+                    throw new Exception("[CalculateDepth] Node has arity = 2 but his type is: " + this.type + " (not non-terminal).");
+                }
+
+                // Check that this node has 2 child nodes.
+                if (this.children.Count != 2)
+                {
+                    throw new Exception("[CalculateDepth] Node has arity = 2 but has " + this.children.Count + " child nodes.");
+                }
+                #endregion
+
+                // Update depth of the child nodes.
+                this.children[0].CalculateDepth(ref maxDepth);
+                this.children[1].CalculateDepth(ref maxDepth);
+
+                // Done.
+                return;
+            }
+            else
+            {
+                // Node with given arity is not expected. 
+                throw new Exception("[CalculateDepth] Given node arity = " + this.arity + " is not expected! Arity higher than 2 is not covered yet!");
+            }
         }
         #endregion
 
@@ -1338,7 +1406,7 @@ namespace antico.abcp
             set 
             {
                 // Deep copy of value.
-                this._symbolicTree = value.Clone();
+                this._symbolicTree = (SymbolicTreeNode)value.Clone();
             }
         }
         #endregion
@@ -1401,7 +1469,6 @@ namespace antico.abcp
         /// <summary>
         /// Helper method for deep copying values of model st to values of this model.
         /// </summary>
-        /// <param name="st">Model whose values will be deep copied to this model.</param>
         public Chromosome Clone( )
         {
             Chromosome c = new Chromosome();
@@ -1419,7 +1486,7 @@ namespace antico.abcp
             c._depth = this.depth;
 
             // Deep copy with variable property set.
-            c.symbolicTree = this.symbolicTree;
+            c.symbolicTree = (SymbolicTreeNode)this.symbolicTree.Clone();
 
             return c;
         }
@@ -1432,7 +1499,7 @@ namespace antico.abcp
         /// <param name="obj1">First chromosome.</param>
         /// <param name="obj2">Second chromosome.</param>
         /// <returns>True if chromosomes are equal, otherwise false. </returns>
-        public static bool operator ==(Chromosome obj1, Chromosome obj2)
+        public static bool operator ==( Chromosome obj1, Chromosome obj2 )
         {
             if (ReferenceEquals(obj1, obj2))
             {
@@ -1462,7 +1529,7 @@ namespace antico.abcp
         /// <param name="obj1">First chromosome.</param>
         /// <param name="obj2">Second chromosome.</param>
         /// <returns>False if chromosomes are equal, otherwise true. </returns>
-        public static bool operator !=(Chromosome obj1, Chromosome obj2)
+        public static bool operator !=( Chromosome obj1, Chromosome obj2 )
         {
             return !(obj1 == obj2);
         }
@@ -1472,7 +1539,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="other">Chromosome to compare current chromosome.</param>
         /// <returns>True if chromosomes are equal, otherwise false. </returns>
-        public bool Equals(Chromosome other)
+        public bool Equals( Chromosome other )
         {
             return other != null 
                     && _fitness == other._fitness 
@@ -1487,7 +1554,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="obj">Chromosome to compare current chromosome.</param>
         /// <returns>True if chromosomes are equal, otherwise false.</returns>
-        public override bool Equals(object obj)
+        public override bool Equals( object obj )
         {
             if (ReferenceEquals(null, obj))
             {
@@ -1523,19 +1590,23 @@ namespace antico.abcp
         /// Method for calculating fitness of current model.
         /// Fitness is calculated as proportion of ( true positives + true negatives) and total number of files.
         /// </summary>
-        /// <returns>Fintess of the model.</returns>
-        public void CalculateFitness(DataTable data)
+        /// <param name="data">Feature values from train/test set needed for calculating fitness.</param>
+        public void CalculateFitness( DataTable data )
         {
+            // Number of true positives.
             int TP = 0;
+            // Number of true negatives.
             int TN = 0;
+            // Number of data rows.
             int NumberOfFiles = data.Rows.Count;
 
-            foreach(DataRow row in data.Rows)
+            foreach (DataRow row in data.Rows)
             {
+                // Evaluation of curretn row of data.
                 double evaluation = this._symbolicTree.Evaluate(row);
-                int classification = Convert.ToInt32(row["label"]);
+                int classification = Convert.ToInt32(row["label"]); // TODO "label" is hardcoded!
 
-                if( evaluation > 0 && classification == 1)
+                if ( evaluation > 0 && classification == 1)
                 {
                     // If evaluation is greater than 0 file is assumed to be malicious.
                     TP++;
@@ -1547,7 +1618,13 @@ namespace antico.abcp
                 }
             }
 
-            this._fitness = (TP + TN) / NumberOfFiles;
+            // Number of files is always greater than 0.
+            if (NumberOfFiles == 0)
+            {
+                throw new Exception("[CalculateFitness] Number of files is zero!");
+            }
+            // Calculate fitness.
+            this._fitness =  (TP + TN) / (double) (NumberOfFiles) ;
         }
         #endregion
 
@@ -1563,10 +1640,11 @@ namespace antico.abcp
         /// *grow method where chromosome has random size, but not greater than maxDepth;
         /// </param>
         /// <param name="maxDepth"> Maximal depth of (to-be generated) symbolic tree. </param>
+        /// <param name="terminalsMarks"> Array of strings representing possible terminals (features names). </param>
         /// <param name="terminals"> Array of possible terminals of to-be generated symbolic tree.</param>
         /// <param name="nonTerminals"> Array of possible terminals of to-be generated symbolic tree. </param>
-        /// <returns></returns>
-        public void Generate(string method, int maxDepth, string[] terminalsMarks, DataTable terminals, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
+        /// <param name="mathOperationsArity"> Dictionary with all non-terminals and their arity. </param>
+        public void Generate( string method, int maxDepth, string[] terminalsMarks, DataTable terminals, string[] nonTerminals, Dictionary<string, int> mathOperationsArity )
         {
             switch (method)
             {
@@ -1612,7 +1690,7 @@ namespace antico.abcp
                     break;
 
                 default:
-                    throw new System.ArgumentException("Method is not supported", "method");
+                    throw new System.ArgumentException("[Generate] Method is not supported", "method");
             }
         }
 
@@ -1624,17 +1702,31 @@ namespace antico.abcp
         /// </summary>
         /// <param name="data"> DataTable representing test data. </param>
         /// <returns>Accuracy of the model.</returns>
-        public double Accuracy(DataTable data)
+        internal double Accuracy( DataTable data )
         {
             int correct = 0;
-            foreach(DataRow row in data.Rows)
+            foreach (DataRow row in data.Rows)
             {
-                if( this._symbolicTree.Evaluate(row) == Convert.ToInt32(row["classification"]))
+                if (this._symbolicTree.Evaluate(row) == Convert.ToInt32(row["label"])) // TODO "label" is hardcoded!
                 {
                     correct++;
                 }
             }
-            return correct / data.Rows.Count;
+
+            // Calculate accuracy and return.
+            return correct / (double) (data.Rows.Count);
+        }
+        #endregion
+
+        #region Calculate new depth of chromosome tree
+        /// <summary>
+        /// Helper method for updating new depth of chromosome tree structure.
+        /// </summary>
+        internal void CalculateNewDepthOfTree()
+        {
+            int newDepth = 0;
+            this.symbolicTree.CalculateDepth(ref newDepth);
+            this.depth = newDepth;
         }
         #endregion
 

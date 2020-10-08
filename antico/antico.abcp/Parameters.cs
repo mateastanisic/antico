@@ -142,11 +142,11 @@ namespace antico.abcp
         {
             // Associate initial values. 
 
-            this._populationSize = 500;
+            this._populationSize = 50; // 500
             this._maxNumberOfIterations = 100;
             this._maxNumberOfNotImprovingIterations = 50;
-            this._initialMaxDepth = 6;
-            this._maxDepth = 15;
+            this._initialMaxDepth = 6; //6
+            this._maxDepth = 7; //15
             this._limit = 10;
             this._generatingTreesMethod = "ramped";
             this._alpha = 0.9;
@@ -184,7 +184,7 @@ namespace antico.abcp
         /// Constructor for parameters.
         /// </summary>
         /// <param name="p">Different Parameters class variable.</param>
-        public Parameters(Parameters p)
+        public Parameters( Parameters p )
         {
             // Associate values of class Parameters p to this instance of class variables.
             this._populationSize = p.populationSize;
