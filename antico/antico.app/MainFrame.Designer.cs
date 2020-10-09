@@ -39,57 +39,16 @@ namespace antico
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainFrame));
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.panel5 = new System.Windows.Forms.Panel();
             this.anticoLabel = new System.Windows.Forms.Label();
             this.exitPictureBox = new System.Windows.Forms.PictureBox();
-            this.panel2.SuspendLayout();
+            this.createNewModelSign = new System.Windows.Forms.PictureBox();
+            this.isThisMaliciousSign = new System.Windows.Forms.PictureBox();
+            this.aboutAnticoSign = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.exitPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.createNewModelSign)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.isThisMaliciousSign)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.aboutAnticoSign)).BeginInit();
             this.SuspendLayout();
-            // 
-            // panel1
-            // 
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel1.Location = new System.Drawing.Point(0, 0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1012, 4);
-            this.panel1.TabIndex = 0;
-            // 
-            // panel2
-            // 
-            this.panel2.Controls.Add(this.panel4);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Left;
-            this.panel2.Location = new System.Drawing.Point(0, 4);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(4, 683);
-            this.panel2.TabIndex = 1;
-            // 
-            // panel4
-            // 
-            this.panel4.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.panel4.Location = new System.Drawing.Point(3, 632);
-            this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(1009, 4);
-            this.panel4.TabIndex = 3;
-            // 
-            // panel3
-            // 
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel3.Location = new System.Drawing.Point(1008, 4);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(4, 683);
-            this.panel3.TabIndex = 2;
-            // 
-            // panel5
-            // 
-            this.panel5.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel5.Location = new System.Drawing.Point(4, 683);
-            this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(1004, 4);
-            this.panel5.TabIndex = 3;
             // 
             // anticoLabel
             // 
@@ -116,6 +75,52 @@ namespace antico
             this.exitPictureBox.Click += new System.EventHandler(this.exitPictureBox_Click);
             this.exitPictureBox.MouseEnter += new System.EventHandler(this.exitPictureBox_MouseEnter);
             this.exitPictureBox.MouseLeave += new System.EventHandler(this.exitPictureBox_MouseLeave);
+            this.exitPictureBox.MouseHover += new System.EventHandler(this.exitPictureBox_MouseHover);
+            // 
+            // createNewModelSign
+            // 
+            this.createNewModelSign.BackColor = System.Drawing.Color.Transparent;
+            this.createNewModelSign.BackgroundImage = global::antico.Properties.Resources.create_new_white;
+            this.createNewModelSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.createNewModelSign.Location = new System.Drawing.Point(120, 136);
+            this.createNewModelSign.Name = "createNewModelSign";
+            this.createNewModelSign.Size = new System.Drawing.Size(200, 200);
+            this.createNewModelSign.TabIndex = 13;
+            this.createNewModelSign.TabStop = false;
+            this.createNewModelSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.createNewModelSign_MouseClick);
+            this.createNewModelSign.MouseEnter += new System.EventHandler(this.createNewModelSign_MouseEnter);
+            this.createNewModelSign.MouseLeave += new System.EventHandler(this.createNewModelSign_MouseLeave);
+            this.createNewModelSign.MouseHover += new System.EventHandler(this.createNewModelSign_MouseHover);
+            // 
+            // isThisMaliciousSign
+            // 
+            this.isThisMaliciousSign.BackColor = System.Drawing.Color.Transparent;
+            this.isThisMaliciousSign.BackgroundImage = global::antico.Properties.Resources.no_response_white;
+            this.isThisMaliciousSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.isThisMaliciousSign.Location = new System.Drawing.Point(406, 136);
+            this.isThisMaliciousSign.Name = "isThisMaliciousSign";
+            this.isThisMaliciousSign.Size = new System.Drawing.Size(200, 200);
+            this.isThisMaliciousSign.TabIndex = 14;
+            this.isThisMaliciousSign.TabStop = false;
+            this.isThisMaliciousSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.isThisMaliciousSign_MouseClick);
+            this.isThisMaliciousSign.MouseEnter += new System.EventHandler(this.isThisMaliciousSign_MouseEnter);
+            this.isThisMaliciousSign.MouseLeave += new System.EventHandler(this.isThisMaliciousSign_MouseLeave);
+            this.isThisMaliciousSign.MouseHover += new System.EventHandler(this.isThisMaliciousSign_MouseHover);
+            // 
+            // aboutAnticoSign
+            // 
+            this.aboutAnticoSign.BackColor = System.Drawing.Color.Transparent;
+            this.aboutAnticoSign.BackgroundImage = global::antico.Properties.Resources.calculating_save;
+            this.aboutAnticoSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.aboutAnticoSign.Location = new System.Drawing.Point(692, 136);
+            this.aboutAnticoSign.Name = "aboutAnticoSign";
+            this.aboutAnticoSign.Size = new System.Drawing.Size(200, 200);
+            this.aboutAnticoSign.TabIndex = 15;
+            this.aboutAnticoSign.TabStop = false;
+            this.aboutAnticoSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.aboutAnticoSign_MouseClick);
+            this.aboutAnticoSign.MouseEnter += new System.EventHandler(this.aboutAnticoSign_MouseEnter);
+            this.aboutAnticoSign.MouseLeave += new System.EventHandler(this.aboutAnticoSign_MouseLeave);
+            this.aboutAnticoSign.MouseHover += new System.EventHandler(this.aboutAnticoSign_MouseHover);
             // 
             // MainFrame
             // 
@@ -124,38 +129,35 @@ namespace antico
             this.BackgroundImage = global::antico.Properties.Resources.images;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1012, 687);
+            this.Controls.Add(this.aboutAnticoSign);
+            this.Controls.Add(this.isThisMaliciousSign);
+            this.Controls.Add(this.createNewModelSign);
             this.Controls.Add(this.exitPictureBox);
             this.Controls.Add(this.anticoLabel);
-            this.Controls.Add(this.panel5);
-            this.Controls.Add(this.panel3);
-            this.Controls.Add(this.panel2);
-            this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainFrame";
             this.Opacity = 0.98D;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "adico";
-            this.TransparencyKey = System.Drawing.Color.Transparent;
+            this.Text = "antico";
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainFrame_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainFrame_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainFrame_MouseUp);
-            this.panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.exitPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.createNewModelSign)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.isThisMaliciousSign)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.aboutAnticoSign)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Panel panel4;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.Panel panel5;
         private System.Windows.Forms.Label anticoLabel;
         private System.Windows.Forms.PictureBox exitPictureBox;
+        private System.Windows.Forms.PictureBox createNewModelSign;
+        private System.Windows.Forms.PictureBox isThisMaliciousSign;
+        private System.Windows.Forms.PictureBox aboutAnticoSign;
     }
 }
 

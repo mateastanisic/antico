@@ -70,3 +70,11 @@ C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIP
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.app.csproj.CopyComplete
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.exe
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.pdb
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Microsoft.Msagl.dll
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Microsoft.Msagl.Drawing.dll
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Microsoft.Msagl.GraphViewerGdi.dll
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Microsoft.Msagl.xml
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Microsoft.Msagl.Drawing.xml
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Microsoft.Msagl.GraphViewerGdi.xml
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.HelperForm.resources
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.CreateNewModelForm.resources

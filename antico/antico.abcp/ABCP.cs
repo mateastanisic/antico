@@ -61,6 +61,18 @@ namespace antico.abcp
         }
         #endregion
 
+        #region best model
+        // (READONLY - Setting only through constructor) 
+        // Variable that represents best current solution.
+        private Chromosome _best;
+
+        // Property for the _best variable.
+        public Chromosome best
+        {
+            get { return _best; }
+        }
+        #endregion
+
         #region data
         // (READONLY - Setting only through constructor) 
         // Variable that represents features and mathematical operators.
@@ -100,6 +112,20 @@ namespace antico.abcp
             _parameters = new Parameters();
             _data = new Data();
             _population = new Population(_parameters.populationSize, _parameters.initialMaxDepth, _data.mathOperations, _data.mathOperationsArity, _data.featureNames, _data.trainFeatures, _parameters.generatingTreesMethod);
+            _best = (Chromosome)_population.BestSolution().Item1.Clone();
+        }
+
+        /// <summary>
+        /// Basic constructor with sent parameters. 
+        /// Generating population of chromosomes (symbolic trees) with basic values of (data and parameters) variables.
+        /// </summary>
+        public ABCP( Parameters p )
+        {
+            // Setting the initial values.
+            _parameters = p;
+            _data = new Data();
+            _population = new Population(_parameters.populationSize, _parameters.initialMaxDepth, _data.mathOperations, _data.mathOperationsArity, _data.featureNames, _data.trainFeatures, _parameters.generatingTreesMethod);
+            _best = (Chromosome)_population.BestSolution().Item1.Clone();
         }
 
         /// <summary>
@@ -116,12 +142,13 @@ namespace antico.abcp
         /// <param name="spliting_data_type">Type of splitting data into train and test set. (Balanced/Inbalanced)</param>
         /// <param name="number_of_top_features">Number of top features selected to be in model.</param>
         /// <param name="limit">Number of iterations when certain solution is not changed before in scout bee phase is generated new solution.</param>
-        public ABCP( int population_size, int max_number_of_iterations, int max_number_of_not_improving_iterations, int initial_max_depth, int max_depth, string generating_trees_method, string[] math_operations, string feature_extraction_method, string spliting_data_type, int number_of_top_features, int limit, double alpha, double probability )
+        public ABCP( int population_size, int max_number_of_iterations, int max_number_of_not_improving_iterations, int number_of_runs, int initial_max_depth, int max_depth, string generating_trees_method, string[] math_operations, string feature_extraction_method, string spliting_data_type, int number_of_top_features, int limit, double alpha, double probability )
         {
             // Setting the values with other constructors.
-            _parameters = new Parameters(population_size, max_number_of_iterations, max_number_of_not_improving_iterations, initial_max_depth, max_depth, generating_trees_method, limit, alpha, probability);
+            _parameters = new Parameters(population_size, max_number_of_iterations, max_number_of_not_improving_iterations, number_of_runs, initial_max_depth, max_depth, generating_trees_method, limit, alpha, probability);
             _data = new Data(math_operations, feature_extraction_method, spliting_data_type, number_of_top_features);
             _population = new Population(population_size, initial_max_depth, math_operations, _data.mathOperationsArity, _data.featureNames, _data.trainFeatures, generating_trees_method);
+            _best = (Chromosome)_population.BestSolution().Item1.Clone();
         }
 
         #endregion
@@ -132,8 +159,7 @@ namespace antico.abcp
         /// This method is used to find the best model for some data using heuristic abc programming.
         /// It is considered all variables for class ABCP are set.
         /// </summary>
-        /// <returns> Best model. </returns>
-        public Chromosome ABCProgrammingFindBestModel()
+        public void ABCProgramming()
         {
             // Helper arrays for keeping track of case when Solution (i) is not improved.
             int[] Limits = new int[this.parameters.populationSize];
@@ -350,7 +376,8 @@ namespace antico.abcp
                 // if( BestFitness == 1 ) break;
             }
 
-            return BestSolution;
+            // Update best solution.
+            _best = (Chromosome)BestSolution.Clone();
         }
         #endregion
 
