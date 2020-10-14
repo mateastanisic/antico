@@ -13,7 +13,7 @@ using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Npgsql;
-// using Microsoft.ML;
+using Microsoft.ML;
 
 namespace antico.data
 {
@@ -32,6 +32,7 @@ namespace antico.data
     /// Also, user will also have a chance to choose making model based on balanced or imbalanced data.
     /// 
     /// </summary>
+    [Serializable]
     public class Data
     {
         #region ATTRIBUTES
@@ -82,7 +83,7 @@ namespace antico.data
 
         #region features 
 
-        #region features - connection to database
+        #region connection to database
         // Variable for connection to POSTGRESQL database.
         // ( PRIVATE ) used only in this class
         private NpgsqlConnection connection;
@@ -90,7 +91,9 @@ namespace antico.data
         // Connection string for connection to the database.
         // ( PRIVATE ) used only in this class
         private string connectionString = String.Format("Server={0};Port={1};User Id={2};Password={3};Database={4};", "localhost", "5432", "postgres", "postgres", "MalwareDetection");
+        #endregion
 
+        #region features
         // (READONLY - Setting only through constructor) 
         // Extracted features from database.
         private DataTable _features;
@@ -153,6 +156,18 @@ namespace antico.data
 
         #endregion
 
+        #region database
+        // (READONLY - Setting only through constructor) 
+        // String variable containing name of the database.
+        private string _database;
+
+        // Property for the _database variable.
+        public string database
+        {
+            get { return _database; }
+        }
+        #endregion
+
         #endregion
 
         #region OPERATIONS
@@ -174,6 +189,8 @@ namespace antico.data
             // Defining connection.
             connection = new NpgsqlConnection(connectionString);
 
+            // Set up database name.
+            _database = "clamp";
             // Try loading data into features DataTable from database.
             try
             {
@@ -181,15 +198,16 @@ namespace antico.data
                 connection.Open();
 
                 // SQL query.
-                string sql_features = "SELECT * FROM clamp"; // TODO: HARDCODED
+                string sql_features = "SELECT * FROM " + database; 
                 NpgsqlCommand command = new NpgsqlCommand(sql_features, connection);
 
                 // Loading data in DataTable variable.
                 _features = new DataTable();
                 _features.Load(command.ExecuteReader());
 
-                _trainFeatures = _features; // TODO
-                _testFeatures = _features; // TODO
+                // TODO train test
+                _trainFeatures = _features;
+                _testFeatures = _features; 
 
                 // Allocate memory for feature names. (Remove one for label column)
                 // TODO: prettier
@@ -202,7 +220,7 @@ namespace antico.data
             {
                 // Could not open the database. Throw exception.
                 connection.Close();
-                throw new NpgsqlException("[Data constructor] Failed loading data from database!");
+                throw new NpgsqlException("[Data constructor] Failed loading data from database " + database + "!");
             }
 
             // Try loading feature names from database.
@@ -212,7 +230,7 @@ namespace antico.data
                 connection.Open();
 
                 // SQL query.
-                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = 'clamp'"; // TODO: HARDCODED
+                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = '" + database + "'";
                 NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, connection);
 
                 // Loading feature names into _featureNames variable variable.
@@ -241,7 +259,112 @@ namespace antico.data
             {
                 // Could not open the database. Throw exception.
                 connection.Close();
-                throw new NpgsqlException("[Data constructor] Failed loading data from database!");
+                throw new NpgsqlException("[Data constructor] Failed loading data from database " + database + "!");
+            }
+
+
+            // Setting number of the features.
+            _numberOfFeatures = _featureNames.Length;
+
+            // Balanced division of data into train and test.
+            // makeTrainAndTest();
+        }
+
+        /// <summary>
+        /// Constructor. 
+        /// With specific mathematical operators and specific database.
+        /// </summary>
+        /// <param name="mathOperators"> String array containing choosen mathematical operators for training a model.</param>
+        /// <param name="databaseName"> Name of the database. </param>
+        public Data(List<string> mathOperators, string databaseName)
+        {
+            // Choosed mathematical operations.
+            _mathOperations = new string[mathOperators.Count];
+
+            // Deep copy.
+            for (var i = 0; i < mathOperators.Count; i++)
+            {
+                _mathOperations[i] = mathOperators[i];
+            }
+
+            // Setting number of mathematical operations.
+            _numberOfMathOperators = _mathOperations.Length;
+
+            // Setting database name.
+            _database = databaseName;
+
+            // Defining connection.
+            connection = new NpgsqlConnection(connectionString);
+
+            // Try loading data into features DataTable from database.
+            try
+            {
+                // Open connection.
+                connection.Open();
+
+                // SQL query.
+                string sql_features = "SELECT * FROM " + databaseName; 
+                NpgsqlCommand command = new NpgsqlCommand(sql_features, connection);
+
+                // Loading data in DataTable variable.
+                _features = new DataTable();
+                _features.Load(command.ExecuteReader());
+
+                // TODO train test
+                _trainFeatures = _features;
+                _testFeatures = _features;
+
+                // Allocate memory for feature names. (Remove one for label column)
+                // TODO: prettier
+                _featureNames = new string[_features.Columns.Count - 1];
+
+                // Close the connection.
+                connection.Close();
+            }
+            catch
+            {
+                // Could not open the database. Throw exception.
+                connection.Close();
+                throw new NpgsqlException("[Data constructor] Failed loading data from database " + database + "!");
+            }
+
+            // Try loading feature names from database.
+            try
+            {
+                // Open connection.
+                connection.Open();
+
+                // SQL query.
+                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = '" + databaseName + "'"; 
+                NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, connection);
+
+                // Loading feature names into _featureNames variable variable.
+                DataTable featureNamesDataTable = new DataTable();
+                featureNamesDataTable.Load(command2.ExecuteReader());
+
+                // Fill string array with feature names from DataTable.
+                var i = 0;
+                foreach (DataRow row in featureNamesDataTable.Rows)
+                {
+                    foreach (var item in row.ItemArray)
+                    {
+                        // Column "label" is not a feature!
+                        if (item.ToString() == "label") // TODO: "label" is HARDCODED
+                            continue;
+
+                        _featureNames[i] = item.ToString();
+                        i++;
+                    }
+                }
+
+                // Close the connection.
+                connection.Close();
+            }
+            catch
+            {
+                // Could not open the database. Throw exception.
+                connection.Close();
+                throw new NpgsqlException("[Data constructor] Failed loading data from database " + database + "!");
             }
 
 
@@ -261,7 +384,7 @@ namespace antico.data
         /// <param name="featureExtractionMethod"> Feature extraction method used - tf/tfidf/fisher. </param>
         /// <param name="trainingDataType"> Balanced or inbalanced data. </param>
         /// <param name="numberOfBestFeatures">Number of best features used in predicting a model.</param>
-        public Data( string[] mathOperators, string featureExtractionMethod, string trainingDataType, int numberOfBestFeatures)
+        public Data(string[] mathOperators, string featureExtractionMethod, string trainingDataType, int numberOfBestFeatures)
         {
             // Choosed mathematical operations.
             _mathOperations = new string[mathOperators.Length];
@@ -361,7 +484,7 @@ namespace antico.data
                     foreach (var item in row.ItemArray)
                     {
                         // Column "label" is not a feature!
-                        if (item.ToString() == "label") // TODO: HARDCODED
+                        if (item.ToString() == "label") // TODO: "label" is HARDCODED
                             continue;
 
                         _featureNames[i] = item.ToString();
@@ -403,7 +526,7 @@ namespace antico.data
         /// </summary>
         /// <param name="mathOp">Mathematical operator string.</param>
         /// <returns>Aritiy of the sent mathematical operator.</returns>
-        public int getMathOperationArity( string mathOp )
+        internal int getMathOperationArity(string mathOp)
         {
             if (mathOperationsArity.ContainsKey(mathOp))
             {
@@ -422,7 +545,11 @@ namespace antico.data
         /// </summary>
         private void makeTrainAndTest()
         {
-            throw new NotImplementedException();  // TODO
+            // Creating the ML.Net IHostEnvironment object, needed for the pipeline.
+            var mlContext = new MLContext();
+
+            //var split = mlContext.Data.TrainTestSplit(features, testFraction: 0.2);
+            throw new NotImplementedException();  // TODO train test
         }
 
         /// <summary>
@@ -430,7 +557,7 @@ namespace antico.data
         /// </summary>
         private void makeTrainAndTestInbalanced()
         {
-            throw new NotImplementedException(); // TODO
+            throw new NotImplementedException(); // TODO train test
         }
         #endregion
 

@@ -23,6 +23,11 @@ using antico.abcp;
 using antico.data;
 using Microsoft.Msagl.Drawing;
 using System.Threading;
+using System.IO;
+using System.Collections;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+using Microsoft.VisualBasic;
 
 namespace antico
 {
@@ -37,14 +42,20 @@ namespace antico
         private Point dragFormPoint;
         #endregion
 
-        #region ABCP variable.
+        #region ABCP variables.
         // Main variable for creating a new model.
-        private ABCP _model;
+        private List<ABCP> _models;
+
+        // Variable for saving custom parameters.
+        private Parameters _parameters;
+
+        // Variable for saving current best model.
+        private Chromosome _best;
         #endregion
 
-        #region ABCP parameters
-        // Variable for saving custom parameters.
-        Parameters _parameters;
+        #region Data.
+        // Data variable.
+        Data _data;
         #endregion
 
         #region Other forms.
@@ -52,11 +63,18 @@ namespace antico
         private HelperForm formForVisualizationOfModel;
         // Main frame.
         private MainFrame _mainFrame;
+        // Console form.
+        private ConsoleForm consoleForm;
         #endregion
 
         #region Forbid clicking on form.
         // Variable that is used to forbid user clicking on signs.
         bool forbid = false;
+        #endregion
+
+        #region Thread.
+        // For multitasking while searching for the model.
+        Thread myThread;
         #endregion
 
         #region Dictionary for depth colors in symbolic tree structure.
@@ -78,7 +96,7 @@ namespace antico
         /// <summary>
         /// Function for initializing components on frame.
         /// </summary>
-        public CreateNewModelForm(MainFrame mainFrame, ref ABCP model)
+        public CreateNewModelForm(MainFrame mainFrame)
         {
             InitializeComponent();
             Application.DoEvents();
@@ -92,10 +110,23 @@ namespace antico
 
             // Save sent variables.
             _mainFrame = mainFrame;
-            _model = model;
-        }
-        #endregion
+            _models = new List<ABCP>();
 
+            // Set up background of the label for the printout of the solutions.
+            this.printoutOfAllSolutionsLabel.BackColor = System.Drawing.Color.FromArgb(100, System.Drawing.Color.WhiteSmoke);
+
+            // Initialize the console form.
+            consoleForm = new ConsoleForm();
+            consoleForm.CreateNewConsoleForm(this);
+            consoleForm.Show();
+            consoleForm.Visible = false;
+            consoleForm.VisibleChanged += new EventHandler(this.ConsoleForm_VisibilityChanged);
+
+            // Trigger on waitingAnimation visibilitx changed. (For end of model search.)
+            waitingAnimation.VisibleChanged += new EventHandler(this.WaitingAnimation_VisibilityChanged);
+        }
+
+        #endregion
 
         #region Methods for enabling moving CreateNewModelForm on user screen.
         /// <summary>
@@ -109,6 +140,31 @@ namespace antico
             dragCursorPoint = Cursor.Position;
             dragFormPoint = this.Location;
         }
+
+        /// <summary>
+        /// Flag the wariable dragging true since user pressed mouse button initiating beggining of moving frame.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void panelForPrintoutLabel_MouseDown(object sender, MouseEventArgs e)
+        {
+            dragging = true;
+            dragCursorPoint = Cursor.Position;
+            dragFormPoint = this.Location;
+        }
+
+        /// <summary>
+        /// Flag the wariable dragging true since user pressed mouse button initiating beggining of moving frame.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void printoutOfAllSolutionsLabel_MouseDown(object sender, MouseEventArgs e)
+        {
+            dragging = true;
+            dragCursorPoint = Cursor.Position;
+            dragFormPoint = this.Location;
+        }
+
 
         /// <summary>
         /// If user previously pressed mouse button (if dragging is true), change location of the Form.
@@ -125,6 +181,35 @@ namespace antico
         }
 
         /// <summary>
+        /// If user previously pressed mouse button (if dragging is true), change location of the Form.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void panelForPrintoutLabel_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (dragging)
+            {
+                Point dif = Point.Subtract(Cursor.Position, new Size(dragCursorPoint));
+                this.Location = Point.Add(dragFormPoint, new Size(dif));
+            }
+        }
+
+        /// <summary>
+        /// If user previously pressed mouse button (if dragging is true), change location of the Form.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void printoutOfAllSolutionsLabel_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (dragging)
+            {
+                Point dif = Point.Subtract(Cursor.Position, new Size(dragCursorPoint));
+                this.Location = Point.Add(dragFormPoint, new Size(dif));
+            }
+        }
+
+
+        /// <summary>
         /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
         /// </summary>
         /// <param name="sender"></param>
@@ -133,11 +218,31 @@ namespace antico
         {
             dragging = false;
         }
+
+        /// <summary>
+        /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void panelForPrintoutLabel_MouseUp(object sender, MouseEventArgs e)
+        {
+            dragging = false;
+        }
+
+        /// <summary>
+        /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void printoutOfAllSolutionsLabel_MouseUp(object sender, MouseEventArgs e)
+        {
+            dragging = false;
+        }
         #endregion
 
         #region HOVERING
 
-        #region Making hand cursor when hovering GoBack sign.
+        #region Making hand cursor when hovering sign.
 
         #region go back sign
         /// <summary>
@@ -213,7 +318,7 @@ namespace antico
         /// <param name="e"></param>
         private void visualizeSign_MouseEnter(object sender, EventArgs e)
         {
-            if (_model != null && _model.best != null)
+            if (_models != null && _best != null)
             {
                 visualizeSign.Cursor = Cursors.Hand;
             }
@@ -238,7 +343,7 @@ namespace antico
         /// <param name="e"></param>
         private void saveSign_MouseEnter(object sender, EventArgs e)
         {
-            if (_model != null && _model.best != null)
+            if (_models != null && _best != null)
             {
                 saveSign.Cursor = Cursors.Hand;
             }
@@ -277,9 +382,36 @@ namespace antico
         }
         #endregion
 
+        #region lookup console form
+        /// <summary>
+        /// Hovering start.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void lookupConsoleFormPictureBox_MouseEnter(object sender, EventArgs e)
+        {
+            // Show hand cursor only if search is ongoing or done. 
+            // Also, check out if console is already opened.
+            if (!consoleForm.Visible && (forbid || _best != null))
+            {
+                lookupConsoleFormPictureBox.Cursor = Cursors.Hand;
+            }
+        }
+
+        /// <summary>
+        /// Hovering end.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void lookupConsoleFormPictureBox_MouseLeave(object sender, EventArgs e)
+        {
+            lookupConsoleFormPictureBox.Cursor = Cursors.Default;
+        }
         #endregion
 
-        #region Showing ToolTip when hovering GoBack sign.
+        #endregion
+
+        #region Showing ToolTip when hovering sign.
 
         #region go back sign
         /// <summary>
@@ -359,6 +491,25 @@ namespace antico
         }
         #endregion
 
+        #region lookup console form
+        /// <summary>
+        /// Show that pressing Lookup means showing printouts from the search.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void lookupConsoleFormPictureBox_MouseHover(object sender, EventArgs e)
+        {
+            // Show tool tip only if search is ongoing or done. 
+            // Also, check out if console is already opened.
+            if (!consoleForm.Visible && (forbid || _best != null))
+            {
+                ToolTip tt = new ToolTip();
+                tt.SetToolTip(this.lookupConsoleFormPictureBox, "show console");
+            }
+
+        }
+        #endregion
+
         #endregion
 
         #endregion
@@ -373,12 +524,43 @@ namespace antico
         /// <param name="e"></param>
         private void goBackSign_MouseClick(object sender, EventArgs e)
         {
+            #region check if another process is already running
+            // If process is ongoing, check if user really wants to stop it.
+            if (forbid)
+            {
+                string message = "You want to stop the search for the model. Are you sure?";
+                string title = "Stop search?";
+                DialogResult result = MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+
+                // If canceled, do nothing.
+                if (result == DialogResult.No)
+                {
+                    return;
+                }
+            }
+            #endregion
+
+            // Abort the process if alive.
+            if (myThread != null)
+            {
+                myThread.Abort();
+            }
+
+            // Close the console form.
+            consoleForm.Close();
+
+            // Close the form.
             this.Close();
 
             // Update new location of main frame.
             _mainFrame.Location = this.Location;
             // Make main form visible again.
             _mainFrame.Visible = true;
+
+            // Load text font.
+            PrivateFontCollection anticoFont = new PrivateFontCollection();
+            anticoFont.AddFontFile("../../../../[FONTS]/UnicaOne-Regular.ttf");
+            _mainFrame.anticoLabelDesign.Font = new Font(anticoFont.Families[0], 35, System.Drawing.FontStyle.Regular);
         }
         #endregion
 
@@ -390,6 +572,7 @@ namespace antico
         /// <param name="e"></param>
         private void parametersSettingsSign_MouseClick(object sender, MouseEventArgs e)
         {
+            #region check if another process is already running
             // Check if another process already runnning.
             if (forbid)
             {
@@ -399,9 +582,10 @@ namespace antico
 
                 return;
             }
+            #endregion
 
             // Just in case, remove text box for printout.
-            printoutOfAllSolutionsTextBox.Visible = false;
+            printoutOfAllSolutionsLabel.Visible = false;
 
             showParameters();
         }
@@ -417,6 +601,8 @@ namespace antico
         /// <param name="e"></param>
         private void startSign_MouseClick(object sender, MouseEventArgs e)
         {
+
+            #region check if another process is already running
             // Check if another process already runnning.
             if (forbid)
             {
@@ -426,9 +612,12 @@ namespace antico
 
                 return;
             }
+            #endregion
 
             // Just in case, hide custom parameters layout.
             mainLayout.Visible = false;
+            // Just in case, hide label with printouts.
+            printoutOfAllSolutionsLabel.Visible = false;
 
             // Check if there are custom parameters.
             if (_parameters == null)
@@ -448,91 +637,125 @@ namespace antico
                     // Forbid all other cliks.
                     forbid = true;
 
+                    #region console form
+                    // Just in case, clear textbox in console form.
+                    consoleForm.printoutTestBox.Text = "";
+                    // Show form.
+                    consoleForm.Visible = true;
+                    #endregion
+
+                    #region search for model
                     // Initialize and printout when done using threads because of animation.
-                    Thread myThread = new Thread(
+                    myThread = new Thread(
                         () =>
                         {
                             try
                             {
                                 this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = true; });
 
-                                _model = new ABCP();
-                                _model.ABCProgramming();
+                                // Set up parameters
+                                _parameters = new Parameters();
+                                _models = new List<ABCP>();
+                                _best = new Chromosome();
+
+                                // Do the jobs.
+                                for (var run = 0; run < _parameters.numberOfRuns; run++)
+                                {
+                                    // Printout on console.
+                                    string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                                    consoleForm.Invoke((MethodInvoker)delegate { consoleForm.printoutTestBox.AppendText("\r\n[" + time + "] RUN: " + run.ToString() + "\r\n"); });
+
+                                    _models.Add(new ABCP(this, consoleForm.printoutTestBox));
+                                    _models[run].ABCProgramming(this, consoleForm.printoutTestBox);
+
+                                    if (_best == null)
+                                    {
+                                        _best = new Chromosome();
+                                        _best = _models[run].best.Clone();
+                                    }
+                                    else if (_best.fitness < _models[run].best.fitness)
+                                    {
+                                        _best = _models[run].best.Clone();
+                                    }
+
+                                    // Printout on console.
+                                    this.Invoke((MethodInvoker)delegate { consoleForm.printoutTestBox.AppendText("\r\n****************************************************************************************"); });
+                                }
 
                                 System.Threading.Thread.Sleep(5000);
                                 this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = false; });
                             }
                             finally
                             {
-                                this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = false; });
-
-                                // Notify user that model is created and ask if he wants to see all the solutions.
-                                string qmessage = "Model is created. Do you want to see all solutions?";
-                                string qtitle = "Model is created";
-                                DialogResult qresult = MessageBox.Show(qmessage, qtitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                                if (qresult == DialogResult.Yes)
-                                {
-                                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text = ""; });
-                                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Visible = true; });
-                                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text = ""; });
-                                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text += " BEST SOLUTION FITNESS: " + _model.best.fitness.ToString() + "\r\n \r\n"; });
-                                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text += "\r\n"; });
-                                    printoutAllSolutions(_model.population, _model.data);
-                                }
-
                                 // Back to normal.
                                 forbid = false;
                             }
+
                         });
                     myThread.Start();
+                    #endregion
                 }
-
                 return;
             }
 
             // Forbid all other cliks.
             forbid = true;
 
+            #region console form
+            // Just in case, clear textbox in console form.
+            consoleForm.printoutTestBox.Text = "";
+            // Show form.
+            consoleForm.Visible = true;
+            #endregion
+
             // User already added custom parameters.
             // Initialize and printout when done using threads because of animation.
-            Thread myThreadp = new Thread(
+            myThread = new Thread(
                 () =>
                 {
                     try
                     {
                         this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = true; });
 
-                        _model = new ABCP(_parameters);
-                        _model.ABCProgramming();
+                        // Reset the variables.
+                        _models = new List<ABCP>();
+                        _best = new Chromosome();
+
+                        // Do the jobs.
+                        for (var run = 0; run < _parameters.numberOfRuns; run++)
+                        {
+                            // Printout on console.
+                            string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                            consoleForm.Invoke((MethodInvoker)delegate { consoleForm.printoutTestBox.AppendText("\r\n[" + time + "] RUN: " + run.ToString() + "\r\n"); });
+
+                            _models.Add(new ABCP(_parameters, _data, this, consoleForm.printoutTestBox));
+                            _models[run].ABCProgramming(this, consoleForm.printoutTestBox);
+
+                            if (_best == null)
+                            {
+                                _best = new Chromosome();
+                                _best = _models[run].best.Clone();
+                            }
+                            else if (_best.fitness < _models[run].best.fitness)
+                            {
+                                _best = _models[run].best.Clone();
+                            }
+
+                            // Printout on console.
+                            this.Invoke((MethodInvoker)delegate { consoleForm.printoutTestBox.AppendText("\r\n****************************************************************************************"); });
+                        }
 
                         System.Threading.Thread.Sleep(5000);
                         this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = false; });
                     }
                     finally
                     {
-                        this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = false; });
-
-                        // Notify user that model is created and ask if he wants to see all the solutions.
-                        string qpmessage = "Model is created. Do you want to see all solutions?";
-                        string qptitle = "Model is created";
-                        DialogResult qpresult = MessageBox.Show(qpmessage, qptitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                        if (qpresult == DialogResult.Yes)
-                        {
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text = ""; });
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Visible = true; });
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text = ""; });
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text += " BEST SOLUTION FITNESS: " + _model.best.fitness.ToString() + "\r\n \r\n"; });
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text += "\r\n"; });
-                            printoutAllSolutions(_model.population, _model.data);
-                        }
-
                         // Back to normal.
                         forbid = false;
+
                     }
                 });
-            myThreadp.Start();
+            myThread.Start();
 
         }
         #endregion
@@ -545,6 +768,7 @@ namespace antico
         /// <param name="e"></param>
         private void visualizeSign_MouseClick(object sender, MouseEventArgs e)
         {
+            #region check if another process is already running
             // Check if another process already runnning.
             if (forbid)
             {
@@ -554,9 +778,10 @@ namespace antico
 
                 return;
             }
+            #endregion
 
             // Check if model exists.
-            if (_model != null && _model.best != null)
+            if (_models != null && _best != null)
             {
                 // Create a new helper form.
                 formForVisualizationOfModel = new HelperForm();
@@ -568,7 +793,7 @@ namespace antico
                 // Create a graph object.
                 Graph graph = new Graph("Model");
                 // Create the graph content from model.
-                DrawSymbolicTree(_model.best.symbolicTree, ref graph);
+                DrawSymbolicTree(_best.symbolicTree, ref graph);
                 #endregion
 
                 #region viewer 
@@ -606,6 +831,7 @@ namespace antico
         /// <param name="e"></param>
         private void saveSign_MouseClick(object sender, MouseEventArgs e)
         {
+            #region check if another process is already running
             // Check if another process already runnning.
             if (forbid)
             {
@@ -615,22 +841,70 @@ namespace antico
 
                 return;
             }
+            #endregion
 
             // Check if model exists.
-            if (_model != null && _model.best != null)
+            if (_models != null && _best != null)
             {
-                string message = "Feature still not implemented!";
-                string title = "antico responds";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = MessageBox.Show(message, title, buttons, MessageBoxIcon.Error);
+                // User must input name of model.
+                #region name input
+
+                // Message, title and default value of input box.
+                string message = "Please input the name of the file to be saved.";
+                string title = "Name of the file";
+                string defaultValue = "ABCP_Model_" + _best.fitness.ToString() + "__" + DateTime.Today.Day.ToString() + "_" + DateTime.Today.Month.ToString() + "_" + DateTime.Today.Year.ToString() ;
+
+                // Input box.
+                var inputBox = Microsoft.VisualBasic.Interaction.InputBox(message, title, defaultValue);
+
+                // Check if user clicked Cancel or OK.
+                if (inputBox.ToString() == "")
+                {
+                    // User has clicked cancel. Do nothing.
+                    return;
+                }
+                #endregion
+
+                // Create a hashtable of values that will eventually be serialized.
+                Hashtable addresses = new Hashtable();
+                addresses.Add("BestModel", _best);
+                addresses.Add("Parameters", _parameters);
+
+                // Name to be. Path to be.
+                string fileName = @"../../../../[DATA]/saved/" + inputBox.ToString() + ".dat";
+                string fullPath = Path.GetFullPath(fileName);
+
+                // To serialize the hashtable and its key/value pairs, first open a stream for writing. 
+                FileStream fs = new FileStream(fileName, FileMode.Create);
+
+                // Construct a BinaryFormatter and use it to serialize the data to the stream.
+                BinaryFormatter formatter = new BinaryFormatter();
+                try
+                {
+                    formatter.Serialize(fs, addresses);
+                }
+                catch (SerializationException exception)
+                {
+                    Console.WriteLine("Failed to serialize. Reason: " + exception.Message);
+                    throw;
+                }
+                finally
+                {
+                    fs.Close();
+                }
+
+                // Notify the user where the file is saved.
+                string success_message = "File is saved on: " + fullPath + " !";
+                string success_title = "Saving successful.";
+                DialogResult result = MessageBox.Show(success_message, success_title, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
+            // Model does not exist. Warn user!
             string warning_message = "Model is not yet created!";
             string warning_title = "Warning";
             MessageBoxButtons warning_buttons = MessageBoxButtons.OK;
             DialogResult warning_result = MessageBox.Show(warning_message, warning_title, warning_buttons, MessageBoxIcon.Warning);
-
         }
         #endregion
 
@@ -642,13 +916,20 @@ namespace antico
         /// <param name="e"></param>
         private void saveParametersSign_Click(object sender, EventArgs e)
         {
-            // Just in case, remove text box for printout.
-            printoutOfAllSolutionsTextBox.Visible = false;
+            #region check if another process is already running
+            // Check if another process already runnning.
+            if (forbid)
+            {
+                string m = "Wait! Model calculation is still in progress.";
+                string t = "Warning!";
+                MessageBox.Show(m, t, MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-            // Hide parameters layout.
-            mainLayout.Visible = false;
+                return;
+            }
+            #endregion
 
-            //(int ps, int maxnoi, int maxnonii, int nooruns, int imd, int md, string method, int lim, double a, double prob)
+            #region read parameters from the form
+            // Read parameters from the input.
             int ps = Decimal.ToInt32(colonySizeUpDown.Value);
             int maxnoi = Decimal.ToInt32(maxNoOfIterUpDown.Value);
             int maxnonii = Decimal.ToInt32(maxNoOfNotImprovingIterUpDown.Value);
@@ -669,51 +950,131 @@ namespace antico
                 method = "full";
             }
 
+            // Name of the database.
+            string database;
+            if (databaseComboBox.SelectedIndex > -1)
+            {
+                database = databaseComboBox.SelectedItem.ToString().ToLower();
+            }
+            else
+            {
+                MessageBox.Show("Please choose database!", "Choose database!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            // Mathematical operators.
+            List<string> mathOp = new List<string>();
+
+            if (plusSelected.Checked)
+                mathOp.Add("+");
+            if (minusSelected.Checked)
+                mathOp.Add("-");
+            if (divisionSelected.Checked)
+                mathOp.Add("/");
+            if (timesSelected.Checked)
+                mathOp.Add("*");
+            if (sinSelected.Checked)
+                mathOp.Add("sin");
+            if (cosSelected.Checked)
+                mathOp.Add("cos");
+            if (rlogSelected.Checked)
+                mathOp.Add("rlog");
+            if (expSelected.Checked)
+                mathOp.Add("exp");
+            #endregion
+
+            // Just in case, remove text box for printout.
+            printoutOfAllSolutionsLabel.Visible = false;
+
+            // Hide parameters layout.
+            mainLayout.Visible = false;
+
+            // Set up parameters.
             _parameters = new Parameters(ps, maxnoi, maxnonii, nooruns, imd, md, method, lim, a, prob);
+
+            // Set up data.
+            _data = new Data(mathOp, database);
 
             // Forbid all other cliks.
             forbid = true;
 
+            #region console form
+            // Just in case, clear textbox in console form.
+            consoleForm.printoutTestBox.Text = "";
+            // Show form.
+            consoleForm.Visible = true;
+            #endregion
+
             // User already added custom parameters.
             // Initialize and printout when done using threads because of animation.
-            Thread myThreadp = new Thread(
+            myThread = new Thread(
                 () =>
                 {
                     try
                     {
                         this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = true; });
 
-                        _model = new ABCP(_parameters);
-                        _model.ABCProgramming();
+                        // Reset the variables.
+                        _models = new List<ABCP>();
+                        _best = new Chromosome();
+
+                        #region do the jobs
+                        // Do the jobs.
+                        for (var run = 0; run < _parameters.numberOfRuns; run++)
+                        {
+                            // Printout on console.
+                            string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                            consoleForm.Invoke((MethodInvoker)delegate { consoleForm.printoutTestBox.AppendText("\r\n[" + time + "] RUN: " + run.ToString() + "\r\n"); });
+
+                            _models.Add(new ABCP(_parameters, _data, this, consoleForm.printoutTestBox));
+                            _models[run].ABCProgramming(this, consoleForm.printoutTestBox);
+
+                            if (_best == null)
+                            {
+                                _best = new Chromosome();
+                                _best = _models[run].best.Clone();
+                            }
+                            else if (_best.fitness < _models[run].best.fitness)
+                            {
+                                _best = _models[run].best.Clone();
+                            }
+
+                            // Printout on console.
+                            this.Invoke((MethodInvoker)delegate { consoleForm.printoutTestBox.AppendText("\r\n****************************************************************************************"); });
+                        }
+                        #endregion
 
                         System.Threading.Thread.Sleep(5000);
                         this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = false; });
                     }
                     finally
                     {
-                        this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = false; });
-
-                        // Notify user that model is created and ask if he wants to see all the solutions.
-                        string qpmessage = "Model is created. Do you want to see all solutions?";
-                        string qptitle = "Model is created";
-                        DialogResult qpresult = MessageBox.Show(qpmessage, qptitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                        if (qpresult == DialogResult.Yes)
-                        {
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text = ""; });
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Visible = true; });
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text = ""; });
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text += " BEST SOLUTION FITNESS: " + _model.best.fitness.ToString() + "\r\n \r\n"; });
-                            this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text += "\r\n"; });
-                            printoutAllSolutions(_model.population, _model.data);
-                        }
-
                         // Back to normal.
                         forbid = false;
+
                     }
                 });
-            myThreadp.Start();
+            myThread.Start();
 
+        }
+        #endregion
+
+        #region lookup console form
+        /// <summary>
+        /// Showing form on request.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void lookupConsoleFormPictureBox_MouseClick(object sender, MouseEventArgs e)
+        {
+            // Show console form only if search is ongoing or done. 
+            // Also, check out if console is already opened.
+            if (!consoleForm.Visible && (forbid || _best != null))
+            {
+                // Show form.
+                consoleForm.Visible = true;
+                lookupConsoleFormPictureBox.Visible = false;
+            }
         }
         #endregion
 
@@ -735,9 +1096,6 @@ namespace antico
                 formForVisualizationOfModel.Close();
             }
         }
-
-
-
         #endregion
 
         #region Draw symbolic tree.
@@ -754,8 +1112,27 @@ namespace antico
             {
                 for (var i = 0; i < node.children.Count; i++)
                 {
-                    // Add edge between the current node and his child node.
-                    graph.AddEdge("(" + node.index + ") " + node.content, "(" + node.children[i].index + ") " + node.children[i].content);
+                    // Different names based on arity of the node.
+                    if (node.arity == 2 && node.children[i].arity == 2)
+                    {
+                        // Add edge between the current node and his child node.
+                        graph.AddEdge("(" + node.index + ")\r\n  " + node.content, "(" + node.children[i].index + ")\r\n  " + node.children[i].content);
+                    }
+                    else if (node.arity == 2 && node.children[i].arity != 2)
+                    {
+                        // Add edge between the current node and his child node.
+                        graph.AddEdge("(" + node.index + ")\r\n  " + node.content, "(" + node.children[i].index + ")\r\n" + node.children[i].content);
+                    }
+                    else if (node.arity != 2 && node.children[i].arity == 2)
+                    {
+                        // Add edge between the current node and his child node.
+                        graph.AddEdge("(" + node.index + ")\r\n" + node.content, "(" + node.children[i].index + ")\r\n  " + node.children[i].content);
+                    }
+                    else
+                    {
+                        // Add edge between the current node and his child node.
+                        graph.AddEdge("(" + node.index + ")\r\n" + node.content, "(" + node.children[i].index + ")\r\n" + node.children[i].content);
+                    }
 
                     // Do the same for child subtree.
                     DrawSymbolicTree(node.children[i], ref graph);
@@ -764,7 +1141,14 @@ namespace antico
 
             // Coloring the node.
             System.Drawing.Color c = System.Drawing.ColorTranslator.FromHtml(depthColors[node.depth]);
-            graph.FindNode("(" + node.index + ") " + node.content).Attr.FillColor = new Microsoft.Msagl.Drawing.Color((byte)c.R, (byte)c.G, (byte)c.B);
+            if (node.arity == 2 )
+            {
+                graph.FindNode("(" + node.index + ")\r\n  " + node.content).Attr.FillColor = new Microsoft.Msagl.Drawing.Color((byte)c.R, (byte)c.G, (byte)c.B);
+            }
+            else if (node.arity != 2)
+            {
+                graph.FindNode("(" + node.index + ")\r\n" + node.content).Attr.FillColor = new Microsoft.Msagl.Drawing.Color((byte)c.R, (byte)c.G, (byte)c.B);
+            }
         }
         #endregion
 
@@ -774,17 +1158,16 @@ namespace antico
         /// </summary>
         /// <param name="solutions">All known solutions.</param>
         /// <param name="dt">Data for printing evaluation of first row. - TESTING PHASE - TODO this will not be needed later. </param>
-        private void printoutAllSolutions(Population solutions, Data dt)
+        private void printoutAllSolutions()
         {
-            for (var i = 0; i < solutions.populationSize; i++)
+            for (var run = 0; run < _parameters.numberOfRuns; run++)
             {
-                string input1 = "\r\n SOLUTION:" + i + "\r\n Fitness:" + solutions.chromosomes[i].fitness.ToString() + "\r\n SymbolicTree:" + solutions.chromosomes[i].symbolicTree.ToStringInorder();
-                this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text += input1; });
-                string input2 = "\r\n Evaluation of the first row:" + solutions.chromosomes[i].symbolicTree.Evaluate(dt.features.Rows[0]).ToString() + "\r\n ";
-                this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsTextBox.Text += input2; });
+                string input1 = "\r\n BEST SOLUTION IN RUN:" + run + "\r\n Fitness:  " + _models[run].best.fitness.ToString() + "\r\n SymbolicTree:  " + _models[run].best.symbolicTree.ToStringInorder();
+                this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsLabel.Text += input1; });
+                string input2 = "\r\n Evaluation of the first row:" + _models[run].best.symbolicTree.Evaluate(_models[run].data.features.Rows[0]).ToString() + "\r\n ";
+                this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsLabel.Text += input2; });
             }
         }
-
         #endregion
 
         #region Show parameters to add on form.
@@ -795,13 +1178,63 @@ namespace antico
         {
             mainLayout.Visible = true;
         }
+
+
+
+
+
+
+        #endregion
+
+        #region Changed visibility of console form.
+        /// <summary>
+        /// Make lookup sign visible after "exiting" console.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ConsoleForm_VisibilityChanged(object sender, EventArgs e)
+        {
+            if (consoleForm.Visible == false && _models != null )
+            {
+                lookupConsoleFormPictureBox.Visible = true;
+            }
+        }
+        #endregion
+
+        #region Changed visibility of waitingAnimation
+        /// <summary>
+        /// Notify user about end of model search.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void WaitingAnimation_VisibilityChanged(object sender, EventArgs e)
+        {
+            // If waitingAnimation is now hiden (-> process is finished), notify user that search of the model is finished.
+            if (!waitingAnimation.Visible)
+            {
+                this.Invoke((MethodInvoker)delegate { waitingAnimation.Visible = false; });
+
+                // Notify user that model is created and ask if he wants to see all the solutions.
+                string message = "Model is created. Do you want to see all solutions?";
+                string title = "Model is created";
+                DialogResult qpresult = MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (qpresult == DialogResult.Yes)
+                {
+                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsLabel.Text = ""; });
+                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsLabel.Visible = true; });
+                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsLabel.Text = ""; });
+                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsLabel.Text += " BEST SOLUTION FITNESS: " + _best.fitness.ToString() + "\r\n \r\n"; });
+                    this.Invoke((MethodInvoker)delegate { printoutOfAllSolutionsLabel.Text += "\r\n"; });
+                    printoutAllSolutions();
+                }
+            }
+        }
         #endregion
 
         #endregion
 
         #endregion
-
-
 
     }
 }

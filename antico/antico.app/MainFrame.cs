@@ -22,6 +22,10 @@ using System.Runtime.InteropServices;
 using antico.abcp;
 using antico.data;
 using Microsoft.Msagl.Drawing;
+using System.Collections;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace antico
 {
@@ -36,9 +40,9 @@ namespace antico
         private Point dragFormPoint;
         #endregion
 
-        #region ABCP variable.
-        // Main variable for creating a new model.
-        private ABCP model;
+        #region Variables for design.
+        // Variable for antico label needed after comeback from CreateNewModelForm.
+        internal System.Windows.Forms.Label anticoLabelDesign;
         #endregion
 
         #region Other forms.
@@ -65,7 +69,7 @@ namespace antico
         /// <summary>
         /// Function for initializing components on Main frame.
         /// </summary>
-        public MainFrame()
+        internal MainFrame()
         {
             InitializeComponent();
 
@@ -73,6 +77,8 @@ namespace antico
             PrivateFontCollection anticoFont = new PrivateFontCollection();
             anticoFont.AddFontFile("../../../../[FONTS]/UnicaOne-Regular.ttf");
             anticoLabel.Font = new Font(anticoFont.Families[0], 35, System.Drawing.FontStyle.Regular);
+            anticoLabelDesign = anticoLabel;
+            
         }
         #endregion
 
@@ -82,7 +88,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitPictureBox_Click( object sender, EventArgs e )
+        private void exitPictureBox_Click(object sender, EventArgs e)
         {
             Application.Exit();
         }
@@ -95,7 +101,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MainFrame_MouseDown( object sender, MouseEventArgs e )
+        private void MainFrame_MouseDown(object sender, MouseEventArgs e)
         {
             dragging = true;
             dragCursorPoint = Cursor.Position;
@@ -107,7 +113,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MainFrame_MouseMove( object sender, MouseEventArgs e )
+        private void MainFrame_MouseMove(object sender, MouseEventArgs e)
         {
             if (dragging)
             {
@@ -121,7 +127,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MainFrame_MouseUp( object sender, MouseEventArgs e )
+        private void MainFrame_MouseUp(object sender, MouseEventArgs e)
         {
             dragging = false;
         }
@@ -138,7 +144,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitPictureBox_MouseEnter( object sender, EventArgs e )
+        private void exitPictureBox_MouseEnter(object sender, EventArgs e)
         {
             exitPictureBox.Cursor = Cursors.Hand;
         }
@@ -148,7 +154,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitPictureBox_MouseLeave( object sender, EventArgs e )
+        private void exitPictureBox_MouseLeave(object sender, EventArgs e)
         {
             exitPictureBox.Cursor = Cursors.Default;
         }
@@ -160,7 +166,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void createNewModelSign_MouseEnter( object sender, EventArgs e )
+        private void createNewModelSign_MouseEnter(object sender, EventArgs e)
         {
             createNewModelSign.Cursor = Cursors.Hand;
         }
@@ -170,7 +176,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void createNewModelSign_MouseLeave( object sender, EventArgs e )
+        private void createNewModelSign_MouseLeave(object sender, EventArgs e)
         {
             createNewModelSign.Cursor = Cursors.Default;
         }
@@ -230,7 +236,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void createNewModelSign_MouseHover( object sender, EventArgs e )
+        private void createNewModelSign_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.createNewModelSign, "create new model");
@@ -243,7 +249,7 @@ namespace antico
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitPictureBox_MouseHover( object sender, EventArgs e )
+        private void exitPictureBox_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.exitPictureBox, "exit");
@@ -291,9 +297,7 @@ namespace antico
         private void createNewModelSign_MouseClick(object sender, MouseEventArgs e)
         {
             // Create form for model creation.
-            formForCreatingNewModel = new CreateNewModelForm(this, ref model);
-            // Setup location of the form.
-            formForCreatingNewModel.Location = this.Location;
+            formForCreatingNewModel = new CreateNewModelForm(this);
 
             // Hide current form.
             this.Visible = false;
@@ -335,10 +339,6 @@ namespace antico
         #endregion
 
         #endregion
-
-
-
-
 
     }
 }

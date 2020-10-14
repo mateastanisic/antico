@@ -10,9 +10,12 @@
 using antico.data;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
+using System.Windows.Forms;
+using antico.abcp;
 
-namespace antico.abcp
+namespace antico
 {
     #region ABCP class
     /// <summary>
@@ -28,6 +31,7 @@ namespace antico.abcp
     /// algorithm which is also implemented as a method of this class.
     /// 
     /// </summary>
+    [Serializable]
     public class ABCP
     {
         #region ATTRIBUTES 
@@ -70,6 +74,11 @@ namespace antico.abcp
         public Chromosome best
         {
             get { return _best; }
+            set
+            {
+                // Deep copy.
+                _best = (Chromosome)value.Clone();
+            }
         }
         #endregion
 
@@ -106,26 +115,37 @@ namespace antico.abcp
         /// Basic constructor. 
         /// Generating population of chromosomes (symbolic trees) with basic values of (data and parameters) variables.
         /// </summary>
-        public ABCP()
+        public ABCP(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox)
         {
             // Setting the initial values.
             _parameters = new Parameters();
             _data = new Data();
             _population = new Population(_parameters.populationSize, _parameters.initialMaxDepth, _data.mathOperations, _data.mathOperationsArity, _data.featureNames, _data.trainFeatures, _parameters.generatingTreesMethod);
             _best = (Chromosome)_population.BestSolution().Item1.Clone();
+
+            // Printout to console.
+            string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] ABCP constructor done!\r\n"); });
         }
 
         /// <summary>
-        /// Basic constructor with sent parameters. 
-        /// Generating population of chromosomes (symbolic trees) with basic values of (data and parameters) variables.
+        /// Constructor with custom (sent) parameters and data.
         /// </summary>
-        public ABCP( Parameters p )
+        /// <param name="p">Custom parameters.</param>
+        /// <param name="d">Custom data.</param>
+        /// <param name="formForCreatingNewModel">Form for creating a model. Needed for printouts on form.</param>
+        /// <param name="consoleTextBox">TextBox in which the printouts will be added.</param>
+        public ABCP(Parameters p, Data d, CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox)
         {
             // Setting the initial values.
             _parameters = p;
-            _data = new Data();
+            _data = d;
             _population = new Population(_parameters.populationSize, _parameters.initialMaxDepth, _data.mathOperations, _data.mathOperationsArity, _data.featureNames, _data.trainFeatures, _parameters.generatingTreesMethod);
             _best = (Chromosome)_population.BestSolution().Item1.Clone();
+
+            // Printout to console.
+            string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] ABCP constructor with parameters is done!\r\n"); });
         }
 
         /// <summary>
@@ -142,7 +162,7 @@ namespace antico.abcp
         /// <param name="spliting_data_type">Type of splitting data into train and test set. (Balanced/Inbalanced)</param>
         /// <param name="number_of_top_features">Number of top features selected to be in model.</param>
         /// <param name="limit">Number of iterations when certain solution is not changed before in scout bee phase is generated new solution.</param>
-        public ABCP( int population_size, int max_number_of_iterations, int max_number_of_not_improving_iterations, int number_of_runs, int initial_max_depth, int max_depth, string generating_trees_method, string[] math_operations, string feature_extraction_method, string spliting_data_type, int number_of_top_features, int limit, double alpha, double probability )
+        public ABCP(int population_size, int max_number_of_iterations, int max_number_of_not_improving_iterations, int number_of_runs, int initial_max_depth, int max_depth, string generating_trees_method, string[] math_operations, string feature_extraction_method, string spliting_data_type, int number_of_top_features, int limit, double alpha, double probability)
         {
             // Setting the values with other constructors.
             _parameters = new Parameters(population_size, max_number_of_iterations, max_number_of_not_improving_iterations, number_of_runs, initial_max_depth, max_depth, generating_trees_method, limit, alpha, probability);
@@ -159,7 +179,7 @@ namespace antico.abcp
         /// This method is used to find the best model for some data using heuristic abc programming.
         /// It is considered all variables for class ABCP are set.
         /// </summary>
-        public void ABCProgramming()
+        public void ABCProgramming(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox)
         {
             // Helper arrays for keeping track of case when Solution (i) is not improved.
             int[] Limits = new int[this.parameters.populationSize];
@@ -183,10 +203,14 @@ namespace antico.abcp
 
             while (Iteration <= this.parameters.maxNumberOfIterations && IterationNotImproving <= this.parameters.maxNumberOfNotImprovingIterations)
             {
+                // Printout to console.
+                string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("\r\n[" + time + "] ABCP STEP " + Iteration.ToString() + "\r\n"); });
+
                 #region ----- EMPLOYED BEES PHASE -----
                 // For all employed bees do ...
                 // (number of employed bees are same as population size)
-                for ( var e = 0; e < this.parameters.populationSize; e++)
+                for (var e = 0; e < this.parameters.populationSize; e++)
                 {
                     // Calculate NewSolution using information sharing mechanism.
                     Chromosome NewSolutionEmployed;
@@ -209,14 +233,14 @@ namespace antico.abcp
                             break;
                     }
 
-                    NewSolutionEmployed = (Chromosome)this.population.Crossover( (Chromosome)this.population[e].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
+                    NewSolutionEmployed = (Chromosome)this.population.CrossoverWithDifferenceControl((Chromosome)this.population[e].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
+                    //NewSolutionEmployed = (Chromosome)this.population.Crossover( (Chromosome)this.population[e].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
                     #endregion
 
                     // Calculate the cost function value of new solution.
                     NewFitnessEmployed = NewSolutionEmployed.fitness;
 
                     #region greedy selection between OldSolution and NewSolution
-                    // TODO
                     // Considering the cost values, apply the greedy selection between OldSolution and NewSolution.                     
 
                     // Update solution if better.
@@ -233,6 +257,10 @@ namespace antico.abcp
                     #endregion
                 }
                 #endregion
+
+                // Printout to console.
+                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") employed bee phase done\r\n"); });
 
                 // Find new best solution.
                 Tuple<Chromosome, int> BestSolutionAfterE = this.population.BestSolution();
@@ -292,14 +320,14 @@ namespace antico.abcp
                             break;
                     }
 
-                    NewSolutionOnlook = (Chromosome)this.population.Crossover((Chromosome)this.population[f].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
+                    NewSolutionOnlook = (Chromosome)this.population.CrossoverWithDifferenceControl((Chromosome)this.population[f].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
+                    //NewSolutionOnlook = (Chromosome)this.population.Crossover((Chromosome)this.population[f].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
                     #endregion
 
                     // Calculate the cost function value of new solution.
                     NewFitnessOnlook = NewSolutionOnlook.fitness;
 
                     #region greedy selection between OldSolution and NewSolution
-                    // TODO
                     // Considering the cost values, apply the greedy selection between OldSolution and NewSolution. 
 
                     // Update solution if better.
@@ -327,33 +355,75 @@ namespace antico.abcp
 
                 #endregion
 
+                // Printout to console.
+                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") onlooker bee phase done\r\n"); });
+
                 #region ----- SCOUT BEES PHASE -----
-                for (var s = 0; s < this.parameters.populationSize; s++ )
+                for (var s = 0; s < this.parameters.populationSize; s++)
                 {
                     // Check if if EBP or OBP improved this solution.
-                    if ( TestLimits[s] == 0)
+                    if (TestLimits[s] == 0)
                     {
                         // Neither in EBP nor in OBS this solution is not improved.
                         // Keep track of that in Limits variable.
                         Limits[s]++;
                     }
-                        
+
                     // Check if 'limit' number of iterations in a row this solution is not improved.
-                    if ( Limits[s] >= this.parameters.limit )
+                    if (Limits[s] >= this.parameters.limit)
                     {
+                        #region generate new solution with difference control
                         // If that is so, generate new solution using "grow" method.
+                        // And make sure it's different food source than others.
                         Chromosome NewSolutionScout = new Chromosome();
-                        NewSolutionScout.Generate("grow", this.parameters.initialMaxDepth, this.data.featureNames, this.data.trainFeatures, this.data.mathOperations, this.data.mathOperationsArity);
-                        this.population[s] = (Chromosome)NewSolutionScout.Clone();
+
+                        int counter = 0;
+
+                        // While new solution is the same as some of the previous, try making a new one.
+                        while (true)
+                        {
+                            // Variable that makes sure program does not stuck at infinite loop.
+                            counter++;
+
+                            // Generate new solution with grow method.
+                            NewSolutionScout.Generate("grow", this.parameters.initialMaxDepth, this.data.featureNames, this.data.trainFeatures, this.data.mathOperations, this.data.mathOperationsArity);
+
+                            // Check if new solution is different.
+                            bool isDifferent = true;
+                            for (var i = 0; i < this.population.populationSize; i++)
+                            {
+                                if (this.population.chromosomes[i].Equals(NewSolutionScout))
+                                {
+                                    isDifferent = false;
+                                    break;
+                                }
+                            }
+
+                            // End loop if solution is different.
+                            if (isDifferent)
+                            {
+                                this.population[s] = (Chromosome)NewSolutionScout.Clone();
+                                break;
+                            }
+
+                            // Throw a warning if the program was not able to generate solution different than others 1000 times.
+                            if (counter == 1000)
+                                throw new WarningException("[ABCP - scout phase] Stuck at infinite loop while trying to generate different solution.");
+                        }
+                        #endregion
                     }
                 }
                 #endregion
 
+                // Printout to console.
+                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") scout bee phase done\r\n"); });
                 // Save new best solution.
                 var NewBestSolutionAndIndex = this.population.BestSolution();
 
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
-                if (NewBestSolutionAndIndex.Item1.fitness != BestFitness )
+                if (NewBestSolutionAndIndex.Item1.fitness != BestFitness)
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
                     IterationNotImproving = 0;
@@ -368,6 +438,10 @@ namespace antico.abcp
                     // Increase number of done not improved iterations.
                     IterationNotImproving++;
                 }
+
+                // Printout to console.
+                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") DONE. Best fitness: " + BestFitness.ToString() + "\r\n"); });
 
                 // Increase number of done iterations.
                 Iteration++;

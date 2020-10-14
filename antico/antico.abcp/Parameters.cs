@@ -17,6 +17,7 @@ namespace antico.abcp
     /// <summary>
     /// Class for parameters used in artificial bee colony programming algorithm.
     /// </summary>
+    [Serializable]
     public class Parameters
     {
         #region ATTRIBUTES 
@@ -198,7 +199,7 @@ namespace antico.abcp
         /// Constructor for parameters.
         /// </summary>
         /// <param name="p">Different Parameters class variable.</param>
-        public Parameters( Parameters p )
+        public Parameters(Parameters p)
         {
             // Associate values of class Parameters p to this instance of class variables.
             this._populationSize = p.populationSize;
@@ -219,7 +220,7 @@ namespace antico.abcp
         /// Helper method for cloning Parameters p values to this values.
         /// </summary>
         /// <param name="p">Another class variable Parameters</param>
-        public void Clone( Parameters p )
+        internal void Clone(Parameters p)
         {
             // Associate values of class Parameters p to this instance of class variables.
             this._populationSize = p.populationSize;
@@ -232,7 +233,6 @@ namespace antico.abcp
             this._limit = p.limit;
             this._alpha = p.alpha;
             this._probability = p.probability;
-
         }
         #endregion
 

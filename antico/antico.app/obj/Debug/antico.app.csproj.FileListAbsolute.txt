@@ -78,3 +78,4 @@ C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIP
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Microsoft.Msagl.GraphViewerGdi.xml
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.HelperForm.resources
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.CreateNewModelForm.resources
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.ConsoleForm.resources

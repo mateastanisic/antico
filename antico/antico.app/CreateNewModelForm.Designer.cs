@@ -1,4 +1,6 @@
-﻿namespace antico
+﻿using Microsoft.Msagl.Drawing;
+
+namespace antico
 {
     partial class CreateNewModelForm
     {
@@ -35,12 +37,10 @@
             this.startSign = new System.Windows.Forms.PictureBox();
             this.saveSign = new System.Windows.Forms.PictureBox();
             this.visualizeSign = new System.Windows.Forms.PictureBox();
-            this.printoutOfAllSolutionsTextBox = new System.Windows.Forms.RichTextBox();
             this.waitingAnimation = new System.Windows.Forms.PictureBox();
             this.databaseRadioLayout = new System.Windows.Forms.FlowLayoutPanel();
             this.databaseLabel = new System.Windows.Forms.Label();
-            this.clampDatabaseRadioButton = new System.Windows.Forms.RadioButton();
-            this.emberDatasetRadioButton = new System.Windows.Forms.RadioButton();
+            this.databaseComboBox = new System.Windows.Forms.ComboBox();
             this.mainLayout = new System.Windows.Forms.FlowLayoutPanel();
             this.nonTerminalSelectionLayout = new System.Windows.Forms.FlowLayoutPanel();
             this.nonTerminalsLabel = new System.Windows.Forms.Label();
@@ -85,6 +85,9 @@
             this.numberOfRunsLabel = new System.Windows.Forms.Label();
             this.numberOfRunsUpDown = new System.Windows.Forms.NumericUpDown();
             this.saveParametersSign = new System.Windows.Forms.PictureBox();
+            this.lookupConsoleFormPictureBox = new System.Windows.Forms.PictureBox();
+            this.printoutOfAllSolutionsLabel = new System.Windows.Forms.Label();
+            this.panelForPrintoutLabel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.goBackSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.parametersSettingsSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.startSign)).BeginInit();
@@ -114,6 +117,8 @@
             this.numberOfRunsLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfRunsUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.saveParametersSign)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.lookupConsoleFormPictureBox)).BeginInit();
+            this.panelForPrintoutLabel.SuspendLayout();
             this.SuspendLayout();
             // 
             // goBackSign
@@ -204,16 +209,6 @@
             this.visualizeSign.MouseLeave += new System.EventHandler(this.visualizeSign_MouseLeave);
             this.visualizeSign.MouseHover += new System.EventHandler(this.visualizeSign_MouseHover);
             // 
-            // printoutOfAllSolutionsTextBox
-            // 
-            this.printoutOfAllSolutionsTextBox.BackColor = System.Drawing.SystemColors.Control;
-            this.printoutOfAllSolutionsTextBox.Location = new System.Drawing.Point(182, 19);
-            this.printoutOfAllSolutionsTextBox.Name = "printoutOfAllSolutionsTextBox";
-            this.printoutOfAllSolutionsTextBox.Size = new System.Drawing.Size(781, 640);
-            this.printoutOfAllSolutionsTextBox.TabIndex = 13;
-            this.printoutOfAllSolutionsTextBox.Text = "";
-            this.printoutOfAllSolutionsTextBox.Visible = false;
-            // 
             // waitingAnimation
             // 
             this.waitingAnimation.BackColor = System.Drawing.Color.Transparent;
@@ -230,8 +225,7 @@
             // 
             this.databaseRadioLayout.BackColor = System.Drawing.Color.Transparent;
             this.databaseRadioLayout.Controls.Add(this.databaseLabel);
-            this.databaseRadioLayout.Controls.Add(this.clampDatabaseRadioButton);
-            this.databaseRadioLayout.Controls.Add(this.emberDatasetRadioButton);
+            this.databaseRadioLayout.Controls.Add(this.databaseComboBox);
             this.databaseRadioLayout.Location = new System.Drawing.Point(3, 3);
             this.databaseRadioLayout.Name = "databaseRadioLayout";
             this.databaseRadioLayout.Size = new System.Drawing.Size(245, 71);
@@ -248,29 +242,19 @@
             this.databaseLabel.TabIndex = 17;
             this.databaseLabel.Text = "DATABASE:\r\n";
             // 
-            // clampDatabaseRadioButton
+            // databaseComboBox
             // 
-            this.clampDatabaseRadioButton.AutoSize = true;
-            this.clampDatabaseRadioButton.Checked = true;
-            this.clampDatabaseRadioButton.ForeColor = System.Drawing.SystemColors.Control;
-            this.clampDatabaseRadioButton.Location = new System.Drawing.Point(94, 3);
-            this.clampDatabaseRadioButton.Name = "clampDatabaseRadioButton";
-            this.clampDatabaseRadioButton.Size = new System.Drawing.Size(56, 17);
-            this.clampDatabaseRadioButton.TabIndex = 0;
-            this.clampDatabaseRadioButton.TabStop = true;
-            this.clampDatabaseRadioButton.Text = "ClaMP";
-            this.clampDatabaseRadioButton.UseVisualStyleBackColor = true;
-            // 
-            // emberDatasetRadioButton
-            // 
-            this.emberDatasetRadioButton.AutoSize = true;
-            this.emberDatasetRadioButton.ForeColor = System.Drawing.SystemColors.Control;
-            this.emberDatasetRadioButton.Location = new System.Drawing.Point(156, 3);
-            this.emberDatasetRadioButton.Name = "emberDatasetRadioButton";
-            this.emberDatasetRadioButton.Size = new System.Drawing.Size(54, 17);
-            this.emberDatasetRadioButton.TabIndex = 1;
-            this.emberDatasetRadioButton.Text = "ember";
-            this.emberDatasetRadioButton.UseVisualStyleBackColor = true;
+            this.databaseComboBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            this.databaseComboBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.databaseComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.databaseComboBox.FormattingEnabled = true;
+            this.databaseComboBox.Items.AddRange(new object[] {
+            "ClaMP",
+            "ember"});
+            this.databaseComboBox.Location = new System.Drawing.Point(94, 3);
+            this.databaseComboBox.Name = "databaseComboBox";
+            this.databaseComboBox.Size = new System.Drawing.Size(133, 21);
+            this.databaseComboBox.TabIndex = 20;
             // 
             // mainLayout
             // 
@@ -461,7 +445,7 @@
             0,
             0});
             this.colonySizeUpDown.Minimum = new decimal(new int[] {
-            50,
+            10,
             0,
             0,
             0});
@@ -913,6 +897,51 @@
             this.saveParametersSign.MouseLeave += new System.EventHandler(this.saveParametersSign_MouseLeave);
             this.saveParametersSign.MouseHover += new System.EventHandler(this.saveParametersSign_MouseHover);
             // 
+            // lookupConsoleFormPictureBox
+            // 
+            this.lookupConsoleFormPictureBox.BackColor = System.Drawing.Color.Transparent;
+            this.lookupConsoleFormPictureBox.BackgroundImage = global::antico.Properties.Resources.lookup;
+            this.lookupConsoleFormPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.lookupConsoleFormPictureBox.Location = new System.Drawing.Point(944, 638);
+            this.lookupConsoleFormPictureBox.Name = "lookupConsoleFormPictureBox";
+            this.lookupConsoleFormPictureBox.Size = new System.Drawing.Size(56, 37);
+            this.lookupConsoleFormPictureBox.TabIndex = 17;
+            this.lookupConsoleFormPictureBox.TabStop = false;
+            this.lookupConsoleFormPictureBox.Visible = false;
+            this.lookupConsoleFormPictureBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.lookupConsoleFormPictureBox_MouseClick);
+            this.lookupConsoleFormPictureBox.MouseEnter += new System.EventHandler(this.lookupConsoleFormPictureBox_MouseEnter);
+            this.lookupConsoleFormPictureBox.MouseLeave += new System.EventHandler(this.lookupConsoleFormPictureBox_MouseLeave);
+            this.lookupConsoleFormPictureBox.MouseHover += new System.EventHandler(this.lookupConsoleFormPictureBox_MouseHover);
+            // 
+            // printoutOfAllSolutionsLabel
+            // 
+            this.printoutOfAllSolutionsLabel.AutoSize = true;
+            this.printoutOfAllSolutionsLabel.Font = new System.Drawing.Font("Source Sans Pro", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.printoutOfAllSolutionsLabel.Location = new System.Drawing.Point(0, 0);
+            this.printoutOfAllSolutionsLabel.Margin = new System.Windows.Forms.Padding(5);
+            this.printoutOfAllSolutionsLabel.MaximumSize = new System.Drawing.Size(745, 0);
+            this.printoutOfAllSolutionsLabel.MinimumSize = new System.Drawing.Size(745, 635);
+            this.printoutOfAllSolutionsLabel.Name = "printoutOfAllSolutionsLabel";
+            this.printoutOfAllSolutionsLabel.Size = new System.Drawing.Size(745, 635);
+            this.printoutOfAllSolutionsLabel.TabIndex = 18;
+            this.printoutOfAllSolutionsLabel.Visible = false;
+            this.printoutOfAllSolutionsLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.printoutOfAllSolutionsLabel_MouseDown);
+            this.printoutOfAllSolutionsLabel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.printoutOfAllSolutionsLabel_MouseMove);
+            this.printoutOfAllSolutionsLabel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.printoutOfAllSolutionsLabel_MouseUp);
+            // 
+            // panelForPrintoutLabel
+            // 
+            this.panelForPrintoutLabel.AutoScroll = true;
+            this.panelForPrintoutLabel.BackColor = System.Drawing.Color.Transparent;
+            this.panelForPrintoutLabel.Controls.Add(this.printoutOfAllSolutionsLabel);
+            this.panelForPrintoutLabel.Location = new System.Drawing.Point(173, 19);
+            this.panelForPrintoutLabel.Name = "panelForPrintoutLabel";
+            this.panelForPrintoutLabel.Size = new System.Drawing.Size(765, 640);
+            this.panelForPrintoutLabel.TabIndex = 19;
+            this.panelForPrintoutLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panelForPrintoutLabel_MouseDown);
+            this.panelForPrintoutLabel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panelForPrintoutLabel_MouseMove);
+            this.panelForPrintoutLabel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panelForPrintoutLabel_MouseUp);
+            // 
             // CreateNewModelForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -920,6 +949,7 @@
             this.BackgroundImage = global::antico.Properties.Resources.images;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1012, 687);
+            this.Controls.Add(this.lookupConsoleFormPictureBox);
             this.Controls.Add(this.visualizeSign);
             this.Controls.Add(this.saveSign);
             this.Controls.Add(this.startSign);
@@ -927,11 +957,13 @@
             this.Controls.Add(this.anticoLabel);
             this.Controls.Add(this.goBackSign);
             this.Controls.Add(this.mainLayout);
-            this.Controls.Add(this.printoutOfAllSolutionsTextBox);
             this.Controls.Add(this.waitingAnimation);
+            this.Controls.Add(this.panelForPrintoutLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CreateNewModelForm";
+            this.Opacity = 0.98D;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "CreateNewModelForm";
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CreateNewModelForm_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CreateNewModelForm_MouseMove);
@@ -977,6 +1009,9 @@
             this.numberOfRunsLayout.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfRunsUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.saveParametersSign)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.lookupConsoleFormPictureBox)).EndInit();
+            this.panelForPrintoutLabel.ResumeLayout(false);
+            this.panelForPrintoutLabel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -990,11 +1025,8 @@
         private System.Windows.Forms.PictureBox startSign;
         private System.Windows.Forms.PictureBox saveSign;
         private System.Windows.Forms.PictureBox visualizeSign;
-        private System.Windows.Forms.RichTextBox printoutOfAllSolutionsTextBox;
         private System.Windows.Forms.PictureBox waitingAnimation;
         private System.Windows.Forms.FlowLayoutPanel databaseRadioLayout;
-        private System.Windows.Forms.RadioButton clampDatabaseRadioButton;
-        private System.Windows.Forms.RadioButton emberDatasetRadioButton;
         private System.Windows.Forms.FlowLayoutPanel mainLayout;
         private System.Windows.Forms.Label databaseLabel;
         private System.Windows.Forms.FlowLayoutPanel nonTerminalSelectionLayout;
@@ -1040,5 +1072,9 @@
         private System.Windows.Forms.Label numberOfRunsLabel;
         private System.Windows.Forms.NumericUpDown numberOfRunsUpDown;
         private System.Windows.Forms.PictureBox saveParametersSign;
+        private System.Windows.Forms.PictureBox lookupConsoleFormPictureBox;
+        private System.Windows.Forms.Label printoutOfAllSolutionsLabel;
+        private System.Windows.Forms.Panel panelForPrintoutLabel;
+        private System.Windows.Forms.ComboBox databaseComboBox;
     }
 }

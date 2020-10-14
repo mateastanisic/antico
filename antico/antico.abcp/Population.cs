@@ -24,6 +24,7 @@ namespace antico.abcp
     /// This class contains of population size variable and array of chromosomes.
     /// 
     /// </summary>
+    [Serializable]
     public class Population
     {
         #region ATTRIBUTES 
@@ -109,7 +110,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="obj">Another population.</param>
         /// <returns> True if current population and object are same, otherwise false. </returns>
-        public override bool Equals( object obj )
+        public override bool Equals(object obj)
         {
             return base.Equals(obj);
         }
@@ -168,10 +169,11 @@ namespace antico.abcp
         /// <param name="popSize">Size of population to be generated.</param>
         /// <param name="initialMaxDepth">Initial maximal depth of symbolic tree.</param>
         /// <param name="nonTerminals">String representations of non temrinals <-> mathematical operations.</param>
+        /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
         /// <param name="terminalNames">String representations of terminal names.</param>
         /// <param name="terminals">Actual values for each terminal for each training example.</param>
-        /// <param name="generatingTreesMethod">Method for generating symbolic tree.</param>
-        public Population( int popSize, int initialMaxDepth, string[] nonTerminals, Dictionary<string,int> mathOperationsArity, string[] terminalNames, DataTable terminals, string generatingTreesMethod )
+        /// <param name="generatingTreesMethod">Method for generating symbolic tree.</param
+        public Population(int popSize, int initialMaxDepth, string[] nonTerminals, Dictionary<string,int> mathOperationsArity, string[] terminalNames, DataTable terminals, string generatingTreesMethod)
         {
             // Set population size.
             this._populationSize = popSize;
@@ -193,25 +195,75 @@ namespace antico.abcp
                     if (i < popSize / 2)
                     {
                         // Half population generate with full method.
-                        _chromosomes[i].Generate("full", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
+                        GenerateSolutionWithDifferenceControl(i, "full", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
                     }
                     else
                     {
                         // Other half generate with grow method.
-                        _chromosomes[i].Generate("grow", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
+                        GenerateSolutionWithDifferenceControl(i, "grow", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
                     }
                     
                 }
                 else
                 {
                     // Full or grow method.
-                    _chromosomes[i].Generate(generatingTreesMethod, initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
+                    GenerateSolutionWithDifferenceControl(i, generatingTreesMethod, initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
+                    
                 }
             }
 
             // Probabilities are calculated in ABCP algorithm.
             this._probabilities = new double[popSize];
         }
+
+        #region Generate solution with difference control
+        /// <summary>
+        /// Helper method for controling difference of the solutions while generating them in initialization phase.
+        /// </summary>
+        /// <param name="solutionIndex"> IOndex of the solution in the population that we are trying to generate.</param>
+        /// <param name="generatingTreesMethod">Method for generating symbolic tree.</param>
+        /// <param name="initialMaxDepth">Initial maximal depth of symbolic tree.</param>
+        /// <param name="terminalNames">String representations of terminal names.</param>
+        /// <param name="terminals">Actual values for each terminal for each training example.</param>
+        /// <param name="nonTerminals">String representations of non temrinals <-> mathematical operations.</param>
+        /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
+        private void GenerateSolutionWithDifferenceControl(int solutionIndex, string generatingTreesMethod, int initialMaxDepth, string[] terminalNames, DataTable terminals, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
+        {
+            int counter = 0;
+
+            // While new solution is the same as some of the previous, try making a new one.
+            while (true)
+            {
+                // Variable that makes sure program does not stuck at infinite loop.
+                counter++;
+
+                // Generate new solution.
+                _chromosomes[solutionIndex].Generate(generatingTreesMethod, initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
+
+                // Check if new solution is different.
+                bool isDifferent = true;
+                for (var i = 0; i < solutionIndex; i++)
+                {
+                    if (_chromosomes[i].Equals(_chromosomes[solutionIndex]))
+                    {
+                        isDifferent = false;
+                        break;
+                    }
+                }
+
+                // End loop if solution is different.
+                if (isDifferent)
+                    break;
+
+                if (counter == 1000)
+                {
+                    // Throw a warning if the program was not able to generate solution different than others 1000 times.
+                    throw new WarningException("[GenerateSolutionWithDifferenceControl] Stuck at infinite loop while trying to generate different solution.");
+                }
+            } 
+        }
+        #endregion
+
         #endregion
 
         #region Crossover
@@ -225,7 +277,7 @@ namespace antico.abcp
         /// <param name="data">Feature values - for calculating fitness.</param>
         /// <param name="probability">Probability of choosing non-terminal.</param>
         /// <returns> New solution created with crossover. </returns>
-        public Chromosome Crossover( Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable data, double probability )
+        internal Chromosome Crossover(Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable data, double probability)
         {
             // Make clones of solutions.
             Chromosome primaryParentClone = (Chromosome)primaryParent.Clone();
@@ -320,8 +372,6 @@ namespace antico.abcp
             child.symbolicTree.CalculateIndices();
             // Update number of possible terminals.
             child.numberOfPossibleTerminals = primaryParent.numberOfPossibleTerminals;
-            // Update number of nodes in child solution.
-            child.numberOfNodesInTree = child.symbolicTree.NumberOfNodes();
             // Update depth of child solution.
             child.symbolicTree.DepthOfSymbolicTree();
             // Update fitness.
@@ -330,7 +380,43 @@ namespace antico.abcp
             return child;
         }
 
-        #region helper methods for crossover
+        #region Crossover with difference control
+        public Chromosome CrossoverWithDifferenceControl(Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable data, double probability)
+        {
+            int counter = 0;
+
+            // While new solution is the same as some of the previous, try making a new one.
+            while (true)
+            {
+                // Variable that makes sure program does not stuck at infinite loop.
+                counter++;
+
+                // Do crossover.
+                Chromosome newSolution = (Chromosome)Crossover(primaryParent, secundaryParent, maxDepth, data, probability);
+
+                // Check if new solution is different.
+                bool isDifferent = true;
+                for (var i = 0; i < populationSize; i++)
+                {
+                    if (_chromosomes[i].Equals(newSolution))
+                    {
+                        isDifferent = false;
+                        break;
+                    }
+                }
+
+                // End loop if solution is different.
+                if (isDifferent)
+                    return newSolution;
+
+                // Throw a warning if the program was not able to generate solution different than others 1000 times.
+                if (counter == 10000)
+                    throw new WarningException("[CrossoverWithDifferenceControl] Stuck at infinite loop while trying to generate different solution.");
+            }
+        }
+        #endregion
+
+        #region Helper methods for crossover
         /// <summary>
         /// Recursive helper method for separating node indices based on terminal/non-terminal property.
         /// </summary>
@@ -745,7 +831,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="bestSolutionIndex"> Index of the best solution in the population. </param>
         /// <param name="alpha"> Parametar alpha. </param>
-        public void CalculateProbabilities( int bestSolutionIndex, double alpha )
+        public void CalculateProbabilities(int bestSolutionIndex, double alpha)
         {
             // Array for function fit ( fit(Solution_i) = (1 + fitness(Solution_i))/2 [cannot be zero!] ).
             double[] fit = new double[this.populationSize];

@@ -24,6 +24,7 @@ namespace antico.abcp
     /// and leaf nodes are features of the model.
     /// This class represents recurisve tree.
     /// </summary>
+    [Serializable]
     public class SymbolicTreeNode : IEquatable<SymbolicTreeNode>
     {
         #region ATTRIBUTES
@@ -163,7 +164,7 @@ namespace antico.abcp
         /// <param name="obj1">First node.</param>
         /// <param name="obj2">Second node.</param>
         /// <returns>True if nodes are equal, otherwise false. </returns>
-        public static bool operator ==( SymbolicTreeNode obj1, SymbolicTreeNode obj2 )
+        public static bool operator ==(SymbolicTreeNode obj1, SymbolicTreeNode obj2)
         {
             if (ReferenceEquals(obj1, obj2))
             {
@@ -194,7 +195,7 @@ namespace antico.abcp
         /// <param name="obj1">First node.</param>
         /// <param name="obj2">Second node.</param>
         /// <returns>False if nodes are equal, otherwise true. </returns>
-        public static bool operator !=( SymbolicTreeNode obj1, SymbolicTreeNode obj2 )
+        public static bool operator !=(SymbolicTreeNode obj1, SymbolicTreeNode obj2)
         {
             return !(obj1 == obj2);
         }
@@ -204,7 +205,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="other">Node to compare current node.</param>
         /// <returns>True if nodes are equal, otherwise false. </returns>
-        public bool Equals( SymbolicTreeNode other )
+        public bool Equals(SymbolicTreeNode other)
         {
             return other != null
                     && _type == other.type
@@ -220,7 +221,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="obj">Node to compare current node.</param>
         /// <returns>True if nodes are equal, otherwise false.</returns>
-        public override bool Equals( object obj )
+        public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj))
             {
@@ -278,7 +279,7 @@ namespace antico.abcp
         /// (method return cloned SymbolicTreeNode)
         /// </summary>
         /// <returns> Cloned Tree from current Tree.</returns>
-        public SymbolicTreeNode Clone()
+        internal SymbolicTreeNode Clone()
         {
             // Make new node.
             var clonedNewNode = new SymbolicTreeNode();
@@ -349,129 +350,6 @@ namespace antico.abcp
         #endregion
 
         #region SymbolicTree to String
-        #region (POSTORDER) Tree ToString / ToStringBuilder
-        /// <summary>
-        /// Helper method for converting (postorder) SymbolicTree whose root node is current node into a String.
-        /// </summary>
-        /// <returns> String variable that represents subtree whose root is current node. </returns>
-        public string ToStringPostorder()
-        {
-            return this.ToStringBuilderPostorder().ToString();
-        }
-
-        /// <summary>
-        /// Helper method for converting (postorder) SymbolicTree whose root node is current node into a String.
-        /// </summary>
-        /// <returns> StringBuilder variable that represents subtree whose root is current node. </returns>
-        public StringBuilder ToStringBuilderPostorder()
-        {
-            // Initialize string builder.
-            StringBuilder treeString = new StringBuilder();
-
-            // Stack made of Tree Nodes.
-            _treeStack.Value.Clear();
-            Stack<SymbolicTreeNode> dataTree = _treeStack.Value;
-
-            // Variable that will represent a current node in the loop through all child nodes of the current node.
-            SymbolicTreeNode node = null;
-
-            // Add root node.
-            dataTree.Push(this);
-
-            // Loop through all nodes in dataTree.
-            while (dataTree.Count > 0)
-            {
-                // Get next node.
-                node = dataTree.Pop();
-
-                // If value of next node is null continue. 
-                if ( node.content == null )
-                    continue;
-
-                // Add value to string.
-                treeString.Append(node.content.ToString());
-
-                // If node has no child nodes, continue.
-                if (node.children == null)
-                    continue;
-
-                // Add all children of the current node into a stack made of tree nodes.
-                for (var i = 0; i < node.children.Count ; i++)
-                {
-                    dataTree.Push(node.children[i]);
-                }  
-            }
-
-            string treeStringString = treeString.ToString();
-            char[] treeStringCharArray = treeStringString.ToCharArray();
-            Array.Reverse(treeStringCharArray);
-            string reverseTreeString = new string(treeStringCharArray);
-
-            treeString = new StringBuilder();
-            treeString.Append(reverseTreeString);
-
-            return treeString;
-
-        }
-        #endregion
-
-        #region (PREORDER) Tree ToString / ToStringBuilder
-        /// <summary>
-        /// Helper method for converting (postorder) SymbolicTree whose root node is current node into a String.
-        /// </summary>
-        /// <returns> String variable that represents subtree whose root is current node. </returns>
-        public string ToStringPreorder()
-        {
-            return this.ToStringBuilderPreorder().ToString();
-        }
-
-        /// <summary>
-        /// Helper method for converting (preorder) SymbolicTree whose root node is current node into a String.
-        /// </summary>
-        /// <returns> StringBuilder variable that represents subtree whose root is current node. </returns>
-        public StringBuilder ToStringBuilderPreorder()
-        {
-            // Initialize string builder.
-            StringBuilder treeString = new StringBuilder();
-
-            // Stack made of Tree Nodes.
-            _treeStack.Value.Clear();
-            Stack<SymbolicTreeNode> dataTree = _treeStack.Value;
-
-            // Variable that will represent a current node in the loop through all child nodes of the current node.
-            SymbolicTreeNode node = null;
-
-            // Add root node.
-            dataTree.Push(this);
-
-            // Loop through all nodes in dataTree.
-            while (dataTree.Count > 0)
-            {
-                // Get next node.
-                node = dataTree.Pop();
-
-                // If value of next node is null continue. 
-                if (node.content == null)
-                    continue;
-
-                // Add value to string.
-                treeString.Append(node.content.ToString());
-
-                // If node has no child nodes, continue.
-                if (node.children == null)
-                    continue;
-
-                // Add all children of the current node into a stack made of tree nodes.
-                for (int i = node.children.Count - 1; i >= 0; i--)
-                {
-                    dataTree.Push(node.children[i]);
-                }
-            }
-            return treeString;
-        }
-        #endregion
-
-        #region (INORDER) Tree ToString / ToStringBuilder
         /// <summary>
         /// Helper method for converting (inorder) SymbolicTree whose root node is current node into a String.
         /// </summary>
@@ -485,7 +363,7 @@ namespace antico.abcp
         /// Helper method for converting (inorder) SymbolicTree whose root node is current node into a String.
         /// </summary>
         /// <returns> StringBuilder variable that represents subtree whose root is current node. </returns>
-        public StringBuilder ToStringBuilderInorder()
+        private StringBuilder ToStringBuilderInorder()
         {
             // Check if node has content.
             if (this.content == null)
@@ -580,9 +458,6 @@ namespace antico.abcp
                 throw new Exception("[ToStringBuilderInorder] Given node arity = " + this.arity + "  is not expected! Arity higher than 2 is not covered yet!");
             }
         }
-
-        #endregion
-
         #endregion
 
         #region Evaluate symbolic tree
@@ -591,7 +466,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="data"> Row of a table with all features. </param>
         /// <returns> Evaluation of symbolic tree whose root node is current node for given DataRow.</returns>
-        public double Evaluate( DataRow data )
+        public double Evaluate(DataRow data)
         {
 
             // Check if node has content.
@@ -729,7 +604,7 @@ namespace antico.abcp
         /// Helper method that counts number of nodes in the subtree whose root node is current node.
         /// </summary>
         /// <returns> Number of nodes in the tree. </returns>
-        public int NumberOfNodes()
+        internal int NumberOfNodes()
         {
             // There is no nodes in the beggining.
             int noOfNodes = 0;
@@ -780,7 +655,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="i">Index of a node to be fined.</param>
         /// <returns> Node with wanted index in a Subtree whose root is the current node. </returns>
-        public SymbolicTreeNode FindNodeWithIndex( int i )
+        internal SymbolicTreeNode FindNodeWithIndex(int i)
         {
             // Make sure index is positive number.
             if (i < 0)
@@ -838,7 +713,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="i">Index of the node.</param>
         /// <returns>Level of the node in a Tree.</returns>
-        public int DepthOfNodeWithIndex( int i )
+        internal int DepthOfNodeWithIndex(int i)
         {
             // Make sure index is positive number.
             if (i < 0)
@@ -860,7 +735,7 @@ namespace antico.abcp
         /// (and not on actual depth in the subtree whose root is current node) in the given subtree.
         /// </summary>
         /// <returns> Maximal depth of the subtree (maximal variable depth of nodes in subtree). </returns>
-        public int DepthOfSymbolicTree()
+        internal int DepthOfSymbolicTree()
         {
             // Set initial depth as -1.
             int MaxDepth = -1;
@@ -930,7 +805,7 @@ namespace antico.abcp
         /// <param name="terminalsMarks"> Marks for leaf nodes. </param>
         /// <param name="nonTerminals"> Marks for inner nodes. </param>
         /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
-        public void GenerateFullSymbolicTree( int maxDepth, int currentDepth, string[] terminalsMarks, string[] nonTerminals, Dictionary<string, int> mathOperationsArity )
+        internal void GenerateFullSymbolicTree(int maxDepth, int currentDepth, string[] terminalsMarks, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
         {
             #region leaf node
             // If we came to the leaf node.
@@ -1011,7 +886,7 @@ namespace antico.abcp
         /// <param name="terminalsMarks"> Marks for leaf nodes. </param>
         /// <param name="nonTerminals"> Marks for inner nodes. </param>
         /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
-        public void GenerateGrowSymbolicTree(int maxDepth, int currentDepth, string[] terminalsMarks, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
+        internal void GenerateGrowSymbolicTree(int maxDepth, int currentDepth, string[] terminalsMarks, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
         {
             #region leaf node
             // If we came to the leaf node.
@@ -1113,7 +988,7 @@ namespace antico.abcp
         /// <param name="mathOperationsArity">Dictionary of all non-terminals with their arity.</param>
         /// <param name="mathOperation">Non-terminal for which is needed to determinate his arity..</param>
         /// <returns>Aritiy of the sent mathematical operator.</returns>
-        private int getMathOperationArity(Dictionary<string, int> mathOperationsArity, string mathOperation)
+        internal int getMathOperationArity(Dictionary<string, int> mathOperationsArity, string mathOperation)
         {
             if (mathOperationsArity.ContainsKey(mathOperation))
             {
@@ -1131,26 +1006,26 @@ namespace antico.abcp
         /// Calculate indices of the Symbolic Tree whose root node is the current node.
         /// Indices represent preorder of nodes.
         /// </summary>
-        public void CalculateIndices( )
+        internal void CalculateIndices()
         {
             // Helper variable for assigning indices to the nodes.
             int count = 0;
 
             // Stack made of Tree Nodes.
             _treeStack.Value.Clear();
-            Stack<SymbolicTreeNode> dataTree = _treeStack.Value;
+            Queue<SymbolicTreeNode> dataTree = _treeQueue.Value;
 
             // Variable that will represent a current node in the loop through all child nodes of the current node.
             SymbolicTreeNode node = null;
 
             // Add root node.
-            dataTree.Push(this);
+            dataTree.Enqueue(this);
 
             // Loop through all nodes in dataTree.
             while (dataTree.Count > 0)
             {
                 // Get next node.
-                node = dataTree.Pop();
+                node = dataTree.Dequeue();
 
                 // If value of next node is null continue. 
                 if (node.content == null)
@@ -1167,7 +1042,7 @@ namespace antico.abcp
                 {
                     for (int i = node.children.Count - 1; i >= 0; i--)
                     {
-                        dataTree.Push(node.children[i]);
+                        dataTree.Enqueue(node.children[i]);
                     }
                 }
             }
@@ -1179,7 +1054,7 @@ namespace antico.abcp
         /// Method for calculating depths of subtree with given starting depth.
         /// </summary>
         /// <param name="currentDepth">Starting depth.</param>
-        public void CalculateDepths( int currentDepth )
+        internal void CalculateDepths(int currentDepth)
         {
             // Update depth of the node.
             this.depth = currentDepth;
@@ -1283,6 +1158,7 @@ namespace antico.abcp
     /// Finally, all instances of this class have defined numberOfPossibleTerminals which represents
     /// number of possible features that can be part of the model.
     /// </summary>
+    [Serializable]
     public class Chromosome : IEquatable<Chromosome>
     {
         #region ATTRIBUTES
@@ -1327,18 +1203,6 @@ namespace antico.abcp
         }
         #endregion depth
 
-        #region number of nodes in symbolic tree
-        // Variable that represents number of nodes in symbolic tree.
-        private int _numberOfNodesInTree;
-
-        // Property for the _numberOfNodesInTree variable.
-        public int numberOfNodesInTree
-        {
-            get { return _numberOfNodesInTree; }
-            set { _numberOfNodesInTree = value; }
-        }
-        #endregion
-
         #region number of possible terminals <-> number of possible features
         // Variable that represents number of features in model.
         private int _numberOfPossibleTerminals;
@@ -1364,7 +1228,6 @@ namespace antico.abcp
             this._fitness = -1;
             this._depth = -1;
             this._numberOfPossibleTerminals = -1;
-            this._numberOfNodesInTree = -1;
             this._symbolicTree = new SymbolicTreeNode();
         }
         #endregion
@@ -1373,7 +1236,7 @@ namespace antico.abcp
         /// <summary>
         /// Helper method for deep copying values of model st to values of this model.
         /// </summary>
-        public Chromosome Clone( )
+        public Chromosome Clone()
         {
             Chromosome c = new Chromosome();
 
@@ -1382,9 +1245,6 @@ namespace antico.abcp
 
             // Copy numberOfPossibleTerminals from chromosome c to this chromosome.
             c._numberOfPossibleTerminals = this.numberOfPossibleTerminals;
-
-            //Copy _numberOfNodesInTree from chromosome c to this chromosome.
-            c._numberOfNodesInTree = this.numberOfNodesInTree;
 
             // Copy depth of tree from chromosome c to this chromosome.
             c._depth = this.depth;
@@ -1403,7 +1263,7 @@ namespace antico.abcp
         /// <param name="obj1">First chromosome.</param>
         /// <param name="obj2">Second chromosome.</param>
         /// <returns>True if chromosomes are equal, otherwise false. </returns>
-        public static bool operator ==( Chromosome obj1, Chromosome obj2 )
+        public static bool operator ==(Chromosome obj1, Chromosome obj2)
         {
             if (ReferenceEquals(obj1, obj2))
             {
@@ -1421,7 +1281,6 @@ namespace antico.abcp
             }
 
             return (obj1.fitness == obj2.fitness
-                    && obj1.numberOfNodesInTree == obj2.numberOfNodesInTree
                     && obj1.depth == obj2.depth
                     && obj1.numberOfPossibleTerminals == obj2.numberOfPossibleTerminals
                     && obj1.symbolicTree == obj2.symbolicTree);
@@ -1433,7 +1292,7 @@ namespace antico.abcp
         /// <param name="obj1">First chromosome.</param>
         /// <param name="obj2">Second chromosome.</param>
         /// <returns>False if chromosomes are equal, otherwise true. </returns>
-        public static bool operator !=( Chromosome obj1, Chromosome obj2 )
+        public static bool operator !=(Chromosome obj1, Chromosome obj2)
         {
             return !(obj1 == obj2);
         }
@@ -1443,11 +1302,10 @@ namespace antico.abcp
         /// </summary>
         /// <param name="other">Chromosome to compare current chromosome.</param>
         /// <returns>True if chromosomes are equal, otherwise false. </returns>
-        public bool Equals( Chromosome other )
+        public bool Equals(Chromosome other)
         {
             return other != null 
                     && _fitness == other._fitness 
-                    && _numberOfNodesInTree == other.numberOfNodesInTree
                     && EqualityComparer<SymbolicTreeNode>.Default.Equals(_symbolicTree, other._symbolicTree) 
                     && _depth == other._depth 
                     && _numberOfPossibleTerminals == other._numberOfPossibleTerminals;
@@ -1458,7 +1316,7 @@ namespace antico.abcp
         /// </summary>
         /// <param name="obj">Chromosome to compare current chromosome.</param>
         /// <returns>True if chromosomes are equal, otherwise false.</returns>
-        public override bool Equals( object obj )
+        public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj))
             {
@@ -1482,7 +1340,6 @@ namespace antico.abcp
             hashCode = hashCode * -1521134295 + _fitness.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<SymbolicTreeNode>.Default.GetHashCode(_symbolicTree);
             hashCode = hashCode * -1521134295 + _depth.GetHashCode();
-            hashCode = hashCode * -1521134295 + _numberOfNodesInTree.GetHashCode();
             hashCode = hashCode * -1521134295 + _numberOfPossibleTerminals.GetHashCode();
             return hashCode;
         }
@@ -1495,7 +1352,7 @@ namespace antico.abcp
         /// Fitness is calculated as proportion of ( true positives + true negatives) and total number of files.
         /// </summary>
         /// <param name="data">Feature values from train/test set needed for calculating fitness.</param>
-        public void CalculateFitness( DataTable data )
+        internal void CalculateFitness(DataTable data)
         {
             // Number of true positives.
             int TP = 0;
@@ -1548,7 +1405,7 @@ namespace antico.abcp
         /// <param name="terminals"> Array of possible terminals of to-be generated symbolic tree.</param>
         /// <param name="nonTerminals"> Array of possible terminals of to-be generated symbolic tree. </param>
         /// <param name="mathOperationsArity"> Dictionary with all non-terminals and their arity. </param>
-        public void Generate( string method, int maxDepth, string[] terminalsMarks, DataTable terminals, string[] nonTerminals, Dictionary<string, int> mathOperationsArity )
+        public void Generate(string method, int maxDepth, string[] terminalsMarks, DataTable terminals, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
         {
             switch (method)
             {
@@ -1566,9 +1423,6 @@ namespace antico.abcp
                     // In this method, the distance from the root node to each leaf is equal to the maximum tree depth.
                     this._depth = maxDepth;
 
-                    // Set number of nodes in the generated symbolic tree.
-                    this._numberOfNodesInTree = this._symbolicTree.NumberOfNodes();
-
                     // Calculate fitness.
                     CalculateFitness(terminals);
                     break;
@@ -1585,9 +1439,6 @@ namespace antico.abcp
 
                     // Calculate depth of a generated symbolic tree.
                     this._depth = this._symbolicTree.DepthOfSymbolicTree();
-
-                    // Set number of nodes in the generated symbolic tree.
-                    this._numberOfNodesInTree = this._symbolicTree.NumberOfNodes();
 
                     // Calculate fitness.
                     CalculateFitness(terminals);
