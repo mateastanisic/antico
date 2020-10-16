@@ -9,16 +9,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 using antico.data;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using System.Windows.Forms;
 using antico.abcp;
+using System.Data;
 
 namespace antico
 {
-    #region ABCP class
+    #region ABCP
     /// <summary>
+    /// 
     /// Artificial bee colony programming (ABCP) is a novel evolutionary computation based auto- matic programming method, 
     /// which uses the basic structure of artificial bee colony (ABC) algorithm.
     /// Artificial bee colony algorithm simulating the intelligent foraging behavior of honey bee swarms is one of 
@@ -29,6 +29,14 @@ namespace antico
     /// of software into malicious and not-malicious. 
     /// This class is the main class of the application containing all the data, parameters and population needed for the
     /// algorithm which is also implemented as a method of this class.
+    /// 
+    /// 
+    /// Every ABCP class is represented with
+    ///     Parameters (class - e.g. maxDepth)
+    ///     Data (class - e.g. databaseName)
+    ///     Population (class - e.g. chromosomes)
+    ///     current train and test dataset
+    ///     best, best train and best test solutions and its indices (position) in the population
     /// 
     /// </summary>
     [Serializable]
@@ -41,7 +49,7 @@ namespace antico
         private static Random rand;
         #endregion
 
-        #region parametars
+        #region Parameters
         // (READONLY - Setting only through constructor) 
         // Class of parameters needed for the ABC programming.
         Parameters _parameters;
@@ -53,7 +61,19 @@ namespace antico
         }
         #endregion
 
-        #region models <-> population 
+        #region Data
+        // (READONLY - Setting only through constructor) 
+        // Variable that represents features, dataset and mathematical operators.
+        private Data _data;
+
+        // Property for the _data variable.
+        public Data data
+        {
+            get { return _data; }
+        }
+        #endregion
+
+        #region Population
         // (READONLY - Setting only through constructor) 
         // Variable that represents class with models - population.
         Population _population;
@@ -65,9 +85,10 @@ namespace antico
         }
         #endregion
 
-        #region best model
-        // (READONLY - Setting only through constructor) 
-        // Variable that represents best current solution.
+        #region the best
+
+        #region best train and test combined
+        // Variable that represents best current solution (model) on training and testing data (together).
         private Chromosome _best;
 
         // Property for the _best variable.
@@ -82,16 +103,105 @@ namespace antico
         }
         #endregion
 
-        #region data
-        // (READONLY - Setting only through constructor) 
-        // Variable that represents features and mathematical operators.
-        private Data _data;
+        #region best train
+        // Variable that represents best current solution (model) on training data.
+        private Chromosome _bestTrain;
 
-        // Property for the _data variable.
-        public Data data
+        // Property for the _bestTrain variable.
+        public Chromosome bestTrain
         {
-            get { return _data; }
+            get { return _bestTrain; }
+            set
+            {
+                // Deep copy.
+                _bestTrain = (Chromosome)value.Clone();
+            }
         }
+        #endregion
+
+        #region best test
+        // Variable that represents best current solution (model) on testing data.
+        private Chromosome _bestTest;
+
+        // Property for the _bestTest variable.
+        public Chromosome bestTest
+        {
+            get { return _bestTest; }
+            set
+            {
+                // Deep copy.
+                _bestTest = (Chromosome)value.Clone();
+            }
+        }
+        #endregion
+
+        #region best indices
+        // Variable that represents best current solution (model) index on training and testing data (together).
+        private int _bestIndex;
+
+        // Property for the _bestIndex variable.
+        public int bestIndex
+        {
+            get { return _bestIndex; }
+            set { _bestIndex = value;  }
+        }
+
+        // Variable that represents best current solution (model) index on training data.
+        private int _bestTrainIndex;
+
+        // Property for the _bestTrainIndex variable.
+        public int bestTrainIndex
+        {
+            get { return _bestTrainIndex; }
+            set { _bestTrainIndex = value; }
+        }
+
+        // Variable that represents best current solution (model) index on testing data.
+        private int _bestTestIndex;
+
+        // Property for the _bestTestIndex variable.
+        public int bestTestIndex
+        {
+            get { return _bestTestIndex; }
+            set { _bestTestIndex = value; }
+        }
+        #endregion
+
+        #endregion
+
+        #region current train and test data
+
+        #region train data
+        // DataTable variable containing train features that are currently used.
+        private DataTable _train;
+
+        // Property for the _train variable.
+        public DataTable train
+        {
+            get { return _train; }
+            set
+            {
+                _train = new DataTable();
+                _train = value.Copy();
+            }
+        }
+        #endregion
+
+        #region test data
+        // DataTable variable containing test features that are currently used.
+        private DataTable _test;
+
+        // Property for the _test variable.
+        public DataTable test
+        {
+            get { return _test; }
+            set
+            {
+                _test = new DataTable();
+                _test = value.Copy();
+            }
+        }
+        #endregion
 
         #endregion
 
@@ -110,75 +220,101 @@ namespace antico
         #endregion
 
         #region Constructor
-
-        /// <summary>
-        /// Basic constructor. 
-        /// Generating population of chromosomes (symbolic trees) with basic values of (data and parameters) variables.
-        /// </summary>
-        public ABCP(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox)
-        {
-            // Setting the initial values.
-            _parameters = new Parameters();
-            _data = new Data();
-            _population = new Population(_parameters.populationSize, _parameters.initialMaxDepth, _data.mathOperations, _data.mathOperationsArity, _data.featureNames, _data.trainFeatures, _parameters.generatingTreesMethod);
-            _best = (Chromosome)_population.BestSolution().Item1.Clone();
-
-            // Printout to console.
-            string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-            formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] ABCP constructor done!\r\n"); });
-        }
-
         /// <summary>
         /// Constructor with custom (sent) parameters and data.
         /// </summary>
+        /// 
         /// <param name="p">Custom parameters.</param>
         /// <param name="d">Custom data.</param>
         /// <param name="formForCreatingNewModel">Form for creating a model. Needed for printouts on form.</param>
         /// <param name="consoleTextBox">TextBox in which the printouts will be added.</param>
-        public ABCP(Parameters p, Data d, CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox)
+        /// <param name="trainToBe">Train set to be used in this model.</param>
+        /// <param name="testToBe">Test set to be used in this model.</param>
+        public ABCP(Parameters p, Data d, DataTable trainToBe, DataTable testToBe, CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox)
         {
-            // Setting the initial values.
-            _parameters = p;
-            _data = d;
-            _population = new Population(_parameters.populationSize, _parameters.initialMaxDepth, _data.mathOperations, _data.mathOperationsArity, _data.featureNames, _data.trainFeatures, _parameters.generatingTreesMethod);
-            _best = (Chromosome)_population.BestSolution().Item1.Clone();
+            // Setting custom Parameters.
+            this._parameters = p;
+
+            // Setting custom Data.
+            this._data = d;
+
+            // Setting up train features to be used.
+            this._train = new DataTable();
+            this._train = trainToBe.Copy();
+
+            // Setting up test features to be used.
+            this._test = new DataTable();
+            this._test = testToBe.Copy();
+
+            // Initialization of Population.
+            this._population = new Population(p.populationSize, p.initialMaxDepth, d.mathOperators, d.mathOperationsArity, d.featureNames, trainToBe, testToBe, p.generatingTreesMethod);
+
+            // Find best solution based on train/test features.
+            this.BestSolutions();
 
             // Printout to console.
             string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-            formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] ABCP constructor with parameters is done!\r\n"); });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (ABCP constructor with parameters) DONE!\r\n"); });
         }
-
-        /// <summary>
-        /// Constructor for class with all setting of all variables.
-        /// </summary>
-        /// <param name="population_size">Size of population.</param>
-        /// <param name="max_number_of_iterations">Maximal number of iterations.</param>
-        /// <param name="max_number_of_not_improving_iterations">Maximal number of not improving iterations.</param>
-        /// <param name="initial_max_depth">Initial maximal depth of symbolic tree.</param>
-        /// <param name="max_depth">Maximal depth of symbolic tree overall.</param>
-        /// <param name="generating_trees_method">Method to generate symbolic tree.</param>
-        /// <param name="math_operations">Math operations <-> non terminals. </param>
-        /// <param name="feature_extraction_method">Method used to extract features.</param>
-        /// <param name="spliting_data_type">Type of splitting data into train and test set. (Balanced/Inbalanced)</param>
-        /// <param name="number_of_top_features">Number of top features selected to be in model.</param>
-        /// <param name="limit">Number of iterations when certain solution is not changed before in scout bee phase is generated new solution.</param>
-        public ABCP(int population_size, int max_number_of_iterations, int max_number_of_not_improving_iterations, int number_of_runs, int initial_max_depth, int max_depth, string generating_trees_method, string[] math_operations, string feature_extraction_method, string spliting_data_type, int number_of_top_features, int limit, double alpha, double probability)
-        {
-            // Setting the values with other constructors.
-            _parameters = new Parameters(population_size, max_number_of_iterations, max_number_of_not_improving_iterations, number_of_runs, initial_max_depth, max_depth, generating_trees_method, limit, alpha, probability);
-            _data = new Data(math_operations, feature_extraction_method, spliting_data_type, number_of_top_features);
-            _population = new Population(population_size, initial_max_depth, math_operations, _data.mathOperationsArity, _data.featureNames, _data.trainFeatures, generating_trees_method);
-            _best = (Chromosome)_population.BestSolution().Item1.Clone();
-        }
-
         #endregion
 
-        #region artificial bee colony programming 
+        #region (Re)Setup of best solutions
         /// <summary>
-        /// Artificial bee colony programming algorithm.
+        /// Method for finding the best solutions in the whole population based on train and test fitness (together and separately).
+        /// Best solution is found by iterating through all solutions and setting up best, bestTrain and bestTest ABCP variables
+        /// properly at the end. Also, best indices that represent index of the best solutions in the population are also reset.
+        /// 
+        /// Since higher fitness means higher accuracy, best solutions are choosen based on fitness.
+        /// </summary>
+        private void BestSolutions()
+        {
+            // Variables for indices in population of best solutions (models).
+            int bestSolutionIndex = 0;
+            int bestTrainSolutionIndex = 0;
+            int bestTestSolutionIndex = 0;
+
+            // Iterating through all chromosomes.
+            for (var s = 0; s < this._population.chromosomes.Count; s++)
+            {
+                // If this chromosome has better train fitness change bestTrain solution.
+                if (this._population.chromosomes[s].trainFitness > this._population[bestTrainSolutionIndex].trainFitness)
+                    bestTrainSolutionIndex = s;
+
+                // If this chromosome has better test fitness change bestTest solution.
+                if (this._population.chromosomes[s].testFitness > this._population[bestTestSolutionIndex].testFitness)
+                    bestTestSolutionIndex = s;
+
+                // If this chromosome has better fitness (train and test together) change best solution.
+                if ((this._population.chromosomes[s].trainFitness + this._population[s].testFitness) > (this._population[bestSolutionIndex].trainFitness + this._population[bestSolutionIndex].testFitness))
+                    bestSolutionIndex = s;
+            }
+
+            // Reset known best solutions.
+            this.best = new Chromosome();
+            this.best = (Chromosome)this._population[bestSolutionIndex].Clone();
+
+            this.bestTrain = new Chromosome();
+            this.bestTrain = (Chromosome)this._population[bestTrainSolutionIndex].Clone();
+
+            this.bestTest = new Chromosome();
+            this.bestTest = (Chromosome)this._population[bestTestSolutionIndex].Clone();
+
+            // Reset best indices.
+            this._bestIndex = bestSolutionIndex;
+            this._bestTrainIndex = bestTrainSolutionIndex;
+            this._bestTestIndex = bestTestSolutionIndex;
+        }
+        #endregion
+
+        #region Artificial bee colony programming 
+        /// <summary>
+        /// Artificial bee colony programming algorithm with specific train dataset.
         /// This method is used to find the best model for some data using heuristic abc programming.
         /// It is considered all variables for class ABCP are set.
         /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called this method - for printouts.</param>
+        /// <param name="consoleTextBox">TextBox for printouts.</param>
         public void ABCProgramming(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox)
         {
             // Helper arrays for keeping track of case when Solution (i) is not improved.
@@ -192,10 +328,7 @@ namespace antico
             // -- DONE IN CONSTRUCTOR --
 
             // 3: Memorize the best. 
-            Tuple<Chromosome, int> BestSolutionAndIndex = this.population.BestSolution();
-            Chromosome BestSolution = BestSolutionAndIndex.Item1;
-            double BestFitness = BestSolution.fitness;
-            int BestIndex = BestSolutionAndIndex.Item2;
+            // -- DONE IN CONSTRUCTOR --
 
             // 4: Set the cycle counter(cycle = 0)
             int Iteration = 0;
@@ -203,6 +336,9 @@ namespace antico
 
             while (Iteration <= this.parameters.maxNumberOfIterations && IterationNotImproving <= this.parameters.maxNumberOfNotImprovingIterations)
             {
+                // Remeber best fitness from the beggining of the iteration.
+                double OldBestFitness = this._bestTrain.trainFitness;
+
                 // Printout to console.
                 string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
                 formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("\r\n[" + time + "] ABCP STEP " + Iteration.ToString() + "\r\n"); });
@@ -212,14 +348,14 @@ namespace antico
                 // (number of employed bees are same as population size)
                 for (var e = 0; e < this.parameters.populationSize; e++)
                 {
-                    // Calculate NewSolution using information sharing mechanism.
-                    Chromosome NewSolutionEmployed;
+                    #region calculate NewSolution using information sharing mechanism
+                    Chromosome NewSolutionEmployed = new Chromosome();
 
                     // Helper variables.
                     double OldFitnessEmployed, NewFitnessEmployed;
 
                     // Save the cost function value of the current solution.
-                    OldFitnessEmployed = this.population[e].fitness;
+                    OldFitnessEmployed = this._population[e].trainFitness;
 
                     #region information sharing mechanism
                     // Randomly choose another solution.
@@ -228,17 +364,18 @@ namespace antico
                     // Check that randomly choosen solution is noth current solution.
                     while (true)
                     {
-                        r = rand.Next(this.parameters.populationSize);
+                        r = rand.Next(this._parameters.populationSize);
                         if (r != e)
                             break;
                     }
 
-                    NewSolutionEmployed = (Chromosome)this.population.CrossoverWithDifferenceControl((Chromosome)this.population[e].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
-                    //NewSolutionEmployed = (Chromosome)this.population.Crossover( (Chromosome)this.population[e].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
+                    NewSolutionEmployed = (Chromosome)this._population.CrossoverWithDifferenceControl((Chromosome)this._population[e].Clone(), (Chromosome)this._population[r].Clone(), this._parameters.maxDepth, this._train, this._test, this._parameters.probability);
+                    //NewSolutionEmployed = (Chromosome)this.population.Crossover( (Chromosome)this.population[e].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, trainData, this.parameters.probability);
                     #endregion
 
                     // Calculate the cost function value of new solution.
-                    NewFitnessEmployed = NewSolutionEmployed.fitness;
+                    NewFitnessEmployed = NewSolutionEmployed.trainFitness;
+                    #endregion
 
                     #region greedy selection between OldSolution and NewSolution
                     // Considering the cost values, apply the greedy selection between OldSolution and NewSolution.                     
@@ -246,7 +383,7 @@ namespace antico
                     // Update solution if better.
                     if (NewFitnessEmployed > OldFitnessEmployed)
                     {
-                        this.population[e] = (Chromosome)NewSolutionEmployed.Clone();
+                        this._population[e] = (Chromosome)NewSolutionEmployed.Clone();
 
                         // Solution has become better. Put Limit of that solution to 0.
                         Limits[e] = 0;
@@ -262,10 +399,11 @@ namespace antico
                 time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
                 formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") employed bee phase done\r\n"); });
 
-                // Find new best solution.
-                Tuple<Chromosome, int> BestSolutionAfterE = this.population.BestSolution();
+                // Reset best solutions.
+                BestSolutions();
+
                 // Calculate the probability values ( P_i ) for the solutions.
-                this.population.CalculateProbabilities(BestSolutionAfterE.Item2, this.parameters.alpha);
+                this._population.CalculateProbabilities(this._bestTrainIndex, this._parameters.alpha);
 
                 #region ----- ONLOOK BEES PHASE -----
                 // Number of onlookers.
@@ -275,11 +413,11 @@ namespace antico
 
                 // For all onlooker bees do ...
                 // (number of onlookers bees are same as population size)
-                while (o < this.parameters.populationSize)
+                while (o < this._parameters.populationSize)
                 {
                     // Select a solution OldSolution depending on P_i. 
                     // Better solutions have higher probabilities so we will select this solution if it has higher probability.
-                    bool SelectThisSolution = rand.Next(100) < (this.population.probabilities[f] * 100) ? true : false;
+                    bool SelectThisSolution = rand.Next(100) < (this._population.probabilities[f] * 100) ? true : false;
 
                     #region food source not selected by onlooker bee
                     // It is choosed not to select this solution.
@@ -287,11 +425,11 @@ namespace antico
                     {
                         // Update source.
                         f++;
+
                         // Check if came to the end.
-                        if (f == this.population.populationSize)
-                        {
+                        if (f == this._population.populationSize)
                             f = 0;
-                        }
+
                         continue;
                     }
                     #endregion
@@ -300,13 +438,13 @@ namespace antico
                     // Use onlooker bee for this source.
                     o++;
 
-                    // Calculate NewSolution using information sharing mechanism.
+                    #region calculate NewSolution using information sharing mechanism
                     Chromosome NewSolutionOnlook = new Chromosome();
 
                     double OldFitnessOnlook, NewFitnessOnlook;
 
                     // Save the cost function value of the current solution.
-                    OldFitnessOnlook = this.population[f].fitness;
+                    OldFitnessOnlook = this._population[f].trainFitness;
 
                     #region information sharing mechanism
                     // Randomly choose another solution.
@@ -315,17 +453,18 @@ namespace antico
                     // Check that randomly choosen solution is noth current solution.
                     while (true)
                     {
-                        r = rand.Next(this.parameters.populationSize);
+                        r = rand.Next(this._parameters.populationSize);
                         if (r != f)
                             break;
                     }
 
-                    NewSolutionOnlook = (Chromosome)this.population.CrossoverWithDifferenceControl((Chromosome)this.population[f].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
-                    //NewSolutionOnlook = (Chromosome)this.population.Crossover((Chromosome)this.population[f].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, this.data.trainFeatures, this.parameters.probability);
+                    NewSolutionOnlook = (Chromosome)this._population.CrossoverWithDifferenceControl((Chromosome)this._population[f].Clone(), (Chromosome)this._population[r].Clone(), this._parameters.maxDepth, this._train, this._test, this._parameters.probability);
+                    //NewSolutionOnlook = (Chromosome)this.population.Crossover((Chromosome)this.population[f].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, trainData, this.parameters.probability);
                     #endregion
 
                     // Calculate the cost function value of new solution.
-                    NewFitnessOnlook = NewSolutionOnlook.fitness;
+                    NewFitnessOnlook = NewSolutionOnlook.trainFitness;
+                    #endregion
 
                     #region greedy selection between OldSolution and NewSolution
                     // Considering the cost values, apply the greedy selection between OldSolution and NewSolution. 
@@ -333,7 +472,7 @@ namespace antico
                     // Update solution if better.
                     if (NewFitnessOnlook > OldFitnessOnlook)
                     {
-                        this.population[f] = (Chromosome)NewSolutionOnlook.Clone();
+                        this._population[f] = (Chromosome)NewSolutionOnlook.Clone();
 
                         // Solution has become better. Put Limit of that solution to 0.
                         Limits[f] = 0;
@@ -345,11 +484,10 @@ namespace antico
 
                     // Update source.
                     f++;
+
                     // Check if came to the end.
-                    if (f == this.population.populationSize)
-                    {
+                    if (f == this._population.populationSize)
                         f = 0;
-                    }
                     #endregion
                 }
 
@@ -371,7 +509,7 @@ namespace antico
                     }
 
                     // Check if 'limit' number of iterations in a row this solution is not improved.
-                    if (Limits[s] >= this.parameters.limit)
+                    if (Limits[s] >= this._parameters.limit)
                     {
                         #region generate new solution with difference control
                         // If that is so, generate new solution using "grow" method.
@@ -387,13 +525,13 @@ namespace antico
                             counter++;
 
                             // Generate new solution with grow method.
-                            NewSolutionScout.Generate("grow", this.parameters.initialMaxDepth, this.data.featureNames, this.data.trainFeatures, this.data.mathOperations, this.data.mathOperationsArity);
+                            NewSolutionScout.Generate("grow", this._parameters.initialMaxDepth, this._data.featureNames, this._train, this._test, this._data.mathOperators, this._data.mathOperationsArity);
 
                             // Check if new solution is different.
                             bool isDifferent = true;
-                            for (var i = 0; i < this.population.populationSize; i++)
+                            for (var i = 0; i < this._population.populationSize; i++)
                             {
-                                if (this.population.chromosomes[i].Equals(NewSolutionScout))
+                                if (this._population.chromosomes[i].Equals(NewSolutionScout))
                                 {
                                     isDifferent = false;
                                     break;
@@ -403,7 +541,7 @@ namespace antico
                             // End loop if solution is different.
                             if (isDifferent)
                             {
-                                this.population[s] = (Chromosome)NewSolutionScout.Clone();
+                                this._population[s] = (Chromosome)NewSolutionScout.Clone();
                                 break;
                             }
 
@@ -419,19 +557,15 @@ namespace antico
                 // Printout to console.
                 time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
                 formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") scout bee phase done\r\n"); });
-                // Save new best solution.
-                var NewBestSolutionAndIndex = this.population.BestSolution();
+
+                // Reset best solutions.
+                BestSolutions();
 
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
-                if (NewBestSolutionAndIndex.Item1.fitness != BestFitness)
+                if (this._bestTrain.trainFitness != OldBestFitness)
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
                     IterationNotImproving = 0;
-
-                    // Update BestSolution, BestFitness and bestIndex.
-                    BestSolution = (Chromosome)NewBestSolutionAndIndex.Item1.Clone();
-                    BestFitness = BestSolution.fitness;
-                    BestIndex = NewBestSolutionAndIndex.Item2;
                 }
                 else
                 {
@@ -441,7 +575,12 @@ namespace antico
 
                 // Printout to console.
                 time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") DONE. Best fitness: " + BestFitness.ToString() + "\r\n"); });
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") DONE.\r\n"); });
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (train) fitness: " + this._bestTrain.trainFitness.ToString() + "\r\n"); });
+                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (test) fitness: " + this._bestTest.testFitness.ToString() + "\r\n"); });
+                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (train + test) fitness: " + ((double)((this._best.trainFitness + this._best.testFitness) / 2)).ToString() + "\r\n"); });
 
                 // Increase number of done iterations.
                 Iteration++;
@@ -449,9 +588,6 @@ namespace antico
                 // Maybe this?
                 // if( BestFitness == 1 ) break;
             }
-
-            // Update best solution.
-            _best = (Chromosome)BestSolution.Clone();
         }
         #endregion
 

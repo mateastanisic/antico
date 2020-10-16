@@ -8,14 +8,27 @@
 // Zagreb, Hrvatska                                                                     //
 //////////////////////////////////////////////////////////////////////////////////////////
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace antico.abcp
 {
-    #region Parameters class
+    #region Parameters
     /// <summary>
+    /// 
     /// Class for parameters used in artificial bee colony programming algorithm.
+    /// 
+    /// Every Parameters class is represented with
+    ///     population size
+    ///     maximal number of iterations
+    ///     maximal number of not improving iterations
+    ///     number of runs
+    ///     limit (number of iterations when certain solution is not changed before in scout bee phase is generated new solution)
+    ///     alpha (used while calculating probabilities of solutions before onlooker bee phase)
+    ///     initial max. depth
+    ///     max. depth
+    ///     method for generating symbolic trees (ramped, full, grow)
+    ///     probability (to choose non-terminal as crossover point of tree in the crossover)
+    /// 
+    /// 
     /// </summary>
     [Serializable]
     public class Parameters
@@ -41,16 +54,16 @@ namespace antico.abcp
         // (READONLY - Setting only through constructor)
         private int _maxNumberOfIterations;
 
-        // Variable that represents number of loop iterations, when better 
-        // solution is not found, after we stop searching for the best solution.
-        // (READONLY - Setting only through constructor)
-        private int _maxNumberOfNotImprovingIterations;
-
         // Property for the _maxNumberOfIterations variable.
         public int maxNumberOfIterations
         {
             get { return _maxNumberOfIterations; }
         }
+
+        // Variable that represents number of loop iterations, when better 
+        // solution is not found, after we stop searching for the best solution.
+        // (READONLY - Setting only through constructor)
+        private int _maxNumberOfNotImprovingIterations;
 
         // Property for the _maxNumberOfNotImprovingIterations variable.
         public int maxNumberOfNotImprovingIterations
@@ -102,17 +115,17 @@ namespace antico.abcp
         // (READONLY - Setting only through constructor)
         private int _initialMaxDepth;
 
-        // Variable for maximal depth at any point of algorithm of the symbolic tree.
-        // (READONLY - Setting only through constructor)
-        private int _maxDepth;
-
-        // Property for the initial_max_depth variable.
+        // Property for the _initialMaxDepth variable.
         public int initialMaxDepth
         {
             get { return _initialMaxDepth; }
         }
 
-        // Property for the max_depth variable.
+        // Variable for maximal depth at any point of algorithm of the symbolic tree.
+        // (READONLY - Setting only through constructor)
+        private int _maxDepth;
+
+        // Property for the _maxDepth variable.
         public int maxDepth
         {
             get { return _maxDepth; }
@@ -155,13 +168,13 @@ namespace antico.abcp
         {
             // Associate initial values. 
 
-            this._populationSize = 10; // 500
-            this._maxNumberOfIterations = 10; // 100
-            this._numberOfRuns = 1;
-            this._maxNumberOfNotImprovingIterations = 50;
+            this._populationSize = 20; // 500
+            this._maxNumberOfIterations = 20; // 100
+            this._numberOfRuns = 10;
+            this._maxNumberOfNotImprovingIterations = 15; //50
             this._initialMaxDepth = 6; //6
             this._maxDepth = 15; //15
-            this._limit = 10;
+            this._limit = 8; //10
             this._generatingTreesMethod = "ramped";
             this._alpha = 0.9;
             this._probability = 0.6; //???
@@ -171,6 +184,7 @@ namespace antico.abcp
         /// <summary>
         /// Constructor for parameters.
         /// </summary>
+        /// 
         /// <param name="ps">Size of the population parameter.</param>
         /// <param name="maxnoi">Maximal number of iterations parameter.</param>
         /// <param name="maxnonii">Maximal number of not improving iterations parameter.</param>
@@ -198,6 +212,7 @@ namespace antico.abcp
         /// <summary>
         /// Constructor for parameters.
         /// </summary>
+        /// 
         /// <param name="p">Different Parameters class variable.</param>
         public Parameters(Parameters p)
         {
@@ -219,6 +234,7 @@ namespace antico.abcp
         /// <summary>
         /// Helper method for cloning Parameters p values to this values.
         /// </summary>
+        /// 
         /// <param name="p">Another class variable Parameters</param>
         internal void Clone(Parameters p)
         {

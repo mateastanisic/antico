@@ -72,10 +72,10 @@ namespace antico
             this.exitPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.exitPictureBox.TabIndex = 6;
             this.exitPictureBox.TabStop = false;
-            this.exitPictureBox.Click += new System.EventHandler(this.exitPictureBox_Click);
-            this.exitPictureBox.MouseEnter += new System.EventHandler(this.exitPictureBox_MouseEnter);
-            this.exitPictureBox.MouseLeave += new System.EventHandler(this.exitPictureBox_MouseLeave);
-            this.exitPictureBox.MouseHover += new System.EventHandler(this.exitPictureBox_MouseHover);
+            this.exitPictureBox.Click += new System.EventHandler(this.ExitPictureBox_Click);
+            this.exitPictureBox.MouseEnter += new System.EventHandler(this.ExitPictureBox_MouseEnter);
+            this.exitPictureBox.MouseLeave += new System.EventHandler(this.ExitPictureBox_MouseLeave);
+            this.exitPictureBox.MouseHover += new System.EventHandler(this.ExitPictureBox_MouseHover);
             // 
             // createNewModelSign
             // 
@@ -87,10 +87,10 @@ namespace antico
             this.createNewModelSign.Size = new System.Drawing.Size(200, 200);
             this.createNewModelSign.TabIndex = 13;
             this.createNewModelSign.TabStop = false;
-            this.createNewModelSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.createNewModelSign_MouseClick);
-            this.createNewModelSign.MouseEnter += new System.EventHandler(this.createNewModelSign_MouseEnter);
-            this.createNewModelSign.MouseLeave += new System.EventHandler(this.createNewModelSign_MouseLeave);
-            this.createNewModelSign.MouseHover += new System.EventHandler(this.createNewModelSign_MouseHover);
+            this.createNewModelSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.CreateNewModelSign_MouseClick);
+            this.createNewModelSign.MouseEnter += new System.EventHandler(this.CreateNewModelSign_MouseEnter);
+            this.createNewModelSign.MouseLeave += new System.EventHandler(this.CreateNewModelSign_MouseLeave);
+            this.createNewModelSign.MouseHover += new System.EventHandler(this.CreateNewModelSign_MouseHover);
             // 
             // isThisMaliciousSign
             // 
@@ -102,10 +102,10 @@ namespace antico
             this.isThisMaliciousSign.Size = new System.Drawing.Size(200, 200);
             this.isThisMaliciousSign.TabIndex = 14;
             this.isThisMaliciousSign.TabStop = false;
-            this.isThisMaliciousSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.isThisMaliciousSign_MouseClick);
-            this.isThisMaliciousSign.MouseEnter += new System.EventHandler(this.isThisMaliciousSign_MouseEnter);
-            this.isThisMaliciousSign.MouseLeave += new System.EventHandler(this.isThisMaliciousSign_MouseLeave);
-            this.isThisMaliciousSign.MouseHover += new System.EventHandler(this.isThisMaliciousSign_MouseHover);
+            this.isThisMaliciousSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.IsThisMaliciousSign_MouseClick);
+            this.isThisMaliciousSign.MouseEnter += new System.EventHandler(this.IsThisMaliciousSign_MouseEnter);
+            this.isThisMaliciousSign.MouseLeave += new System.EventHandler(this.IsThisMaliciousSign_MouseLeave);
+            this.isThisMaliciousSign.MouseHover += new System.EventHandler(this.IsThisMaliciousSign_MouseHover);
             // 
             // aboutAnticoSign
             // 
@@ -117,10 +117,10 @@ namespace antico
             this.aboutAnticoSign.Size = new System.Drawing.Size(200, 200);
             this.aboutAnticoSign.TabIndex = 15;
             this.aboutAnticoSign.TabStop = false;
-            this.aboutAnticoSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.aboutAnticoSign_MouseClick);
-            this.aboutAnticoSign.MouseEnter += new System.EventHandler(this.aboutAnticoSign_MouseEnter);
-            this.aboutAnticoSign.MouseLeave += new System.EventHandler(this.aboutAnticoSign_MouseLeave);
-            this.aboutAnticoSign.MouseHover += new System.EventHandler(this.aboutAnticoSign_MouseHover);
+            this.aboutAnticoSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.AboutAnticoSign_MouseClick);
+            this.aboutAnticoSign.MouseEnter += new System.EventHandler(this.AboutAnticoSign_MouseEnter);
+            this.aboutAnticoSign.MouseLeave += new System.EventHandler(this.AboutAnticoSign_MouseLeave);
+            this.aboutAnticoSign.MouseHover += new System.EventHandler(this.AboutAnticoSign_MouseHover);
             // 
             // MainFrame
             // 

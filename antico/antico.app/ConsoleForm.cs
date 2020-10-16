@@ -1,22 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+﻿//////////////////////////////////////////////////////////////////////////////////////////
+// antico --- artificial bee colony programming based malware detection                 //
+// Copyright 2020 Matea Stanišić                                                        //
+//                                                                                      //
+//                                                                                      //
+// Matea Stanišić                                                                       //
+// mateastanisic@outlook.com                                                            //
+// Zagreb, Hrvatska                                                                     //
+//////////////////////////////////////////////////////////////////////////////////////////
+
+using System;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace antico
 {
+    #region ConsoleForm
+    /// 
+    /// <summary>
+    /// Form for printouts during the search for the model.
+    /// 
+    /// Every ConsoleForm has
+    ///     - printoutTextBox (label for printing out the current status of search - needs to be a part of class so it text can be added from other classes)
+    ///     - variables for moving the form (flag dragging, locations dragCursorPoint and dragCursorPoint)
+    ///     
+    /// </summary>
+    /// 
     public partial class ConsoleForm : Form
     {
         #region ATTRIBUTES
 
         #region Printout text box.
         // Variable for printing out the current status of search.
-        public TextBox printoutTestBox;
+        public TextBox printoutTextBox;
         #endregion
 
         #region Variables for moving the form.
@@ -31,13 +46,21 @@ namespace antico
         #region OPERATIONS
 
         #region Initialize.
+        /// <summary>
+        /// Initialization.
+        /// </summary>
         public ConsoleForm()
         {
-            InitializeComponent();
-            printoutTestBox = new TextBox();
-            printoutTestBox = heuristicPrintoutTextBox;
+            this.InitializeComponent();
+            this.printoutTextBox = new TextBox();
+            this.printoutTextBox = this.heuristicPrintoutTextBox;
         }
 
+        /// <summary>
+        /// Set up loacation of the form.
+        /// </summary>
+        /// 
+        /// <param name="newModelForm"></param>
         public void CreateNewConsoleForm(CreateNewModelForm newModelForm) 
         {
             Application.DoEvents();
@@ -52,6 +75,7 @@ namespace antico
         /// <summary>
         /// Frame is closed when pressed Esc key.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void ConsoleForm_KeyUp(object sender, KeyEventArgs e)
@@ -67,9 +91,10 @@ namespace antico
         /// <summary>
         /// Closing form when pressing Exit sign.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitSign_MouseClick(object sender, EventArgs e)
+        private void ExitSign_MouseClick(object sender, EventArgs e)
         {
             this.Visible = false;
         }
@@ -81,73 +106,79 @@ namespace antico
         /// <summary>
         /// Flag the wariable dragging true since user pressed mouse button initiating beggining of moving frame.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void ConsoleForm_MouseDown(object sender, MouseEventArgs e)
         {
-            dragging = true;
-            dragCursorPoint = Cursor.Position;
-            dragFormPoint = this.Location;
+            this.dragging = true;
+            this.dragCursorPoint = Cursor.Position;
+            this.dragFormPoint = this.Location;
         }
 
         /// <summary>
         /// If user previously pressed mouse button (if dragging is true), change location of the Form.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void ConsoleForm_MouseMove(object sender, MouseEventArgs e)
         {
-            if (dragging)
+            if (this.dragging)
             {
-                Point dif = Point.Subtract(Cursor.Position, new Size(dragCursorPoint));
-                this.Location = Point.Add(dragFormPoint, new Size(dif));
+                Point dif = Point.Subtract(Cursor.Position, new Size(this.dragCursorPoint));
+                this.Location = Point.Add(this.dragFormPoint, new Size(dif));
             }
         }
 
         /// <summary>
         /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void ConsoleForm_MouseUp(object sender, MouseEventArgs e)
         {
-            dragging = false;
+            this.dragging = false;
         }
 
         /// <summary>
         /// Flag the wariable dragging true since user pressed mouse button initiating beggining of moving frame.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void heuristicPrintoutTextBox_MouseDown(object sender, MouseEventArgs e)
+        private void HeuristicPrintoutTextBox_MouseDown(object sender, MouseEventArgs e)
         {
-            dragging = true;
-            dragCursorPoint = Cursor.Position;
-            dragFormPoint = this.Location;
+            this.dragging = true;
+            this.dragCursorPoint = Cursor.Position;
+            this.dragFormPoint = this.Location;
         }
 
         /// <summary>
         /// If user previously pressed mouse button (if dragging is true), change location of the Form.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void heuristicPrintoutTextBox_MouseMove(object sender, MouseEventArgs e)
+        private void HeuristicPrintoutTextBox_MouseMove(object sender, MouseEventArgs e)
         {
-            if (dragging)
+            if (this.dragging)
             {
-                Point dif = Point.Subtract(Cursor.Position, new Size(dragCursorPoint));
-                this.Location = Point.Add(dragFormPoint, new Size(dif));
+                Point dif = Point.Subtract(Cursor.Position, new Size(this.dragCursorPoint));
+                this.Location = Point.Add(this.dragFormPoint, new Size(dif));
             }
         }
 
         /// <summary>
         /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void heuristicPrintoutTextBox_MouseUp(object sender, MouseEventArgs e)
+        private void HeuristicPrintoutTextBox_MouseUp(object sender, MouseEventArgs e)
         {
-            dragging = false;
+            this.dragging = false;
         }
         #endregion
 
@@ -155,9 +186,10 @@ namespace antico
         /// <summary>
         /// Show that pressing ExitSign means exiting the form.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitSign_MouseHover(object sender, EventArgs e)
+        private void ExitSign_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.exitSign, "exit");
@@ -166,46 +198,49 @@ namespace antico
         /// <summary>
         /// Hovering start.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitSign_MouseEnter(object sender, EventArgs e)
+        private void ExitSign_MouseEnter(object sender, EventArgs e)
         {
-            exitSign.Cursor = Cursors.Hand;
+            this.exitSign.Cursor = Cursors.Hand;
         }
 
         /// <summary>
         /// Hovering end.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitSign_MouseLeave(object sender, EventArgs e)
+        private void ExitSign_MouseLeave(object sender, EventArgs e)
         {
-            exitSign.Cursor = Cursors.Default;
+            this.exitSign.Cursor = Cursors.Default;
         }
 
         /// <summary>
         /// Hovering start.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void heuristicPrintoutTextBox_MouseEnter(object sender, EventArgs e)
+        private void HeuristicPrintoutTextBox_MouseEnter(object sender, EventArgs e)
         {
-            heuristicPrintoutTextBox.Cursor = Cursors.Hand;
+            this.heuristicPrintoutTextBox.Cursor = Cursors.Hand;
         }
 
         /// <summary>
         /// Hovering end.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void heuristicPrintoutTextBox_MouseLeave(object sender, EventArgs e)
+        private void HeuristicPrintoutTextBox_MouseLeave(object sender, EventArgs e)
         {
-            heuristicPrintoutTextBox.Cursor = Cursors.Default;
+            this.heuristicPrintoutTextBox.Cursor = Cursors.Default;
         }
-
         #endregion
 
         #endregion
-
     }
+    #endregion
 }

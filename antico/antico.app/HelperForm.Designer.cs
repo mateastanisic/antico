@@ -53,10 +53,10 @@ namespace antico
             this.exitSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.exitSign.TabIndex = 7;
             this.exitSign.TabStop = false;
-            this.exitSign.Click += new System.EventHandler(this.exitSign_Click);
-            this.exitSign.MouseEnter += new System.EventHandler(this.exitSign_MouseEnter_1);
-            this.exitSign.MouseLeave += new System.EventHandler(this.exitSign_MouseLeave_1);
-            this.exitSign.MouseHover += new System.EventHandler(this.exitSign_MouseHover);
+            this.exitSign.Click += new System.EventHandler(this.ExitSign_Click);
+            this.exitSign.MouseEnter += new System.EventHandler(this.ExitSign_MouseEnter);
+            this.exitSign.MouseLeave += new System.EventHandler(this.ExitSign_MouseLeave);
+            this.exitSign.MouseHover += new System.EventHandler(this.ExitSign_MouseHover);
             // 
             // HelperForm
             // 

@@ -9,26 +9,24 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing.Text;
-using System.Runtime.InteropServices;
-using antico.abcp;
-using antico.data;
-using Microsoft.Msagl.Drawing;
-using System.Collections;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
 
 namespace antico
 {
+    #region MainFrame
+    ///
+    /// <summary>
+    /// Main form - main page of the application.
+    /// 
+    /// Every MainForm has
+    ///     - variables for moving the form (flag dragging, locations dragCursorPoint and dragCursorPoint)
+    ///     - anticoLabelDesign (title)
+    ///     - other forms (formForCreatingNewModel)
+    /// 
+    /// </summary>
+    /// 
     public partial class MainFrame : Form
     {
         #region ATTRIBUTES
@@ -50,17 +48,6 @@ namespace antico
         private CreateNewModelForm formForCreatingNewModel;
         #endregion
 
-        #region Dictionary for depth colors in symbolic tree structure.
-        // Dictionary for colors.
-        private Dictionary<int, string> depthColors = new Dictionary<int, string>()
-        {
-            { 0, "#8FD8D8" }, { 1, "#70DBDB" }, { 2, "#00CED1" }, { 3, "#39B7CD" },
-            { 4, "#0099CC" }, { 5, "#33A1DE" }, { 6, "#42C0FB" }, { 7, "#87CEEB" },
-            { 8, "#BFEFFF" }, { 9, "#9BC4E2" }, { 10, "#739AC5" }, { 11, "#60AFFE" },
-            { 12, "#1E90FF" }, { 13, "#0276FD" }, { 14, "#436EEE" }, { 15, "#3333FF" }
-        };
-        #endregion
-
         #endregion
 
         #region OPERATIONS
@@ -71,13 +58,13 @@ namespace antico
         /// </summary>
         internal MainFrame()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
             // Load text font.
             PrivateFontCollection anticoFont = new PrivateFontCollection();
             anticoFont.AddFontFile("../../../../[FONTS]/UnicaOne-Regular.ttf");
-            anticoLabel.Font = new Font(anticoFont.Families[0], 35, System.Drawing.FontStyle.Regular);
-            anticoLabelDesign = anticoLabel;
+            this.anticoLabel.Font = new Font(anticoFont.Families[0], 35, System.Drawing.FontStyle.Regular);
+            this.anticoLabelDesign = this.anticoLabel;
             
         }
         #endregion
@@ -86,9 +73,10 @@ namespace antico
         /// <summary>
         /// Closing form when pressing Exit sign.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitPictureBox_Click(object sender, EventArgs e)
+        private void ExitPictureBox_Click(object sender, EventArgs e)
         {
             Application.Exit();
         }
@@ -99,37 +87,40 @@ namespace antico
         /// <summary>
         /// Flag the wariable dragging true since user pressed mouse button initiating beggining of moving frame.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void MainFrame_MouseDown(object sender, MouseEventArgs e)
         {
-            dragging = true;
-            dragCursorPoint = Cursor.Position;
-            dragFormPoint = this.Location;
+            this.dragging = true;
+            this.dragCursorPoint = Cursor.Position;
+            this.dragFormPoint = this.Location;
         }
 
         /// <summary>
         /// If user previously pressed mouse button (if dragging is true), change location of the Form.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void MainFrame_MouseMove(object sender, MouseEventArgs e)
         {
-            if (dragging)
+            if (this.dragging)
             {
-                Point dif = Point.Subtract(Cursor.Position, new Size(dragCursorPoint));
-                this.Location = Point.Add(dragFormPoint, new Size(dif));
+                Point dif = Point.Subtract(Cursor.Position, new Size(this.dragCursorPoint));
+                this.Location = Point.Add(this.dragFormPoint, new Size(dif));
             }
         }
 
         /// <summary>
         /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void MainFrame_MouseUp(object sender, MouseEventArgs e)
         {
-            dragging = false;
+            this.dragging = false;
         }
 
         #endregion
@@ -142,21 +133,23 @@ namespace antico
         /// <summary>
         /// Hovering start.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitPictureBox_MouseEnter(object sender, EventArgs e)
+        private void ExitPictureBox_MouseEnter(object sender, EventArgs e)
         {
-            exitPictureBox.Cursor = Cursors.Hand;
+            this.exitPictureBox.Cursor = Cursors.Hand;
         }
 
         /// <summary>
         /// Hovering end.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitPictureBox_MouseLeave(object sender, EventArgs e)
+        private void ExitPictureBox_MouseLeave(object sender, EventArgs e)
         {
-            exitPictureBox.Cursor = Cursors.Default;
+            this.exitPictureBox.Cursor = Cursors.Default;
         }
         #endregion
 
@@ -164,21 +157,23 @@ namespace antico
         /// <summary>
         ///  Hovering start.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void createNewModelSign_MouseEnter(object sender, EventArgs e)
+        private void CreateNewModelSign_MouseEnter(object sender, EventArgs e)
         {
-            createNewModelSign.Cursor = Cursors.Hand;
+            this.createNewModelSign.Cursor = Cursors.Hand;
         }
 
         /// <summary>
         /// Hovering end.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void createNewModelSign_MouseLeave(object sender, EventArgs e)
+        private void CreateNewModelSign_MouseLeave(object sender, EventArgs e)
         {
-            createNewModelSign.Cursor = Cursors.Default;
+            this.createNewModelSign.Cursor = Cursors.Default;
         }
         #endregion
 
@@ -186,21 +181,23 @@ namespace antico
         /// <summary>
         ///  Hovering start.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void isThisMaliciousSign_MouseEnter(object sender, EventArgs e)
+        private void IsThisMaliciousSign_MouseEnter(object sender, EventArgs e)
         {
-            isThisMaliciousSign.Cursor = Cursors.Hand;
+            this.isThisMaliciousSign.Cursor = Cursors.Hand;
         }
 
         /// <summary>
         /// Hovering end.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void isThisMaliciousSign_MouseLeave(object sender, EventArgs e)
+        private void IsThisMaliciousSign_MouseLeave(object sender, EventArgs e)
         {
-            isThisMaliciousSign.Cursor = Cursors.Default;
+            this.isThisMaliciousSign.Cursor = Cursors.Default;
         }
         #endregion
 
@@ -208,21 +205,23 @@ namespace antico
         /// <summary>
         ///  Hovering start.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void aboutAnticoSign_MouseEnter(object sender, EventArgs e)
+        private void AboutAnticoSign_MouseEnter(object sender, EventArgs e)
         {
-            aboutAnticoSign.Cursor = Cursors.Hand;
+            this.aboutAnticoSign.Cursor = Cursors.Hand;
         }
 
         /// <summary>
         /// Hovering end.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void aboutAnticoSign_MouseLeave(object sender, EventArgs e)
+        private void AboutAnticoSign_MouseLeave(object sender, EventArgs e)
         {
-            aboutAnticoSign.Cursor = Cursors.Default;
+            this.aboutAnticoSign.Cursor = Cursors.Default;
         }
         #endregion
 
@@ -234,9 +233,10 @@ namespace antico
         /// <summary>
         /// Show what createNewModelSign picture box represents.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void createNewModelSign_MouseHover(object sender, EventArgs e)
+        private void CreateNewModelSign_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.createNewModelSign, "create new model");
@@ -247,9 +247,10 @@ namespace antico
         /// <summary>
         /// Show that pressing exitPictureBox means exiting the application.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitPictureBox_MouseHover(object sender, EventArgs e)
+        private void ExitPictureBox_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.exitPictureBox, "exit");
@@ -260,9 +261,10 @@ namespace antico
         /// <summary>
         /// Show what isThisMaliciousSign picture box represents.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void isThisMaliciousSign_MouseHover(object sender, EventArgs e)
+        private void IsThisMaliciousSign_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.isThisMaliciousSign, "check is your file malicious \nNOT YET IMPLEMENTED");
@@ -273,9 +275,10 @@ namespace antico
         /// <summary>
         /// Show what aboutAnticoSign picture box represents.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void aboutAnticoSign_MouseHover(object sender, EventArgs e)
+        private void AboutAnticoSign_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.aboutAnticoSign, "about antico \nNOT YET IMPLEMENTED");
@@ -292,17 +295,18 @@ namespace antico
         /// <summary>
         /// Forward user to createNewModel form when clicking on createNewModelSign.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void createNewModelSign_MouseClick(object sender, MouseEventArgs e)
+        private void CreateNewModelSign_MouseClick(object sender, MouseEventArgs e)
         {
             // Create form for model creation.
-            formForCreatingNewModel = new CreateNewModelForm(this);
+            this.formForCreatingNewModel = new CreateNewModelForm(this);
 
             // Hide current form.
             this.Visible = false;
             // Show new form.
-            formForCreatingNewModel.Show();
+            this.formForCreatingNewModel.Show();
         }
         #endregion
 
@@ -310,14 +314,13 @@ namespace antico
         /// <summary>
         /// Forward user to form where he can check if his file is malicious.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void isThisMaliciousSign_MouseClick(object sender, MouseEventArgs e)
+        private void IsThisMaliciousSign_MouseClick(object sender, MouseEventArgs e)
         {
             string message = "Feature still not implemented!";
-            string title = "antico responds";
-            MessageBoxButtons buttons = MessageBoxButtons.OK;
-            DialogResult result = MessageBox.Show(message, title, buttons, MessageBoxIcon.Error);
+            MessageBox.Show(message, "antico responds", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         #endregion
 
@@ -325,14 +328,13 @@ namespace antico
         /// <summary>
         /// Forward user to form where he can learn about antico project.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void aboutAnticoSign_MouseClick(object sender, MouseEventArgs e)
+        private void AboutAnticoSign_MouseClick(object sender, MouseEventArgs e)
         {
             string message = "Feature still not implemented!";
-            string title = "antico responds";
-            MessageBoxButtons buttons = MessageBoxButtons.OK;
-            DialogResult result = MessageBox.Show(message, title, buttons, MessageBoxIcon.Error);
+            MessageBox.Show(message, "antico responds", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         #endregion
 
@@ -341,4 +343,5 @@ namespace antico
         #endregion
 
     }
+    #endregion
 }

@@ -52,7 +52,6 @@ C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIP
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\antico.abcp.pdb
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\antico.data.pdb
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Microsoft.Bcl.AsyncInterfaces.xml
-C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Npgsql.pdb
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\Npgsql.xml
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\System.Buffers.xml
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\bin\Debug\System.Memory.xml
@@ -79,3 +78,4 @@ C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIP
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.HelperForm.resources
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.CreateNewModelForm.resources
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.ConsoleForm.resources
+C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.app\obj\Debug\antico.exe.config

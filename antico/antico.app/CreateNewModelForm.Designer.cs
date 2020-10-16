@@ -131,10 +131,10 @@ namespace antico
             this.goBackSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.goBackSign.TabIndex = 7;
             this.goBackSign.TabStop = false;
-            this.goBackSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.goBackSign_MouseClick);
-            this.goBackSign.MouseEnter += new System.EventHandler(this.goBackSign_MouseEnter);
-            this.goBackSign.MouseLeave += new System.EventHandler(this.goBackSign_MouseLeave);
-            this.goBackSign.MouseHover += new System.EventHandler(this.goBackSign_MouseHover);
+            this.goBackSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.GoBackSign_MouseClick);
+            this.goBackSign.MouseEnter += new System.EventHandler(this.GoBackSign_MouseEnter);
+            this.goBackSign.MouseLeave += new System.EventHandler(this.GoBackSign_MouseLeave);
+            this.goBackSign.MouseHover += new System.EventHandler(this.GoBackSign_MouseHover);
             // 
             // anticoLabel
             // 
@@ -159,10 +159,10 @@ namespace antico
             this.parametersSettingsSign.Size = new System.Drawing.Size(100, 100);
             this.parametersSettingsSign.TabIndex = 9;
             this.parametersSettingsSign.TabStop = false;
-            this.parametersSettingsSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.parametersSettingsSign_MouseClick);
-            this.parametersSettingsSign.MouseEnter += new System.EventHandler(this.parametersSettingsSign_MouseEnter);
-            this.parametersSettingsSign.MouseLeave += new System.EventHandler(this.parametersSettingsSign_MouseLeave);
-            this.parametersSettingsSign.MouseHover += new System.EventHandler(this.parametersSettingsSign_MouseHover);
+            this.parametersSettingsSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ParametersSettingsSign_MouseClick);
+            this.parametersSettingsSign.MouseEnter += new System.EventHandler(this.ParametersSettingsSign_MouseEnter);
+            this.parametersSettingsSign.MouseLeave += new System.EventHandler(this.ParametersSettingsSign_MouseLeave);
+            this.parametersSettingsSign.MouseHover += new System.EventHandler(this.ParametersSettingsSign_MouseHover);
             // 
             // startSign
             // 
@@ -174,10 +174,10 @@ namespace antico
             this.startSign.Size = new System.Drawing.Size(100, 100);
             this.startSign.TabIndex = 10;
             this.startSign.TabStop = false;
-            this.startSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.startSign_MouseClick);
-            this.startSign.MouseEnter += new System.EventHandler(this.startSign_MouseEnter);
-            this.startSign.MouseLeave += new System.EventHandler(this.startSign_MouseLeave);
-            this.startSign.MouseHover += new System.EventHandler(this.startSign_MouseHover);
+            this.startSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.StartSign_MouseClick);
+            this.startSign.MouseEnter += new System.EventHandler(this.StartSign_MouseEnter);
+            this.startSign.MouseLeave += new System.EventHandler(this.StartSign_MouseLeave);
+            this.startSign.MouseHover += new System.EventHandler(this.StartSign_MouseHover);
             // 
             // saveSign
             // 
@@ -189,10 +189,10 @@ namespace antico
             this.saveSign.Size = new System.Drawing.Size(100, 100);
             this.saveSign.TabIndex = 11;
             this.saveSign.TabStop = false;
-            this.saveSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.saveSign_MouseClick);
-            this.saveSign.MouseEnter += new System.EventHandler(this.saveSign_MouseEnter);
-            this.saveSign.MouseLeave += new System.EventHandler(this.saveSign_MouseLeave);
-            this.saveSign.MouseHover += new System.EventHandler(this.saveSign_MouseHover);
+            this.saveSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SaveSign_MouseClick);
+            this.saveSign.MouseEnter += new System.EventHandler(this.SaveSign_MouseEnter);
+            this.saveSign.MouseLeave += new System.EventHandler(this.SaveSign_MouseLeave);
+            this.saveSign.MouseHover += new System.EventHandler(this.SaveSign_MouseHover);
             // 
             // visualizeSign
             // 
@@ -204,10 +204,10 @@ namespace antico
             this.visualizeSign.Size = new System.Drawing.Size(100, 100);
             this.visualizeSign.TabIndex = 12;
             this.visualizeSign.TabStop = false;
-            this.visualizeSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.visualizeSign_MouseClick);
-            this.visualizeSign.MouseEnter += new System.EventHandler(this.visualizeSign_MouseEnter);
-            this.visualizeSign.MouseLeave += new System.EventHandler(this.visualizeSign_MouseLeave);
-            this.visualizeSign.MouseHover += new System.EventHandler(this.visualizeSign_MouseHover);
+            this.visualizeSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.VisualizeSign_MouseClick);
+            this.visualizeSign.MouseEnter += new System.EventHandler(this.VisualizeSign_MouseEnter);
+            this.visualizeSign.MouseLeave += new System.EventHandler(this.VisualizeSign_MouseLeave);
+            this.visualizeSign.MouseHover += new System.EventHandler(this.VisualizeSign_MouseHover);
             // 
             // waitingAnimation
             // 
@@ -892,10 +892,10 @@ namespace antico
             this.saveParametersSign.Size = new System.Drawing.Size(107, 43);
             this.saveParametersSign.TabIndex = 17;
             this.saveParametersSign.TabStop = false;
-            this.saveParametersSign.Click += new System.EventHandler(this.saveParametersSign_Click);
-            this.saveParametersSign.MouseEnter += new System.EventHandler(this.saveParametersSign_MouseEnter);
-            this.saveParametersSign.MouseLeave += new System.EventHandler(this.saveParametersSign_MouseLeave);
-            this.saveParametersSign.MouseHover += new System.EventHandler(this.saveParametersSign_MouseHover);
+            this.saveParametersSign.Click += new System.EventHandler(this.SaveParametersSign_Click);
+            this.saveParametersSign.MouseEnter += new System.EventHandler(this.SaveParametersSign_MouseEnter);
+            this.saveParametersSign.MouseLeave += new System.EventHandler(this.SaveParametersSign_MouseLeave);
+            this.saveParametersSign.MouseHover += new System.EventHandler(this.SaveParametersSign_MouseHover);
             // 
             // lookupConsoleFormPictureBox
             // 
@@ -908,10 +908,10 @@ namespace antico
             this.lookupConsoleFormPictureBox.TabIndex = 17;
             this.lookupConsoleFormPictureBox.TabStop = false;
             this.lookupConsoleFormPictureBox.Visible = false;
-            this.lookupConsoleFormPictureBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.lookupConsoleFormPictureBox_MouseClick);
-            this.lookupConsoleFormPictureBox.MouseEnter += new System.EventHandler(this.lookupConsoleFormPictureBox_MouseEnter);
-            this.lookupConsoleFormPictureBox.MouseLeave += new System.EventHandler(this.lookupConsoleFormPictureBox_MouseLeave);
-            this.lookupConsoleFormPictureBox.MouseHover += new System.EventHandler(this.lookupConsoleFormPictureBox_MouseHover);
+            this.lookupConsoleFormPictureBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.LookupConsoleFormPictureBox_MouseClick);
+            this.lookupConsoleFormPictureBox.MouseEnter += new System.EventHandler(this.LookupConsoleFormPictureBox_MouseEnter);
+            this.lookupConsoleFormPictureBox.MouseLeave += new System.EventHandler(this.LookupConsoleFormPictureBox_MouseLeave);
+            this.lookupConsoleFormPictureBox.MouseHover += new System.EventHandler(this.LookupConsoleFormPictureBox_MouseHover);
             // 
             // printoutOfAllSolutionsLabel
             // 
@@ -925,9 +925,9 @@ namespace antico
             this.printoutOfAllSolutionsLabel.Size = new System.Drawing.Size(745, 635);
             this.printoutOfAllSolutionsLabel.TabIndex = 18;
             this.printoutOfAllSolutionsLabel.Visible = false;
-            this.printoutOfAllSolutionsLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.printoutOfAllSolutionsLabel_MouseDown);
-            this.printoutOfAllSolutionsLabel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.printoutOfAllSolutionsLabel_MouseMove);
-            this.printoutOfAllSolutionsLabel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.printoutOfAllSolutionsLabel_MouseUp);
+            this.printoutOfAllSolutionsLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PrintoutOfAllSolutionsLabel_MouseDown);
+            this.printoutOfAllSolutionsLabel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PrintoutOfAllSolutionsLabel_MouseMove);
+            this.printoutOfAllSolutionsLabel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PrintoutOfAllSolutionsLabel_MouseUp);
             // 
             // panelForPrintoutLabel
             // 
@@ -938,9 +938,9 @@ namespace antico
             this.panelForPrintoutLabel.Name = "panelForPrintoutLabel";
             this.panelForPrintoutLabel.Size = new System.Drawing.Size(765, 640);
             this.panelForPrintoutLabel.TabIndex = 19;
-            this.panelForPrintoutLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panelForPrintoutLabel_MouseDown);
-            this.panelForPrintoutLabel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panelForPrintoutLabel_MouseMove);
-            this.panelForPrintoutLabel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panelForPrintoutLabel_MouseUp);
+            this.panelForPrintoutLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PanelForPrintoutLabel_MouseDown);
+            this.panelForPrintoutLabel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PanelForPrintoutLabel_MouseMove);
+            this.panelForPrintoutLabel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PanelForPrintoutLabel_MouseUp);
             // 
             // CreateNewModelForm
             // 

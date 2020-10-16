@@ -11,17 +11,19 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Dynamic;
-using System.Text;
 
 namespace antico.abcp
 {
-    #region Population class
+    #region Population
     /// <summary>
-    /// Class that represents population of chromosomes. 
+    /// 
+    /// Class that represents population of chromosomes (solutions). 
     /// In other words, set of Symbolic Trees that represent one model for classification problem.
     /// 
-    /// This class contains of population size variable and array of chromosomes.
+    /// Every population is represented with
+    ///     chromosomes (list of solutions - chromosomes)
+    ///     population size (number of chromosomes in solution)
+    ///     probabilities (probabilities of choosing each of the solutions in onlooker bee phase)
     /// 
     /// </summary>
     [Serializable]
@@ -38,7 +40,7 @@ namespace antico.abcp
         // Variable that represents size of population.
         private int _populationSize;
 
-        // Property for the population_size variable.
+        // Property for the _populationSize variable.
         public int populationSize
         {
             get { return _populationSize; }
@@ -47,7 +49,7 @@ namespace antico.abcp
         #endregion
 
         #region probabilities
-        // Variable that represents size of population.
+        // Variable that represents probabilities of choosing each of the solutions in onlooker bee phase.
         private double[] _probabilities;
 
         // Property for the _probabilities variable.
@@ -57,7 +59,7 @@ namespace antico.abcp
             set 
             {
                 // Allocate memory.
-                _probabilities = new double[value.Length];
+                _probabilities = new double[_populationSize];
 
                 // Deep copy.
                 for (var i = 0; i < value.Length; i++)
@@ -69,21 +71,22 @@ namespace antico.abcp
         #endregion
 
         #region population
-        // Variable that represents population of symbolic trees.
-        private Chromosome[] _chromosomes;
+        // Variable that represents set of symbolic trees.
+        private List<Chromosome> _chromosomes;
 
-        // Property for the population variable.
-        public Chromosome[] chromosomes
+        // Property for the _chromosomes variable.
+        public List<Chromosome> chromosomes
         {
             get { return _chromosomes; }
             set 
             {
-                // Allocate memory for the new population of models.
-                _chromosomes = new Chromosome[value.Length];
+                // Allocate memory for the new population of chromosomes.
+                _chromosomes = new List<Chromosome>();
 
-                // Deep copy every model.
-                for (var i = 0; i < value.Length; i++)
+                // Deep copy every chromosome.
+                for (var i = 0; i < value.Count; i++)
                 {
+                    _chromosomes.Add(new Chromosome());
                     _chromosomes[i] = (Chromosome)value[i].Clone();
                 }
             }
@@ -104,10 +107,66 @@ namespace antico.abcp
         }
         #endregion
 
+        #region Constructor
+        /// <summary>
+        /// Constructor with custom values for variables.
+        /// </summary>
+        /// 
+        /// <param name="popSize">Size of population to be generated.</param>
+        /// <param name="initialMaxDepth">Initial maximal depth of symbolic tree.</param>
+        /// <param name="nonTerminals">String representations of non temrinals <-> mathematical operations.</param>
+        /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
+        /// <param name="terminalNames">String representations of terminal names.</param>
+        /// <param name="trainData">Train feature values - for calculating fitness.</param>
+        /// <param name="testData">Test feature values - for calculating accuracy.</param>
+        /// <param name="generatingTreesMethod">Method for generating symbolic tree.</param
+        public Population(int popSize, int initialMaxDepth, List<string> nonTerminals, Dictionary<string, int> mathOperationsArity, List<string> terminalNames, DataTable trainData, DataTable testData, string generatingTreesMethod)
+        {
+            // Set population size.
+            this._populationSize = popSize;
+
+            // Allocate memory.
+            this._chromosomes = new List<Chromosome>();
+
+            // Generate population of chromosomes.
+            for (var s = 0; s < popSize; s++)
+            {
+                // Create new solution.
+                _chromosomes.Add(new Chromosome());
+
+                // Check depending on symbolic tree generating method.
+                // Ramped half and half method has half of population generated with full method, and other half with grow method.
+                if (generatingTreesMethod == "ramped")
+                {
+                    if (s < popSize / 2)
+                    {
+                        // Half population generate with full method.
+                        GenerateSolutionWithDifferenceControl(s, "full", initialMaxDepth, terminalNames, trainData, testData, nonTerminals, mathOperationsArity);
+                    }
+                    else
+                    {
+                        // Other half generate with grow method.
+                        GenerateSolutionWithDifferenceControl(s, "grow", initialMaxDepth, terminalNames, trainData, testData, nonTerminals, mathOperationsArity);
+                    }
+                }
+                else
+                {
+                    // Full or grow method.
+                    GenerateSolutionWithDifferenceControl(s, generatingTreesMethod, initialMaxDepth, terminalNames, trainData, testData, nonTerminals, mathOperationsArity);
+                }
+            }
+
+            // Probabilities are calculated in ABCP algorithm.
+            // Allocate memory.
+            this._probabilities = new double[_populationSize];
+        }
+        #endregion
+
         #region Overloading operators
         /// <summary>
         /// Overloading Equals.
         /// </summary>
+        /// 
         /// <param name="obj">Another population.</param>
         /// <returns> True if current population and object are same, otherwise false. </returns>
         public override bool Equals(object obj)
@@ -118,6 +177,7 @@ namespace antico.abcp
         /// <summary>
         /// Overloading GetHashCode.
         /// </summary>
+        /// 
         /// <returns> Generated hash code.</returns>
         public override int GetHashCode()
         {
@@ -127,6 +187,7 @@ namespace antico.abcp
         /// <summary>
         /// Overloading ToString.
         /// </summary>
+        /// 
         /// <returns> Generated string representing population. </returns>
         public override string ToString()
         {
@@ -136,25 +197,22 @@ namespace antico.abcp
         /// <summary>
         /// Indexer for Population.
         /// </summary>
-        /// <param name="index"> Variable that represents index of desired symbolic tree in population. </param>
-        /// <returns>Desired symbolic tree.</returns>
+        /// 
+        /// <param name="index"> Variable that represents index of desired chromosome in population. </param>
+        /// <returns>Desired chromosome.</returns>
         public Chromosome this[int index]
         {
             get
             {
-                if (index < 0 && index >= this._chromosomes.Length)
-                {
+                if (index < 0 && index >= this._chromosomes.Count)
                     throw new IndexOutOfRangeException("[Population indexer - overloading operator] Index out of range");
-                }
 
                 return this._chromosomes[index];
             }
             set
             {
-                if (index < 0 && index >= this._chromosomes.Length)
-                {
+                if (index < 0 && index >= this._chromosomes.Count)
                     throw new IndexOutOfRangeException("[Population indexer - overloading operator] Index out of range");
-                }
 
                 this._chromosomes[index] = (Chromosome)value.Clone();
             }
@@ -162,72 +220,20 @@ namespace antico.abcp
 
         #endregion
 
-        #region Constructor
-        /// <summary>
-        /// Constructor with given values for variables.
-        /// </summary>
-        /// <param name="popSize">Size of population to be generated.</param>
-        /// <param name="initialMaxDepth">Initial maximal depth of symbolic tree.</param>
-        /// <param name="nonTerminals">String representations of non temrinals <-> mathematical operations.</param>
-        /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
-        /// <param name="terminalNames">String representations of terminal names.</param>
-        /// <param name="terminals">Actual values for each terminal for each training example.</param>
-        /// <param name="generatingTreesMethod">Method for generating symbolic tree.</param
-        public Population(int popSize, int initialMaxDepth, string[] nonTerminals, Dictionary<string,int> mathOperationsArity, string[] terminalNames, DataTable terminals, string generatingTreesMethod)
-        {
-            // Set population size.
-            this._populationSize = popSize;
-
-            // Allocate memory.
-            this._chromosomes = new Chromosome[popSize];
-
-            // Generate population of chromosomes.
-            for (var i = 0; i < popSize; i++)
-            {
-                // Create new solution.
-                _chromosomes[i] = new Chromosome();
-
-                // Check depending on symbolic tree generating method.
-
-                // Ramped half and half method has half of population generated with full method, and other half with grow method.
-                if (generatingTreesMethod == "ramped")
-                {
-                    if (i < popSize / 2)
-                    {
-                        // Half population generate with full method.
-                        GenerateSolutionWithDifferenceControl(i, "full", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
-                    }
-                    else
-                    {
-                        // Other half generate with grow method.
-                        GenerateSolutionWithDifferenceControl(i, "grow", initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
-                    }
-                    
-                }
-                else
-                {
-                    // Full or grow method.
-                    GenerateSolutionWithDifferenceControl(i, generatingTreesMethod, initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
-                    
-                }
-            }
-
-            // Probabilities are calculated in ABCP algorithm.
-            this._probabilities = new double[popSize];
-        }
-
         #region Generate solution with difference control
         /// <summary>
         /// Helper method for controling difference of the solutions while generating them in initialization phase.
         /// </summary>
+        /// 
         /// <param name="solutionIndex"> IOndex of the solution in the population that we are trying to generate.</param>
         /// <param name="generatingTreesMethod">Method for generating symbolic tree.</param>
         /// <param name="initialMaxDepth">Initial maximal depth of symbolic tree.</param>
         /// <param name="terminalNames">String representations of terminal names.</param>
-        /// <param name="terminals">Actual values for each terminal for each training example.</param>
+        /// <param name="trainData">Train feature values - for calculating fitness.</param>
+        /// <param name="testData">Test feature values - for calculating accuracy.</param>
         /// <param name="nonTerminals">String representations of non temrinals <-> mathematical operations.</param>
         /// <param name="mathOperationsArity"> Dictionary with all possible non-terminals and their arity. </param>
-        private void GenerateSolutionWithDifferenceControl(int solutionIndex, string generatingTreesMethod, int initialMaxDepth, string[] terminalNames, DataTable terminals, string[] nonTerminals, Dictionary<string, int> mathOperationsArity)
+        private void GenerateSolutionWithDifferenceControl(int solutionIndex, string generatingTreesMethod, int initialMaxDepth, List<string> terminalNames, DataTable trainData, DataTable testData, List<string> nonTerminals, Dictionary<string, int> mathOperationsArity)
         {
             int counter = 0;
 
@@ -238,13 +244,16 @@ namespace antico.abcp
                 counter++;
 
                 // Generate new solution.
-                _chromosomes[solutionIndex].Generate(generatingTreesMethod, initialMaxDepth, terminalNames, terminals, nonTerminals, mathOperationsArity);
+                this._chromosomes[solutionIndex].Generate(generatingTreesMethod, initialMaxDepth, terminalNames, trainData, testData, nonTerminals, mathOperationsArity);
 
                 // Check if new solution is different.
                 bool isDifferent = true;
-                for (var i = 0; i < solutionIndex; i++)
+                for (var i = 0; i < this._chromosomes.Count; i++)
                 {
-                    if (_chromosomes[i].Equals(_chromosomes[solutionIndex]))
+                    if (i == solutionIndex)
+                        continue;
+
+                    if (this._chromosomes[i].Equals(this._chromosomes[solutionIndex]))
                     {
                         isDifferent = false;
                         break;
@@ -264,20 +273,19 @@ namespace antico.abcp
         }
         #endregion
 
-        #endregion
-
         #region Crossover
-
         /// <summary>
         /// Crossover of the two chromosomes.
         /// </summary>
+        /// 
         /// <param name="primaryParent"> First - primary chromosome (parent) that is part of the crossover. </param>
         /// <param name="secundaryParent"> Secondary chromosome (parent) that is part of the crossover. </param>
         /// <param name="maxDepth">Maximal depth of trees in population.</param>
-        /// <param name="data">Feature values - for calculating fitness.</param>
+        /// <param name="trainData">Train feature values - for calculating fitness.</param>
+        /// <param name="testData">Test feature values - for calculating accuracy.</param>
         /// <param name="probability">Probability of choosing non-terminal.</param>
         /// <returns> New solution created with crossover. </returns>
-        internal Chromosome Crossover(Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable data, double probability)
+        internal Chromosome Crossover(Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable trainData, DataTable testData, double probability)
         {
             // Make clones of solutions.
             Chromosome primaryParentClone = (Chromosome)primaryParent.Clone();
@@ -363,6 +371,7 @@ namespace antico.abcp
             // Place subtree of secondary parent in primary parent crossover point to create a child.
             var ret = PlaceNodeAtPoint((SymbolicTreeNode)primaryParentClone.symbolicTree, indexOfCrossoverPointOfPrimaryParent, crossoverSubtreeOfSecundaryParent, ref found);
 
+            #region child setup
             // Solution created with crossover.
             Chromosome child = new Chromosome();
 
@@ -375,13 +384,27 @@ namespace antico.abcp
             // Update depth of child solution.
             child.symbolicTree.DepthOfSymbolicTree();
             // Update fitness.
-            child.CalculateFitness(data);
+            child.trainFitness = child.CalculateFitness(trainData);
+            child.testFitness = child.CalculateFitness(testData);
+            #endregion
 
             return child;
         }
 
         #region Crossover with difference control
-        public Chromosome CrossoverWithDifferenceControl(Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable data, double probability)
+        /// <summary>
+        /// Crossover of the two chromosomes with caution.
+        /// (New solution must be different from all other solution in the population.)
+        /// </summary>
+        /// 
+        /// <param name="primaryParent"> First - primary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="secundaryParent"> Secondary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="maxDepth">Maximal depth of trees in population.</param>
+        /// <param name="trainData">Train feature values - for calculating fitness.</param>
+        /// <param name="testData">Test feature values - for calculating accuracy.</param>
+        /// <param name="probability">Probability of choosing non-terminal.</param>
+        /// <returns> New solution created with crossover. </returns>
+        public Chromosome CrossoverWithDifferenceControl(Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable trainData, DataTable testData, double probability)
         {
             int counter = 0;
 
@@ -392,13 +415,13 @@ namespace antico.abcp
                 counter++;
 
                 // Do crossover.
-                Chromosome newSolution = (Chromosome)Crossover(primaryParent, secundaryParent, maxDepth, data, probability);
+                Chromosome newSolution = (Chromosome)Crossover(primaryParent, secundaryParent, maxDepth, trainData, testData, probability).Clone();
 
                 // Check if new solution is different.
                 bool isDifferent = true;
-                for (var i = 0; i < populationSize; i++)
+                for (var s = 0; s < this._populationSize; s++)
                 {
-                    if (_chromosomes[i].Equals(newSolution))
+                    if (this._chromosomes[s].Equals(newSolution))
                     {
                         isDifferent = false;
                         break;
@@ -409,8 +432,8 @@ namespace antico.abcp
                 if (isDifferent)
                     return newSolution;
 
-                // Throw a warning if the program was not able to generate solution different than others 1000 times.
-                if (counter == 10000)
+                // Throw a warning if the program was not able to generate solution different than others 100000 times.
+                if (counter == 100000)
                     throw new WarningException("[CrossoverWithDifferenceControl] Stuck at infinite loop while trying to generate different solution.");
             }
         }
@@ -420,6 +443,7 @@ namespace antico.abcp
         /// <summary>
         /// Recursive helper method for separating node indices based on terminal/non-terminal property.
         /// </summary>
+        /// 
         /// <param name="node">Root or current node.</param>
         /// <param name="nonTerminalIndicesOfPrimaryParent">Reference of a list of non-terminal indices.</param>
         /// <param name="terminalIndicesOfPrimaryParent">Reference of a list of terminal indices.</param>
@@ -440,7 +464,7 @@ namespace antico.abcp
                 }
 
                 // Check that this node has no child node.
-                if (node.children != null)
+                if (!(node.children == null || node.children.Count == 0))
                 {
                     throw new Exception("[SeparateIndices] Node has arity = 0 but has " + node.children.Count + " child nodes.");
                 }
@@ -507,6 +531,7 @@ namespace antico.abcp
         /// <summary>
         /// Recursive helper method for creating preorder list of non-terminal and terminal nodes.
         /// </summary>
+        /// 
         /// <param name="node">Root or current node.</param>
         /// <param name="nonTerminalNodesOfSecundaryParent">Reference of a list of non-terminal nodes.</param>
         /// <param name="terminalNodesOfSecundaryParent">Reference of a list of terminal nodes.</param>
@@ -527,7 +552,7 @@ namespace antico.abcp
                 }
 
                 // Check that this node has no child node.
-                if (node.children != null)
+                if (!(node.children == null || node.children.Count == 0))
                 {
                     throw new Exception("[SeparateNodes] Node has arity = 0 but has " + node.children.Count + " child nodes.");
                 }
@@ -594,6 +619,7 @@ namespace antico.abcp
         /// <summary>
         /// Recursive helper method for placing given subtree at the specific point (at node with index).
         /// </summary>
+        /// 
         /// <param name="node">Chromosome (or its child node) to be changed.</param>
         /// <param name="indexOfCrossoverPointOfPrimaryParent">Index of changing point.</param>
         /// <param name="crossoverSubtreeOfSecundaryParent">Subtree to be added at changing point.</param>
@@ -603,15 +629,11 @@ namespace antico.abcp
         {
             // Node is previously found - return tuple of current node and found variable.
             if (found)
-            {
                 return new Tuple<SymbolicTreeNode, bool>(node, found);
-            }
 
             // If node is null call to the method should not be preformed.
             if (node == null)
-            {
                 throw new Exception("[PlaceNodeAtPoint] Node is null. Not possible since all cases should be already covered.");
-            }
 
 
             if (node.arity == 0)
@@ -626,7 +648,7 @@ namespace antico.abcp
                 }
 
                 // Check that this node has no child node.
-                if (node.children != null)
+                if (!(node.children == null || node.children.Count == 0))
                 {
                     throw new Exception("[PlaceNodeAtPoint] Node has arity = 0 but has " + node.children.Count + " child nodes.");
                 }
@@ -698,7 +720,6 @@ namespace antico.abcp
                 {
                     // Update node.
                     node.children[0] = (SymbolicTreeNode)retVal.Item1.Clone();
-                    return new Tuple<SymbolicTreeNode, bool>(node, found);
                 }
                 #endregion
 
@@ -770,8 +791,6 @@ namespace antico.abcp
                 {
                     // Update node left child. Right child stays the same.
                     node.children[1] = (SymbolicTreeNode)retValRight.Item1.Clone();
-
-                    return new Tuple<SymbolicTreeNode, bool>(node, found);
                 }
                 #endregion
 
@@ -789,36 +808,6 @@ namespace antico.abcp
 
         #endregion
 
-        #region Find best chromosome 
-        /// <summary>
-        /// Method for finding the best chromosome in the whole population.
-        /// Best chromosome is found by iterating through all chromosomes and 
-        /// returning the one with best ( maximal ) fitness, since better fitness
-        /// means higher accuracy on train set <-> fitness value closer to 1.
-        /// </summary>
-        /// <returns> Best chromosome in population and its index in population (faster algorithm). </returns>
-        public Tuple<Chromosome, int> BestSolution()
-        {
-            // Variable for best chromosome.
-            Chromosome best = new Chromosome();
-            int bestIndex = 0;
-
-            // Iterating through all chromosomes.
-            for (var i = 0; i < this.chromosomes.Length; i++)
-            {
-                // If this chromosome has better fitness change best chromosome.
-                if (this.chromosomes[i].fitness > best.fitness)
-                {
-                    // Deep copy.
-                    best = (Chromosome)this.chromosomes[i].Clone();
-                    bestIndex = i;
-                }
-            }
-            return new Tuple<Chromosome, int>(best, bestIndex);
-        }
-
-        #endregion
-
         #region Calculate probabilities
         /// <summary>
         /// Calculate probabilities of choosing some solution in onlooker bee phase.
@@ -829,21 +818,22 @@ namespace antico.abcp
         /// fit(Solution_i) = (1 + fitness(Solution_i))/2 [cannot be zero!]
         /// 
         /// </summary>
+        /// 
         /// <param name="bestSolutionIndex"> Index of the best solution in the population. </param>
         /// <param name="alpha"> Parametar alpha. </param>
         public void CalculateProbabilities(int bestSolutionIndex, double alpha)
         {
             // Array for function fit ( fit(Solution_i) = (1 + fitness(Solution_i))/2 [cannot be zero!] ).
-            double[] fit = new double[this.populationSize];
+            double[] fit = new double[this._populationSize];
 
             // First, calculate fit for the best solution (quality).
-            fit[bestSolutionIndex] = (1 + this.chromosomes[bestSolutionIndex].fitness) / 2;
+            fit[bestSolutionIndex] = (1 + this._chromosomes[bestSolutionIndex].trainFitness) / 2;
 
             // Calculate probabilities for all solutions.
-            for (var i = 0; i < this.populationSize; i++)
+            for (var i = 0; i < this._populationSize; i++)
             {
-                fit[i] = (double)(1 + this.chromosomes[i].fitness) / (double)2;
-                this.probabilities[i] = (double)(1 - alpha) + (double)( (alpha * fit[i]) / fit[bestSolutionIndex] );
+                fit[i] = (double)(1 + this._chromosomes[i].trainFitness) / (double)2;
+                this._probabilities[i] = (double)(1 - alpha) + (double)( (alpha * fit[i]) / fit[bestSolutionIndex] );
             }
         }
         #endregion

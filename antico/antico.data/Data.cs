@@ -11,25 +11,34 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Npgsql;
-using Microsoft.ML;
 
 namespace antico.data
 {
     #region Data class
 
     /// <summary>
+    /// 
     /// Class for data needed for application.
     /// Here we define mathematical operations (non-terminals in the symbolic tree) and feature names. 
     /// We also connect to the postgresql database where features are being kept.
     /// 
-    /// Even though main mathematical operators for this problem are +,-,*,/,log,exp,sin,cos, user will
+    /// Even though main mathematical operators for this problem are +, -, *, /, rlog, exp, sin, cos, user will
     /// get a chance to choose wich operators to use in modeling by ABCP by simple checkbox option in the app.
     /// 
-    /// TOBE IMPLEMENTED: (since features are still not collected)
-    /// Depending on the feature extraction method (TF/TFIDF/Fisher score) user will have a chance to choose feature set. 
-    /// Also, user will also have a chance to choose making model based on balanced or imbalanced data.
+    /// 
+    /// Every Data class is represented with
+    ///     mathOperationsArity (fixed dictionary of all math. operators and their arity)
+    ///     mathOperators (custom - choosed; math. operators)
+    ///     feature names 
+    ///     number of features
+    ///     train and test data
+    ///     number of folds (for cross validation, if used)
+    ///     folds of train and test data (if number of folds != 0)
+    ///     database name
+    ///     connection and connection string to postgrsql database
+    ///     fixed dictionary of all possible database names and it possible number of folds (with names)
+    ///     
     /// 
     /// </summary>
     [Serializable]
@@ -60,58 +69,26 @@ namespace antico.data
             get { return _mathOperationsArity; }
         }
 
-        // Number of mathematical operators.
-        // (READONLY - Setting only through constructor)
-        private int _numberOfMathOperators;
-
-        // Property for the _numberOfMathOperators variable.
-        public int numberOfMathOperators
-        {
-            get { return _numberOfMathOperators; }
-        }
-
         // (READONLY - Setting only through constructor) 
         // Variable that represents all mathematical operations that will be used for making a model.
-        private string[] _mathOperations;
+        private List<string> _mathOperators;
 
-        // Property for the _mathOperations variable.
-        public string[] mathOperations
+        // Property for the _mathOperators variable.
+        public List<string> mathOperators
         {
-            get { return _mathOperations; }
+            get { return _mathOperators; }
         }
         #endregion
 
         #region features 
 
-        #region connection to database
-        // Variable for connection to POSTGRESQL database.
-        // ( PRIVATE ) used only in this class
-        private NpgsqlConnection connection;
-
-        // Connection string for connection to the database.
-        // ( PRIVATE ) used only in this class
-        private string connectionString = String.Format("Server={0};Port={1};User Id={2};Password={3};Database={4};", "localhost", "5432", "postgres", "postgres", "MalwareDetection");
-        #endregion
-
-        #region features
-        // (READONLY - Setting only through constructor) 
-        // Extracted features from database.
-        private DataTable _features;
-
-        // Property for the _features variable.
-        public DataTable features
-        {
-            get { return _features; }
-        }
-        #endregion
-
         #region features names - connection to database
         // (READONLY - Setting only through constructor) 
         // String array containing feature names.
-        private string[] _featureNames;
+        private List<string> _featureNames;
 
         // Property for the _featureNames variable.
-        public string[] featureNames
+        public List<string> featureNames
         {
             get { return _featureNames; }
         }
@@ -131,7 +108,6 @@ namespace antico.data
         #endregion
 
         #region train features
-        // (READONLY - Setting only through constructor) 
         // DataTable variable containing train features.
         private DataTable _trainFeatures;
 
@@ -139,11 +115,47 @@ namespace antico.data
         public DataTable trainFeatures
         {
             get { return _trainFeatures; }
+            set 
+            {
+                _trainFeatures = new DataTable();
+                _trainFeatures = value.Copy(); 
+            }
+        }
+        #endregion
+
+        #region folds
+        // (READONLY - Setting only through constructor) 
+        // Number representing number of folds.
+        private int _numberOfFolds;
+
+        // Property for the _numberOfFolds variable.
+        public int numberOfFolds
+        {
+            get { return _numberOfFolds; }
+        }
+
+        // (READONLY - Setting only through constructor) 
+        // List of DataTable variables containing train features of specific fold.
+        private List<DataTable> _trainFeaturesFolds;
+
+        // Property for the _trainFeaturesFolds variable.
+        public List<DataTable> trainFeaturesFolds
+        {
+            get { return _trainFeaturesFolds; }
+        }
+
+        // (READONLY - Setting only through constructor) 
+        // List of DataTable variables containing test features of specific fold.
+        private List<DataTable> _testFeaturesFolds;
+
+        // Property for the _testFeaturesFolds variable.
+        public List<DataTable> testFeaturesFolds
+        {
+            get { return _testFeaturesFolds; }
         }
         #endregion
 
         #region test features
-        // (READONLY - Setting only through constructor) 
         // DataTable variable containing test features.
         private DataTable _testFeatures;
 
@@ -151,28 +163,87 @@ namespace antico.data
         public DataTable testFeatures
         {
             get { return _testFeatures; }
+            set
+            {
+                _testFeatures = new DataTable();
+                _testFeatures = value.Copy();
+            }
         }
         #endregion
 
         #endregion
 
         #region database
+
+        #region connection to database
+        // Variable for connection to POSTGRESQL database.
+        // ( PRIVATE ) used only in this class
+        private NpgsqlConnection connection;
+
+        // Connection string for connection to the database.
+        // ( PRIVATE ) used only in this class
+        private string connectionString = String.Format("Server={0};Port={1};User Id={2};Password={3};Database={4};", "localhost", "5432", "postgres", "postgres", "MalwareDetection");
+        #endregion
+
+        #region database name
         // (READONLY - Setting only through constructor) 
         // String variable containing name of the database.
-        private string _database;
+        private string _databaseName;
 
         // Property for the _database variable.
-        public string database
+        public string databaseName
         {
-            get { return _database; }
+            get { return _databaseName; }
         }
+        #endregion
+
+        #region dictionary of all possible databases and its folds
+        // (READONLY - Setting only through constructor) 
+        // Dictionary for information about number of folds of specific database and their names.
+        private Dictionary<string, Dictionary<int, List<string>>> _databaseFoldsAndNames = new Dictionary<string, Dictionary<int, List<string>>>()
+        {
+            ["clamp"] = new Dictionary<int, List<string>>()
+            {
+                [0] = new List<string>()
+                {
+                    "clamp_train_80",
+                    "clamp_test_20"
+                },
+                [3] = new List<string>()
+                {
+                    "clamp_folds1_train_80_20",
+                    "clamp_folds1_test_80_20",
+                    "clamp_folds2_train_80_20",
+                    "clamp_folds2_test_80_20",
+                    "clamp_folds3_train_80_20",
+                    "clamp_folds3_test_80_20"
+                }
+            }
+        };
+
+        // Property for the _databaseFoldsAndNames variable.
+        public Dictionary<string, Dictionary<int, List<string>>> databaseFoldsAndNames
+        {
+            get { return _databaseFoldsAndNames; }
+        }
+
+        // Property for getting database names.
+        public List<string> databaseNames
+        {
+            get { return new List<string>(_databaseFoldsAndNames.Keys); }
+        }
+
+        #endregion
+
         #endregion
 
         #endregion
 
         #region OPERATIONS
 
-        #region Constructor
+        #region Constructors
+
+        #region FOR TESTING 
         /// <summary>
         /// Constructor.
         /// Basic mathematical operators, loading features and feature names from postgresql database. 
@@ -181,389 +252,357 @@ namespace antico.data
         public Data()
         {
             // Deafult mathematical operations.
-            _mathOperations = new string[] { "+", "-", "*", "/", "sin", "cos", "rlog", "exp"};
-            
-            // Setting number of mathematical operations.
-            _numberOfMathOperators = _mathOperations.Length;
+            this._mathOperators = new List<string>(this._mathOperationsArity.Keys);
 
             // Defining connection.
-            connection = new NpgsqlConnection(connectionString);
+            this.connection = new NpgsqlConnection(this.connectionString);
 
             // Set up database name.
-            _database = "clamp";
-            // Try loading data into features DataTable from database.
-            try
-            {
-                // Open connection.
-                connection.Open();
+            this._databaseName = "clamp";
 
-                // SQL query.
-                string sql_features = "SELECT * FROM " + database; 
-                NpgsqlCommand command = new NpgsqlCommand(sql_features, connection);
+            // Set up number of folds.
+            List<string> databaseFoldsNames = SettingNumberOfFoldsAndReturnDatabaseNames(0);
 
-                // Loading data in DataTable variable.
-                _features = new DataTable();
-                _features.Load(command.ExecuteReader());
+            // Just in case, check if number of names is 2 -> train + test.
+            if (databaseFoldsNames.Count != 2)
+                throw new Exception("[Data basic constructor(1)] Number of database names (" + databaseFoldsNames.Count + ") is not maching desired (2).");
 
-                // TODO train test
-                _trainFeatures = _features;
-                _testFeatures = _features; 
+            // Load data to _trainFeatures from database with name databaseFoldsNames[0].
+            LoadTrain(databaseFoldsNames, 0);
 
-                // Allocate memory for feature names. (Remove one for label column)
-                // TODO: prettier
-                _featureNames = new string[_features.Columns.Count - 1];
+            // Load data to _testFeatures from database with name databaseFoldsNames[1].
+            LoadTest(databaseFoldsNames, 1);
 
-                // Close the connection.
-                connection.Close();
-            }
-            catch
-            {
-                // Could not open the database. Throw exception.
-                connection.Close();
-                throw new NpgsqlException("[Data constructor] Failed loading data from database " + database + "!");
-            }
+            // Set up number of features.
+            // DataTable _trainFeatures contains column label for classification so number of features is down for one.
+            this._numberOfFeatures = this._trainFeatures.Columns.Count - 1;
 
-            // Try loading feature names from database.
-            try
-            {
-                // Open connection.
-                connection.Open();
+            // Check up number of features.
+            if (_numberOfFeatures != _testFeatures.Columns.Count - 1)
+                throw new Exception("[Data basic constructor(1)] Number of features in train (" + this._numberOfFeatures + ") and test (" + (this._testFeatures.Columns.Count - 1) + ") set do not match.");
 
-                // SQL query.
-                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = '" + database + "'";
-                NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, connection);
-
-                // Loading feature names into _featureNames variable variable.
-                DataTable featureNamesDataTable = new DataTable();
-                featureNamesDataTable.Load(command2.ExecuteReader());
-
-                // Fill string array with feature names from DataTable.
-                var i = 0;
-                foreach (DataRow row in featureNamesDataTable.Rows)
-                {
-                    foreach (var item in row.ItemArray)
-                    {
-                        // Column "label" is not a feature!
-                        if (item.ToString() == "label") // TODO: HARDCODED
-                            continue;
-
-                        _featureNames[i] = item.ToString();
-                        i++;
-                    }
-                }
-
-                // Close the connection.
-                connection.Close();
-            }
-            catch
-            {
-                // Could not open the database. Throw exception.
-                connection.Close();
-                throw new NpgsqlException("[Data constructor] Failed loading data from database " + database + "!");
-            }
-
-
-            // Setting number of the features.
-            _numberOfFeatures = _featureNames.Length;
-
-            // Balanced division of data into train and test.
-            // makeTrainAndTest();
+            // Load feature names from database.
+            LoadFeatureNames(databaseFoldsNames[0]);
         }
+        #endregion
 
+        #region WITH PARAMETERS
         /// <summary>
         /// Constructor. 
         /// With specific mathematical operators and specific database.
         /// </summary>
+        /// 
         /// <param name="mathOperators"> String array containing choosen mathematical operators for training a model.</param>
         /// <param name="databaseName"> Name of the database. </param>
         public Data(List<string> mathOperators, string databaseName)
         {
-            // Choosed mathematical operations.
-            _mathOperations = new string[mathOperators.Count];
-
-            // Deep copy.
-            for (var i = 0; i < mathOperators.Count; i++)
-            {
-                _mathOperations[i] = mathOperators[i];
-            }
-
-            // Setting number of mathematical operations.
-            _numberOfMathOperators = _mathOperations.Length;
-
-            // Setting database name.
-            _database = databaseName;
+            // Deafult mathematical operations.
+            this._mathOperators = new List<string>(this._mathOperationsArity.Keys);
 
             // Defining connection.
-            connection = new NpgsqlConnection(connectionString);
+            this.connection = new NpgsqlConnection(this.connectionString);
 
-            // Try loading data into features DataTable from database.
-            try
+            // Set up database name.
+            this._databaseName = databaseName;
+
+            // Set up number of folds. 
+            // TODO: custom number of folds
+            List<string> databaseFoldsNames = SettingNumberOfFoldsAndReturnDatabaseNames(0);
+
+            // Setting up the variables based on number of folds.
+            if (this._numberOfFolds == 0)
             {
-                // Open connection.
-                connection.Open();
+                if (databaseFoldsNames.Count != 2)
+                    throw new Exception("[Data constructor(2)] Number of database names (" + databaseFoldsNames.Count + ") is not maching desired (2).");
 
-                // SQL query.
-                string sql_features = "SELECT * FROM " + databaseName; 
-                NpgsqlCommand command = new NpgsqlCommand(sql_features, connection);
+                // Load data to _trainFeatures from database with name databaseFoldsNames[0].
+                LoadTrain(databaseFoldsNames, 0);
 
-                // Loading data in DataTable variable.
-                _features = new DataTable();
-                _features.Load(command.ExecuteReader());
+                // Load data to _testFeatures from database with name databaseFoldsNames[1].
+                LoadTest(databaseFoldsNames, 1);
 
-                // TODO train test
-                _trainFeatures = _features;
-                _testFeatures = _features;
+                // Set up number of features.
+                // DataTable _trainFeatures contains column label for classification so number of features is down for one.
+                this._numberOfFeatures = this._trainFeatures.Columns.Count - 1;
 
-                // Allocate memory for feature names. (Remove one for label column)
-                // TODO: prettier
-                _featureNames = new string[_features.Columns.Count - 1];
+                // Check up number of features.
+                if (this._numberOfFeatures != this._testFeatures.Columns.Count - 1)
+                    throw new Exception("[Data basic constructor(1)] Number of features in train (" + this._numberOfFeatures + ") and test (" + (this._testFeatures.Columns.Count - 1) + ") set do not match.");
 
-                // Close the connection.
-                connection.Close();
+                // Load feature names from database.
+                LoadFeatureNames(databaseFoldsNames[0]);
             }
-            catch
+            else
             {
-                // Could not open the database. Throw exception.
-                connection.Close();
-                throw new NpgsqlException("[Data constructor] Failed loading data from database " + database + "!");
-            }
+                if (databaseFoldsNames.Count != this._numberOfFolds * 2)
+                    throw new Exception("[Data constructor(2)] Number of database names (" + databaseFoldsNames.Count + ") is not maching desired (" + this._numberOfFolds *2 + ").");
 
-            // Try loading feature names from database.
-            try
-            {
-                // Open connection.
-                connection.Open();
+                #region trainFeatures & testFeatures
+                // For setting trainFeatures i testFeatures variables.
+                List<string> databaseZeroFolds = databaseFoldsAndNames[this._databaseName][0];
 
-                // SQL query.
-                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = '" + databaseName + "'"; 
-                NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, connection);
+                if (databaseZeroFolds.Count != 2)
+                    throw new Exception("[Data constructor(2)] Number of database names (" + databaseZeroFolds.Count + ") is not maching desired (2).");
 
-                // Loading feature names into _featureNames variable variable.
-                DataTable featureNamesDataTable = new DataTable();
-                featureNamesDataTable.Load(command2.ExecuteReader());
+                // Load data to _trainFeatures from database with name databaseZeroFolds[0].
+                LoadTrain(databaseZeroFolds, 0);
 
-                // Fill string array with feature names from DataTable.
-                var i = 0;
-                foreach (DataRow row in featureNamesDataTable.Rows)
+                // Load data to _testFeatures from database with name databaseZeroFolds[1].
+                LoadTest(databaseZeroFolds, 1);
+                #endregion
+
+                #region trainFeaturesFolds & testFeaturesFolds
+                // Load data to _trainFeaturesFolds list and _testFeaturesFolds list.
+                for (var i = 0; i < this._numberOfFolds; i++)
                 {
-                    foreach (var item in row.ItemArray)
-                    {
-                        // Column "label" is not a feature!
-                        if (item.ToString() == "label") // TODO: "label" is HARDCODED
-                            continue;
+                    // Load data to _trainFeaturesFolds from database with name databaseFoldsNames[i*2].
+                    LoadTrain(databaseFoldsNames, i*2);
 
-                        _featureNames[i] = item.ToString();
-                        i++;
+                    // Load data to _testFeaturesFolds from database with name databaseFoldsNames[i*2+1].
+                    LoadTest(databaseFoldsNames, i*2 + 1);
+
+                    // Set up and check numberOfFeatures.
+                    if (i == 0)
+                    {
+                        // Set up number of features.
+                        // DataTable _trainFeatures contains column label for classification so number of features is down for one.
+                        this._numberOfFeatures = this._trainFeaturesFolds[0].Columns.Count - 1;
+
+                        // Check up number of features.
+                        if (this._numberOfFeatures != this._testFeaturesFolds[0].Columns.Count - 1)
+                            throw new Exception("[Data basic constructor(1)] Number of features in train (" + this._numberOfFeatures + ") and test (" + (this._testFeaturesFolds[0].Columns.Count - 1) + ") set do not match.");
+                    }
+                    else
+                    {
+                        // Check up number of features.
+                        if (this._numberOfFeatures != this._trainFeaturesFolds[i].Columns.Count - 1)
+                            throw new Exception("[Data basic constructor(1)] Number of features in train (" + this._numberOfFeatures + ") and test (" + (this._trainFeaturesFolds[i].Columns.Count - 1) + ") set do not match.");
+
+                        // Check up number of features.
+                        if (this._numberOfFeatures != this._testFeaturesFolds[i].Columns.Count - 1)
+                            throw new Exception("[Data basic constructor(1)] Number of features in train (" + this._numberOfFeatures + ") and test (" + (this._testFeaturesFolds[i].Columns.Count - 1) + ") set do not match.");
                     }
                 }
+                #endregion
 
-                // Close the connection.
-                connection.Close();
-            }
-            catch
-            {
-                // Could not open the database. Throw exception.
-                connection.Close();
-                throw new NpgsqlException("[Data constructor] Failed loading data from database " + database + "!");
-            }
-
-
-            // Setting number of the features.
-            _numberOfFeatures = _featureNames.Length;
-
-            // Balanced division of data into train and test.
-            // makeTrainAndTest();
-        }
-
-        /// <summary>
-        /// Constructor. 
-        /// With specific mathematical operators, specific features (depending on the method) 
-        /// and specific type of train/test data (balanced or inbalanced).
-        /// </summary>
-        /// <param name="mathOperators"> String array containing choosen mathematical operators for training a model.</param>
-        /// <param name="featureExtractionMethod"> Feature extraction method used - tf/tfidf/fisher. </param>
-        /// <param name="trainingDataType"> Balanced or inbalanced data. </param>
-        /// <param name="numberOfBestFeatures">Number of best features used in predicting a model.</param>
-        public Data(string[] mathOperators, string featureExtractionMethod, string trainingDataType, int numberOfBestFeatures)
-        {
-            // Choosed mathematical operations.
-            _mathOperations = new string[mathOperators.Length];
-
-            // Deep copy.
-            for (var i = 0; i < mathOperators.Length; i++)
-            {
-                _mathOperations[i] = mathOperators[i];
-            }
-
-            // Setting number of mathematical operations.
-            _numberOfMathOperators = _mathOperations.Length;
-
-            string database;
-
-            // Depending on the desired feature extraction method, define different database for loading data.
-            switch (featureExtractionMethod)
-            {
-                case "TF":
-                    database = "malware_detection_features_tf";
-                    break;
-                case "TFIDF":
-                    database = "malware_detection_features_tfidf";
-                    break;
-                case "fisher":
-                    database = "malware_detection_features_fisher";
-                    break;
-                default:
-                    throw new Exception("[Data constructor with parameters] Desired feature extraction method is not available.");
-            }
-
-            // Depending on the desired number of the top features, define different database for loading data.
-            switch (numberOfBestFeatures)
-            {
-                case 50:
-                    database += "_50";
-                    break;
-                case 100:
-                    database += "_100";
-                    break;
-                case 200:
-                    database += "_200";
-                    break;
-                default:
-                    throw new Exception("[Data constructor with parameters] Desired number of best features is not available.");
-            }
-
-            // Defining connection.
-            connection = new NpgsqlConnection(connectionString);
-
-            // Try loading data into features DataTable from database.
-            try
-            {
-                // Open connection.
-                connection.Open();
-
-                // SQL query.
-                string sql_features = "SELECT * FROM " + database;
-                NpgsqlCommand command = new NpgsqlCommand(sql_features, connection);
-
-                // Loading data in DataTable variable.
-                _features = new DataTable();
-                _features.Load(command.ExecuteReader());
-
-                // Allocate memory for feature names. (Remove one for label column)
-                // TODO: prettier
-                _featureNames = new string[_features.Columns.Count - 1];
-
-                // Close the connection.
-                connection.Close();
-            }
-            catch
-            {
-                // Could not open the database. Throw exception.
-                connection.Close();
-                throw new NpgsqlException("[Data constructor with parameters] Failed loading data from database " + database + "!");
-            }
-
-            // Try loading feature names from database.
-            try
-            {
-                // Open connection.
-                connection.Open();
-
-                // SQL query.
-                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = '" + database + "'"; 
-                NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, connection);
-
-                // Loading feature names into _featureNames variable variable.
-                DataTable featureNamesDataTable = new DataTable();
-                featureNamesDataTable.Load(command2.ExecuteReader());
-
-                // Fill string array with feature names from DataTable.
-                var i = 0;
-                foreach (DataRow row in featureNamesDataTable.Rows)
-                {
-                    foreach (var item in row.ItemArray)
-                    {
-                        // Column "label" is not a feature!
-                        if (item.ToString() == "label") // TODO: "label" is HARDCODED
-                            continue;
-
-                        _featureNames[i] = item.ToString();
-                        i++;
-                    }
-                }
-
-                // Close the connection.
-                connection.Close();
-            }
-            catch
-            {
-                // Could not open the database. Throw exception.
-                connection.Close();
-                throw new NpgsqlException("[Data constructor with parameters] Failed loading data from database!");
-            }
-
-            // Setting number of the features.
-            _numberOfFeatures = _featureNames.Length;
-
-            // Divide data into train and test data.
-            switch (trainingDataType)
-            {
-                case "balanced":
-                    makeTrainAndTest();
-                    break;
-                case "inbalanced":
-                    makeTrainAndTestInbalanced();
-                    break;
-                default:
-                    throw new Exception("[Data constructor with parameters] Balanced and inbalanced division of the data is only allowed.");
+                // Load feature names from database.
+                LoadFeatureNames(databaseFoldsNames[0]);
             }
         }
+
         #endregion
 
-        #region get mathematical operator arity
+        #endregion
+
+        #region Get mathematical operator arity
         /// <summary>
         /// Helper method for determinating aritiy of mathematical operators.
         /// </summary>
+        /// 
         /// <param name="mathOp">Mathematical operator string.</param>
         /// <returns>Aritiy of the sent mathematical operator.</returns>
         internal int getMathOperationArity(string mathOp)
         {
             if (mathOperationsArity.ContainsKey(mathOp))
-            {
                 return mathOperationsArity[mathOp];
-            }
             else
-            {
                 throw new Exception("[Data::getMathOperationArity] Sent mathematical operator is not knows.");
+        }
+        #endregion
+
+        #region Number of folds and its names
+        /// <summary>
+        /// Method for setting up number of folds of train set and returning desired names of database folds names.
+        /// </summary>
+        /// 
+        /// <param name="folds">Number of folds of the train dataset.</param>
+        /// <returns>List of database names splited in specific number of folds.</returns>
+        private List<string> SettingNumberOfFoldsAndReturnDatabaseNames(int folds)
+        {
+            // Check if database name is set up.
+            if (this._databaseName == "")
+                throw new Exception("[SettingNumberOfFolds] Database name is not defined.");
+
+            // Check if databaseName is in dictionary of known databases.
+            if (!this._databaseFoldsAndNames.Keys.Contains<string>(this._databaseName))
+                throw new Exception("[SettingNumberOfFolds] Database '" + this._databaseName + "' is not defined.");
+
+            // Check if database with specific number of folds exists.
+            if (!this._databaseFoldsAndNames[this._databaseName].Keys.Contains<int>(folds))
+                throw new Exception("[SettingNumberOfFolds] Database '" + this._databaseName + "' doesn't have option of " + folds.ToString() + " folds.");
+
+            // Check if database with 0 folds exists. (Every database should have this version also.)
+            if (!this._databaseFoldsAndNames[this._databaseName].Keys.Contains<int>(0))
+                throw new Exception("[SettingNumberOfFolds] Database '" + this._databaseName + "' doesn't have option of " + 0 + " folds.");
+
+            // Everything is fine, set up number of folds.
+            this._numberOfFolds = folds;
+
+            // Return names of folds.
+            return new List<string>(this._databaseFoldsAndNames[this._databaseName][this._numberOfFolds]);
+        }
+        #endregion
+
+        #region Loading data from databases
+
+        #region train
+        /// <summary>
+        /// Load data into trainFeatures(Folds) variable from specific database.
+        /// </summary>
+        /// 
+        /// <param name="databaseFoldsNames">List of names of the databases (folds). </param>
+        /// <param name="index">Index of the database in the databaseFoldsNames list.</param>
+        private void LoadTrain(List<string> databaseFoldsNames, int index)
+        {
+            // Check if index is out of bounds for databaseFoldsNames.
+            if (databaseFoldsNames.Count <= index)
+                throw new Exception("[LoadTrain] Index " + index + " is out of bounds (" + databaseFoldsNames.Count + ").");
+
+            // Define train database name.
+            string trainDatabaseWithZeroFolds = databaseFoldsNames[index];
+
+            // Try loading data into train features DataTable from database.
+            try
+            {
+                // Open connection.
+                this.connection.Open();
+
+                // SQL query.
+                string sql_features = "SELECT * FROM " + trainDatabaseWithZeroFolds;
+                NpgsqlCommand command = new NpgsqlCommand(sql_features, this.connection);
+
+                if (this._numberOfFolds == 0)
+                {
+                    // Load data into trainFeatures variable.
+                    this._trainFeatures = new DataTable();
+                    this._trainFeatures.Load(command.ExecuteReader());
+                }
+                else
+                {
+                    // Load data into trainFeaturesFolds variable.
+                    DataTable temp = new DataTable();
+                    temp.Load(command.ExecuteReader());
+                    this._trainFeaturesFolds.Add(temp.Copy());
+                }
+
+                // Close the connection.
+                this.connection.Close();
+            }
+            catch
+            {
+                // Could not open the database. Throw exception.
+                this.connection.Close();
+                throw new NpgsqlException("[LoadTrain] Failed loading data from database " + this._databaseName + " (" + trainDatabaseWithZeroFolds + ")!");
             }
         }
         #endregion
 
-        #region divide features into train and test data
+        #region test
         /// <summary>
-        /// Devide set into balanced train and test.
+        /// Load data into testFeatures(Folds) variable from specific database.
         /// </summary>
-        private void makeTrainAndTest()
+        /// 
+        /// <param name="databaseFoldsNames">List of names of the databases (folds). </param>
+        /// <param name="index">Index of the database in the databaseFoldsNames list.</param>
+        private void LoadTest(List<string> databaseFoldsNames, int index)
         {
-            // Creating the ML.Net IHostEnvironment object, needed for the pipeline.
-            var mlContext = new MLContext();
+            // Check if index is out of bounds for databaseFoldsNames.
+            if (databaseFoldsNames.Count <= index)
+                throw new Exception("[LoadTest] Index " + index + " is out of bounds (" + databaseFoldsNames.Count + ").");
 
-            //var split = mlContext.Data.TrainTestSplit(features, testFraction: 0.2);
-            throw new NotImplementedException();  // TODO train test
+            // Define test database name.
+            string testDatabaseWithZeroFolds = databaseFoldsNames[index];
+
+            // Try loading data into test features DataTable from database.
+            try
+            {
+                // Open connection.
+                this.connection.Open();
+
+                // SQL query.
+                string sql_features = "SELECT * FROM " + testDatabaseWithZeroFolds;
+                NpgsqlCommand command = new NpgsqlCommand(sql_features, this.connection);
+
+                if (this._numberOfFolds == 0)
+                {
+                    // Load data into testFeatures variable.
+                    this._testFeatures = new DataTable();
+                    this._testFeatures.Load(command.ExecuteReader());
+                }
+                else
+                {
+                    // Load data into testFeaturesFolds variable.
+                    DataTable temp = new DataTable();
+                    temp.Load(command.ExecuteReader());
+                    this._testFeaturesFolds.Add(temp.Copy());
+                }
+
+                // Close the connection.
+                this.connection.Close();
+            }
+            catch
+            {
+                // Could not open the database. Throw exception.
+                this.connection.Close();
+                throw new NpgsqlException("[LoadTest] Failed loading data from database " + this._databaseName + " (" + testDatabaseWithZeroFolds + ")!");
+            }
         }
+        #endregion
 
+        #region feature names
         /// <summary>
-        /// Devide set into inbalanced train and test.
+        /// Loads feature names from specific database into a _featuresNames variable.
         /// </summary>
-        private void makeTrainAndTestInbalanced()
+        /// 
+        /// <param name="database">Name of the database from where feature names will be collected.</param>
+        private void LoadFeatureNames(string database)
         {
-            throw new NotImplementedException(); // TODO train test
+            // Try loading feature names from database.
+            try
+            {
+                // Open connection.
+                this.connection.Open();
+
+                // SQL query.
+                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = '" + database + "'";
+                NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, this.connection);
+
+                // Loading feature names into _featureNames variable variable.
+                DataTable featureNamesDataTable = new DataTable();
+                featureNamesDataTable.Load(command2.ExecuteReader());
+
+                // Initialize _featureNames.
+                this._featureNames = new List<string>();
+
+                // Fill string array with feature names from DataTable.
+                foreach (DataRow row in featureNamesDataTable.Rows)
+                {
+                    foreach (var item in row.ItemArray)
+                    {
+                        // (TODO: HARDCODED) Column "label" is not a feature!
+                        if (item.ToString() == "label")
+                            continue;
+
+                        this._featureNames.Add(item.ToString());
+                    }
+                }
+
+                // Close the connection.
+                this.connection.Close();
+            }
+            catch
+            {
+                // Could not open the database. Throw exception.
+                this.connection.Close();
+                throw new NpgsqlException("[Data basic constructor(1)] Failed loading data from database " + this._databaseName + " (" + database + ")!");
+            }
         }
+        #endregion
+
         #endregion
 
         #endregion
 
     }
-
     #endregion
 }

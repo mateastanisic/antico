@@ -9,17 +9,24 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace antico
 {
+    #region HelperForm
+    /// 
+    /// <summary>
+    /// 
+    /// Form for visualization of the model.
+    /// 
+    /// Every HelperForm has 
+    ///     - variables for moving the form (flag dragging, locations dragCursorPoint and dragCursorPoint)
+    ///     - exitSign pictureBox (needs to be part of a class so its location is properly put when changing size of the form)
+    ///     
+    /// 
+    /// </summary>
+    /// 
     public partial class HelperForm : Form
     {
         #region ATTRIBUTES
@@ -46,15 +53,17 @@ namespace antico
         /// </summary>
         public HelperForm()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
         #endregion
 
         #region Closing form.
+
         #region Esc key.
         /// <summary>
         /// Frame is closed when pressed Esc key.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void HelperForm_KeyUp( object sender, KeyEventArgs e )
@@ -70,9 +79,10 @@ namespace antico
         /// <summary>
         /// Closing form when pressing Exit sign.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitSign_Click( object sender, EventArgs e )
+        private void ExitSign_Click( object sender, EventArgs e )
         {
             this.Close();
         }
@@ -84,37 +94,40 @@ namespace antico
         /// <summary>
         /// Flag the wariable dragging true since user pressed mouse button initiating beggining of moving frame.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void HelperForm_MouseDown( object sender, MouseEventArgs e )
         {
-            dragging = true;
-            dragCursorPoint = Cursor.Position;
-            dragFormPoint = this.Location;
+            this.dragging = true;
+            this.dragCursorPoint = Cursor.Position;
+            this.dragFormPoint = this.Location;
         }
 
         /// <summary>
         /// If user previously pressed mouse button (if dragging is true), change location of the Form.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void HelperForm_MouseMove( object sender, MouseEventArgs e )
         {
-            if (dragging)
+            if (this.dragging)
             {
-                Point dif = Point.Subtract(Cursor.Position, new Size(dragCursorPoint));
-                this.Location = Point.Add(dragFormPoint, new Size(dif));
+                Point dif = Point.Subtract(Cursor.Position, new Size(this.dragCursorPoint));
+                this.Location = Point.Add(this.dragFormPoint, new Size(dif));
             }
         }
 
         /// <summary>
         /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void HelperForm_MouseUp( object sender, MouseEventArgs e )
         {
-            dragging = false;
+            this.dragging = false;
         }
         #endregion
 
@@ -124,21 +137,23 @@ namespace antico
         /// <summary>
         /// Hovering start.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitSign_MouseEnter_1( object sender, EventArgs e )
+        private void ExitSign_MouseEnter(object sender, EventArgs e)
         {
-            exitSign.Cursor = Cursors.Hand;
+            this.exitSign.Cursor = Cursors.Hand;
         }
 
         /// <summary>
         /// Hovering end.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitSign_MouseLeave_1( object sender, EventArgs e )
+        private void ExitSign_MouseLeave(object sender, EventArgs e)
         {
-            exitSign.Cursor = Cursors.Default;
+            this.exitSign.Cursor = Cursors.Default;
         }
         #endregion
 
@@ -146,9 +161,10 @@ namespace antico
         /// <summary>
         /// Show that pressing exitSign means closing the form.
         /// </summary>
+        /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void exitSign_MouseHover( object sender, EventArgs e )
+        private void ExitSign_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.exitSign, "close");
@@ -160,4 +176,5 @@ namespace antico
         #endregion
 
     }
+    #endregion
 }
