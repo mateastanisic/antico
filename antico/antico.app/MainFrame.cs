@@ -65,20 +65,7 @@ namespace antico
             anticoFont.AddFontFile("../../../../[FONTS]/UnicaOne-Regular.ttf");
             this.anticoLabel.Font = new Font(anticoFont.Families[0], 35, System.Drawing.FontStyle.Regular);
             this.anticoLabelDesign = this.anticoLabel;
-            
-        }
-        #endregion
 
-        #region Closing form when pressing Exit sign.
-        /// <summary>
-        /// Closing form when pressing Exit sign.
-        /// </summary>
-        /// 
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ExitPictureBox_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
         }
         #endregion
 
@@ -150,6 +137,30 @@ namespace antico
         private void ExitPictureBox_MouseLeave(object sender, EventArgs e)
         {
             this.exitPictureBox.Cursor = Cursors.Default;
+        }
+        #endregion
+
+        #region minimize
+        /// <summary>
+        /// Hovering start.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MinimizeSign_MouseEnter(object sender, EventArgs e)
+        {
+            this.minimizeSign.Cursor = Cursors.Hand;
+        }
+
+        /// <summary>
+        /// Hovering end.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MinimizeSign_MouseLeave(object sender, EventArgs e)
+        {
+            this.minimizeSign.Cursor = Cursors.Default;
         }
         #endregion
 
@@ -229,20 +240,6 @@ namespace antico
 
         #region Showing ToolTip when hovering picture boxes that are behaving like buttons.
 
-        #region create model
-        /// <summary>
-        /// Show what createNewModelSign picture box represents.
-        /// </summary>
-        /// 
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void CreateNewModelSign_MouseHover(object sender, EventArgs e)
-        {
-            ToolTip tt = new ToolTip();
-            tt.SetToolTip(this.createNewModelSign, "create new model");
-        }
-        #endregion
-
         #region exit sign
         /// <summary>
         /// Show that pressing exitPictureBox means exiting the application.
@@ -254,6 +251,34 @@ namespace antico
         {
             ToolTip tt = new ToolTip();
             tt.SetToolTip(this.exitPictureBox, "exit");
+        }
+        #endregion
+
+        #region minimize
+        /// <summary>
+        /// Show that pressing minimizeSign means minimizing the application.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MinimizeSign_MouseHover(object sender, EventArgs e)
+        {
+            ToolTip tt = new ToolTip();
+            tt.SetToolTip(this.minimizeSign, "minimize");
+        }
+        #endregion
+
+        #region create model
+        /// <summary>
+        /// Show what createNewModelSign picture box represents.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CreateNewModelSign_MouseHover(object sender, EventArgs e)
+        {
+            ToolTip tt = new ToolTip();
+            tt.SetToolTip(this.createNewModelSign, "create new model");
         }
         #endregion
 
@@ -291,6 +316,32 @@ namespace antico
 
         #region CLICK
 
+        #region exit
+        /// <summary>
+        /// Closing form when pressing Exit sign.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ExitPictureBox_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+        #endregion
+
+        #region minimize
+        /// <summary>
+        /// Minimize form when pressing Minimize sign.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MinimizeSign_MouseClick(object sender, MouseEventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+        #endregion
+
         #region new model sign
         /// <summary>
         /// Forward user to createNewModel form when clicking on createNewModelSign.
@@ -320,7 +371,9 @@ namespace antico
         private void IsThisMaliciousSign_MouseClick(object sender, MouseEventArgs e)
         {
             string message = "Feature still not implemented!";
-            MessageBox.Show(message, "antico responds", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            CustomDialogBox not_implemented = new CustomDialogBox("antico responds", message, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
+            not_implemented.ShowDialog();
         }
         #endregion
 
@@ -334,7 +387,9 @@ namespace antico
         private void AboutAnticoSign_MouseClick(object sender, MouseEventArgs e)
         {
             string message = "Feature still not implemented!";
-            MessageBox.Show(message, "antico responds", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            CustomDialogBox not_implemented = new CustomDialogBox("antico responds", message, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
+            not_implemented.ShowDialog();
         }
         #endregion
 

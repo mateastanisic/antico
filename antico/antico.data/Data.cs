@@ -268,10 +268,10 @@ namespace antico.data
                 throw new Exception("[Data basic constructor(1)] Number of database names (" + databaseFoldsNames.Count + ") is not maching desired (2).");
 
             // Load data to _trainFeatures from database with name databaseFoldsNames[0].
-            LoadTrain(databaseFoldsNames, 0);
+            LoadTrain(databaseFoldsNames, 0, false);
 
             // Load data to _testFeatures from database with name databaseFoldsNames[1].
-            LoadTest(databaseFoldsNames, 1);
+            LoadTest(databaseFoldsNames, 1, false);
 
             // Set up number of features.
             // DataTable _trainFeatures contains column label for classification so number of features is down for one.
@@ -307,7 +307,7 @@ namespace antico.data
 
             // Set up number of folds. 
             // TODO: custom number of folds
-            List<string> databaseFoldsNames = SettingNumberOfFoldsAndReturnDatabaseNames(0);
+            List<string> databaseFoldsNames = SettingNumberOfFoldsAndReturnDatabaseNames(3);
 
             // Setting up the variables based on number of folds.
             if (this._numberOfFolds == 0)
@@ -316,10 +316,10 @@ namespace antico.data
                     throw new Exception("[Data constructor(2)] Number of database names (" + databaseFoldsNames.Count + ") is not maching desired (2).");
 
                 // Load data to _trainFeatures from database with name databaseFoldsNames[0].
-                LoadTrain(databaseFoldsNames, 0);
+                LoadTrain(databaseFoldsNames, 0, false);
 
                 // Load data to _testFeatures from database with name databaseFoldsNames[1].
-                LoadTest(databaseFoldsNames, 1);
+                LoadTest(databaseFoldsNames, 1, false);
 
                 // Set up number of features.
                 // DataTable _trainFeatures contains column label for classification so number of features is down for one.
@@ -345,21 +345,25 @@ namespace antico.data
                     throw new Exception("[Data constructor(2)] Number of database names (" + databaseZeroFolds.Count + ") is not maching desired (2).");
 
                 // Load data to _trainFeatures from database with name databaseZeroFolds[0].
-                LoadTrain(databaseZeroFolds, 0);
+                LoadTrain(databaseZeroFolds, 0, false);
 
                 // Load data to _testFeatures from database with name databaseZeroFolds[1].
-                LoadTest(databaseZeroFolds, 1);
+                LoadTest(databaseZeroFolds, 1, false);
                 #endregion
 
                 #region trainFeaturesFolds & testFeaturesFolds
+                // Initialization.
+                this._trainFeaturesFolds = new List<DataTable>();
+                this._testFeaturesFolds = new List<DataTable>();
+
                 // Load data to _trainFeaturesFolds list and _testFeaturesFolds list.
                 for (var i = 0; i < this._numberOfFolds; i++)
                 {
                     // Load data to _trainFeaturesFolds from database with name databaseFoldsNames[i*2].
-                    LoadTrain(databaseFoldsNames, i*2);
+                    LoadTrain(databaseFoldsNames, i*2, true);
 
                     // Load data to _testFeaturesFolds from database with name databaseFoldsNames[i*2+1].
-                    LoadTest(databaseFoldsNames, i*2 + 1);
+                    LoadTest(databaseFoldsNames, i*2 + 1, true);
 
                     // Set up and check numberOfFeatures.
                     if (i == 0)
@@ -450,16 +454,17 @@ namespace antico.data
         /// Load data into trainFeatures(Folds) variable from specific database.
         /// </summary>
         /// 
-        /// <param name="databaseFoldsNames">List of names of the databases (folds). </param>
-        /// <param name="index">Index of the database in the databaseFoldsNames list.</param>
-        private void LoadTrain(List<string> databaseFoldsNames, int index)
+        /// <param name="databaseNames">List of names of the databases. </param>
+        /// <param name="index">Index of the database in the databaseNames list.</param>
+        /// <param name="flag">Flag to know if trainFeatures(0) should filled or trainFeaturesFold(1).</param>
+        private void LoadTrain(List<string> databaseNames, int index, bool flag)
         {
-            // Check if index is out of bounds for databaseFoldsNames.
-            if (databaseFoldsNames.Count <= index)
-                throw new Exception("[LoadTrain] Index " + index + " is out of bounds (" + databaseFoldsNames.Count + ").");
+            // Check if index is out of bounds for databaseNames.
+            if (databaseNames.Count <= index)
+                throw new Exception("[LoadTrain] Index " + index + " is out of bounds (" + databaseNames.Count + ").");
 
             // Define train database name.
-            string trainDatabaseWithZeroFolds = databaseFoldsNames[index];
+            string trainDatabaseName = databaseNames[index];
 
             // Try loading data into train features DataTable from database.
             try
@@ -468,10 +473,10 @@ namespace antico.data
                 this.connection.Open();
 
                 // SQL query.
-                string sql_features = "SELECT * FROM " + trainDatabaseWithZeroFolds;
+                string sql_features = "SELECT * FROM " + trainDatabaseName;
                 NpgsqlCommand command = new NpgsqlCommand(sql_features, this.connection);
 
-                if (this._numberOfFolds == 0)
+                if (flag == false)
                 {
                     // Load data into trainFeatures variable.
                     this._trainFeatures = new DataTable();
@@ -492,7 +497,7 @@ namespace antico.data
             {
                 // Could not open the database. Throw exception.
                 this.connection.Close();
-                throw new NpgsqlException("[LoadTrain] Failed loading data from database " + this._databaseName + " (" + trainDatabaseWithZeroFolds + ")!");
+                throw new NpgsqlException("[LoadTrain] Failed loading data from database " + this._databaseName + " (" + trainDatabaseName + ")!");
             }
         }
         #endregion
@@ -502,16 +507,17 @@ namespace antico.data
         /// Load data into testFeatures(Folds) variable from specific database.
         /// </summary>
         /// 
-        /// <param name="databaseFoldsNames">List of names of the databases (folds). </param>
-        /// <param name="index">Index of the database in the databaseFoldsNames list.</param>
-        private void LoadTest(List<string> databaseFoldsNames, int index)
+        /// <param name="databaseNames">List of names of the databases. </param>
+        /// <param name="index">Index of the database in the databaseNames list.</param>
+        /// <param name="flag">Flag to know if testFeatures(0) should filled or testFeaturesFold(1).</param>
+        private void LoadTest(List<string> databaseNames, int index, bool flag)
         {
             // Check if index is out of bounds for databaseFoldsNames.
-            if (databaseFoldsNames.Count <= index)
-                throw new Exception("[LoadTest] Index " + index + " is out of bounds (" + databaseFoldsNames.Count + ").");
+            if (databaseNames.Count <= index)
+                throw new Exception("[LoadTest] Index " + index + " is out of bounds (" + databaseNames.Count + ").");
 
             // Define test database name.
-            string testDatabaseWithZeroFolds = databaseFoldsNames[index];
+            string testDatabaseName = databaseNames[index];
 
             // Try loading data into test features DataTable from database.
             try
@@ -520,10 +526,10 @@ namespace antico.data
                 this.connection.Open();
 
                 // SQL query.
-                string sql_features = "SELECT * FROM " + testDatabaseWithZeroFolds;
+                string sql_features = "SELECT * FROM " + testDatabaseName;
                 NpgsqlCommand command = new NpgsqlCommand(sql_features, this.connection);
 
-                if (this._numberOfFolds == 0)
+                if (flag == false)
                 {
                     // Load data into testFeatures variable.
                     this._testFeatures = new DataTable();
@@ -544,7 +550,7 @@ namespace antico.data
             {
                 // Could not open the database. Throw exception.
                 this.connection.Close();
-                throw new NpgsqlException("[LoadTest] Failed loading data from database " + this._databaseName + " (" + testDatabaseWithZeroFolds + ")!");
+                throw new NpgsqlException("[LoadTest] Failed loading data from database " + this._databaseName + " (" + testDatabaseName + ")!");
             }
         }
         #endregion

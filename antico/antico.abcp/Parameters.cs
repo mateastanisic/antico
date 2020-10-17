@@ -170,7 +170,7 @@ namespace antico.abcp
 
             this._populationSize = 20; // 500
             this._maxNumberOfIterations = 20; // 100
-            this._numberOfRuns = 10;
+            this._numberOfRuns = 1;
             this._maxNumberOfNotImprovingIterations = 15; //50
             this._initialMaxDepth = 6; //6
             this._maxDepth = 15; //15

@@ -927,7 +927,7 @@ namespace antico.abcp
                     continue;
 
                 // Add all children of the current node into a stack made of tree nodes.
-                for (var j = 0; j < node.children.Count; j++)
+                for (var j = node.children.Count - 1; j >= 0; j--)
                 {
                     dataTree.Enqueue(node.children[j]);
                 }

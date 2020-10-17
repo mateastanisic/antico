@@ -44,10 +44,12 @@ namespace antico
             this.createNewModelSign = new System.Windows.Forms.PictureBox();
             this.isThisMaliciousSign = new System.Windows.Forms.PictureBox();
             this.aboutAnticoSign = new System.Windows.Forms.PictureBox();
+            this.minimizeSign = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.exitPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.createNewModelSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.isThisMaliciousSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.aboutAnticoSign)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.minimizeSign)).BeginInit();
             this.SuspendLayout();
             // 
             // anticoLabel
@@ -65,8 +67,8 @@ namespace antico
             // exitPictureBox
             // 
             this.exitPictureBox.BackColor = System.Drawing.Color.Transparent;
-            this.exitPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("exitPictureBox.Image")));
-            this.exitPictureBox.Location = new System.Drawing.Point(954, 21);
+            this.exitPictureBox.Image = global::antico.Properties.Resources.exit_white;
+            this.exitPictureBox.Location = new System.Drawing.Point(952, 21);
             this.exitPictureBox.Name = "exitPictureBox";
             this.exitPictureBox.Size = new System.Drawing.Size(33, 31);
             this.exitPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -122,6 +124,21 @@ namespace antico
             this.aboutAnticoSign.MouseLeave += new System.EventHandler(this.AboutAnticoSign_MouseLeave);
             this.aboutAnticoSign.MouseHover += new System.EventHandler(this.AboutAnticoSign_MouseHover);
             // 
+            // minimizeSign
+            // 
+            this.minimizeSign.BackColor = System.Drawing.Color.Transparent;
+            this.minimizeSign.Image = global::antico.Properties.Resources.minimizee;
+            this.minimizeSign.Location = new System.Drawing.Point(905, 21);
+            this.minimizeSign.Name = "minimizeSign";
+            this.minimizeSign.Size = new System.Drawing.Size(33, 31);
+            this.minimizeSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.minimizeSign.TabIndex = 16;
+            this.minimizeSign.TabStop = false;
+            this.minimizeSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.MinimizeSign_MouseClick);
+            this.minimizeSign.MouseEnter += new System.EventHandler(this.MinimizeSign_MouseEnter);
+            this.minimizeSign.MouseLeave += new System.EventHandler(this.MinimizeSign_MouseLeave);
+            this.minimizeSign.MouseHover += new System.EventHandler(this.MinimizeSign_MouseHover);
+            // 
             // MainFrame
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -129,10 +146,11 @@ namespace antico
             this.BackgroundImage = global::antico.Properties.Resources.images;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1012, 687);
+            this.Controls.Add(this.exitPictureBox);
+            this.Controls.Add(this.minimizeSign);
             this.Controls.Add(this.aboutAnticoSign);
             this.Controls.Add(this.isThisMaliciousSign);
             this.Controls.Add(this.createNewModelSign);
-            this.Controls.Add(this.exitPictureBox);
             this.Controls.Add(this.anticoLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -147,6 +165,7 @@ namespace antico
             ((System.ComponentModel.ISupportInitialize)(this.createNewModelSign)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.isThisMaliciousSign)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.aboutAnticoSign)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.minimizeSign)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -158,6 +177,7 @@ namespace antico
         private System.Windows.Forms.PictureBox createNewModelSign;
         private System.Windows.Forms.PictureBox isThisMaliciousSign;
         private System.Windows.Forms.PictureBox aboutAnticoSign;
+        private System.Windows.Forms.PictureBox minimizeSign;
     }
 }
 

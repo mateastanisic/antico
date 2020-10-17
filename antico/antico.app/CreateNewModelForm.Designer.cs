@@ -1,4 +1,5 @@
 ﻿using Microsoft.Msagl.Drawing;
+using System.Windows.Forms;
 
 namespace antico
 {
@@ -255,6 +256,7 @@ namespace antico
             this.databaseComboBox.Name = "databaseComboBox";
             this.databaseComboBox.Size = new System.Drawing.Size(133, 21);
             this.databaseComboBox.TabIndex = 20;
+            this.databaseComboBox.SelectedIndex = 0;
             // 
             // mainLayout
             // 
@@ -493,7 +495,7 @@ namespace antico
             0,
             0});
             this.maxNoOfIterUpDown.Minimum = new decimal(new int[] {
-            50,
+            10,
             0,
             0,
             0});

@@ -569,10 +569,11 @@ namespace antico
             if (this.forbid)
             {
                 string message = "You want to stop the search for the model. Are you sure?";
-                DialogResult result = MessageBox.Show(message, "Stop search?", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                CustomDialogBox dialog = new CustomDialogBox("Stop search?", message, global::antico.Properties.Resources.question, MessageBoxButtons.YesNoCancel);
+                var result = dialog.ShowDialog();
 
                 // If canceled, do nothing.
-                if (result == DialogResult.No)
+                if (result == DialogResult.No || result == DialogResult.Abort)
                     return;
             }
             #endregion
@@ -615,8 +616,9 @@ namespace antico
             if (this.forbid)
             {
                 string m = "Wait! Model calculation is still in progress.";
-                string t = "Warning!";
-                MessageBox.Show(m, t, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                CustomDialogBox dialog = new CustomDialogBox("Warning!", m, global::antico.Properties.Resources.stop, MessageBoxButtons.OK);
+                dialog.ShowDialog();
+                
                 return;
             }
             #endregion
@@ -643,7 +645,9 @@ namespace antico
             if (this.forbid)
             {
                 string m = "Wait! Model calculation is still in progress.";
-                MessageBox.Show(m, "Wait!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                CustomDialogBox dialog = new CustomDialogBox("Warning!", m, global::antico.Properties.Resources.stop, MessageBoxButtons.OK);
+                dialog.ShowDialog();
+
                 return;
             }
             #endregion
@@ -658,16 +662,20 @@ namespace antico
             {
                 string message = "Do you want add custom ABCP parameters?";
                 string title = "Artificial bee colony programming parameters";
-                DialogResult result = MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                CustomDialogBox dialog = new CustomDialogBox(title, message, global::antico.Properties.Resources.question, MessageBoxButtons.YesNoCancel);
+                var result = dialog.ShowDialog();
 
                 // If user wants to add custom parameters. 
                 if (result == DialogResult.Yes)
                 {
                     this.ShowParameters();
                 }
-                else
+                else if (result == DialogResult.No)
                 {
                     // Do not add custom parameters.
+
+                    // Hide, if already not hiden, lookup console sign.
+                    this.lookupConsoleFormPictureBox.Visible = false;
 
                     // Forbid all other cliks.
                     this.forbid = true;
@@ -726,6 +734,9 @@ namespace antico
             // Check if form Data is set. (Since Parameters are set.)
             if (this.formData == null)
                 throw new Exception("[StartSign_MouseClick] Form Data is not initialized.");
+
+            // Hide, if already not hiden, lookup console sign.
+            this.lookupConsoleFormPictureBox.Visible = false;
 
             // Forbid all other cliks.
             this.forbid = true;
@@ -787,12 +798,16 @@ namespace antico
         /// <param name="e"></param>
         private void VisualizeSign_MouseClick(object sender, MouseEventArgs e)
         {
+            string m;
+
             #region check if another process is already running
             // Check if another process already runnning.
             if (this.forbid)
             {
-                string m = "Wait! Model calculation is still in progress.";
-                MessageBox.Show(m, "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                m = "Wait! Model calculation is still in progress.";
+                CustomDialogBox dialog = new CustomDialogBox("Warning!", m, global::antico.Properties.Resources.stop, MessageBoxButtons.OK);
+                dialog.ShowDialog();
+
                 return;
             }
             #endregion
@@ -800,6 +815,43 @@ namespace antico
             // Check if model exists.
             if (this.allModelsInForm != null && this.bestModelInForm != null)
             {
+                #region select solution
+                // Choices for saving.
+                List<string> modelsList = new List<string>();
+
+                double f = (double)((double)(this.bestModelInForm.trainFitness + this.bestModelInForm.testFitness) / 2);
+                f = Math.Round(f, 4);
+                modelsList.Add("{0}[BEST SOLUTION] " + f.ToString());
+
+                for (var i = 0; i < this.allModelsInForm.Count; i++)
+                {
+                    f = (double)((double)(this.allModelsInForm[i].best.trainFitness + this.allModelsInForm[i].best.testFitness) / 2);
+                    f = Math.Round(f, 4);
+                    modelsList.Add("{" + (i * 3 + 1).ToString() + "} RUN[" + i + "] (best solution) " + f.ToString());
+
+                    f = (double)((double)(this.allModelsInForm[i].bestTrain.trainFitness + this.allModelsInForm[i].bestTrain.testFitness) / 2);
+                    f = Math.Round(f, 4);
+                    modelsList.Add("{" + (i * 3 + 2).ToString() + "} RUN[" + i + "] (best train solution) " + f.ToString());
+
+                    f = (double)((double)(this.allModelsInForm[i].bestTest.trainFitness + this.allModelsInForm[i].bestTest.testFitness) / 2);
+                    f = Math.Round(f, 4);
+                    modelsList.Add("{" + (i * 3 + 3).ToString() + " RUN[" + i + "] (best test solution) " + f.ToString());
+                }
+
+                // Input box.
+                string message = "Please select solution to be vizualized.";
+                string title = "Select solution";
+                var inputBox = new CustomDialogBox(title, message, "visualize", antico.Properties.Resources.question, modelsList, "");
+                var result = inputBox.ShowDialog();
+
+                // Check if user clicked Cancel or OK.
+                if (result == DialogResult.Abort)
+                {
+                    // User has clicked cancel. Do nothing.
+                    return;
+                }
+                #endregion
+
                 // Create a new helper form.
                 this.formForVisualizationOfModel = new HelperForm();
                 this.formForVisualizationOfModel.Text = "Model";
@@ -809,8 +861,37 @@ namespace antico
                 #region graph
                 // Create a graph object.
                 Graph graph = new Graph("Model");
-                // Create the graph content from model.
-                this.DrawSymbolicTree(this.bestModelInForm.symbolicTree, ref graph);
+
+                #region picked solution
+                // Check if 0 <-> bestModelInForm.
+                if (inputBox.pickedSolutionIndex == 0)
+                {
+                    // Create the graph content from model.
+                    this.DrawSymbolicTree(this.bestModelInForm.symbolicTree, ref graph);
+                }
+                else
+                {
+                    int run = inputBox.pickedSolutionIndex / 3;
+                    int modulo = inputBox.pickedSolutionIndex % 3;
+
+                    if (modulo == 0)
+                    {
+                        // Create the graph content from model.
+                        this.DrawSymbolicTree(this.allModelsInForm[run - 1].bestTest.symbolicTree, ref graph);
+                    }
+                    else if (modulo == 1)
+                    {
+                        // Create the graph content from model.
+                        this.DrawSymbolicTree(this.allModelsInForm[run].best.symbolicTree, ref graph);
+                    }
+                    else
+                    {
+                        // Create the graph content from model.
+                        this.DrawSymbolicTree(this.allModelsInForm[run].bestTrain.symbolicTree, ref graph);
+                    }
+                }
+                #endregion
+
                 #endregion
 
                 #region viewer 
@@ -833,8 +914,9 @@ namespace antico
                 return;
             }
 
-            string warning_message = "Model is not yet created!";
-            MessageBox.Show(warning_message, "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            m = "Model is not yet created!";
+            CustomDialogBox dialog2 = new CustomDialogBox("Warning!", m, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
+            dialog2.ShowDialog();
         }
         #endregion
 
@@ -847,12 +929,16 @@ namespace antico
         /// <param name="e"></param>
         private void SaveSign_MouseClick(object sender, MouseEventArgs e)
         {
+            string m;
+
             #region check if another process is already running
             // Check if another process already runnning.
             if (this.forbid)
             {
-                string m = "Wait! Model calculation is still in progress.";
-                MessageBox.Show(m, "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                m = "Wait! Model calculation is still in progress.";
+                CustomDialogBox dialog = new CustomDialogBox("Warning!", m, global::antico.Properties.Resources.stop, MessageBoxButtons.OK);
+                dialog.ShowDialog();
+
                 return;
             }
             #endregion
@@ -864,28 +950,85 @@ namespace antico
                 #region name input
 
                 // Message, title and default value of input box.
-                string message = "Please input the name of the file to be saved.";
-                string title = "Name of the file";
-                string defaultValue = "ABCP_Model_" + this.bestModelInForm.trainFitness.ToString() + "__" + DateTime.Today.Day.ToString() + "_" + DateTime.Today.Month.ToString() + "_" + DateTime.Today.Year.ToString();
+                string message = "Please select solution and input the name of the file to be saved.";
+                string title = "Select solution";
+                string defaultValue = "ABCP_Model_" + Math.Round(this.bestModelInForm.trainFitness, 4).ToString() + "__" + DateTime.Today.Day.ToString() + "_" + DateTime.Today.Month.ToString() + "_" + DateTime.Today.Year.ToString();
+
+                // Choices for saving.
+                List<string> modelsList = new List<string>();
+
+                double f = (double)((double)(this.bestModelInForm.trainFitness + this.bestModelInForm.testFitness) / 2);
+                f = Math.Round(f, 4);
+                modelsList.Add("{0}[BEST SOLUTION] " + f.ToString());
+
+                for (var i = 0; i < this.allModelsInForm.Count; i++)
+                {
+                    f = (double)((double)(this.allModelsInForm[i].best.trainFitness + this.allModelsInForm[i].best.testFitness) / 2);
+                    f = Math.Round(f, 4);
+                    modelsList.Add("{" + (i * 3 + 1).ToString() + "} RUN[" + i + "] (best solution) " + f.ToString());
+
+                    f = (double)((double)(this.allModelsInForm[i].bestTrain.trainFitness + this.allModelsInForm[i].bestTrain.testFitness) / 2);
+                    f = Math.Round(f, 4);
+                    modelsList.Add("{" + (i * 3 + 2).ToString() + "} RUN[" + i + "] (best train solution) " + f.ToString());
+
+                    f = (double)((double)(this.allModelsInForm[i].bestTest.trainFitness + this.allModelsInForm[i].bestTest.testFitness) / 2);
+                    f = Math.Round(f, 4);
+                    modelsList.Add("{" + (i * 3 + 3).ToString() + " RUN[" + i + "] (best test solution) " + f.ToString());
+                }
 
                 // Input box.
-                var inputBox = Microsoft.VisualBasic.Interaction.InputBox(message, title, defaultValue);
+                var inputBox = new CustomDialogBox(title, message, "save", antico.Properties.Resources.question, modelsList, defaultValue);
+                var result = inputBox.ShowDialog();
 
                 // Check if user clicked Cancel or OK.
-                if (inputBox.ToString() == "")
+                if (result == DialogResult.Abort)
                 {
                     // User has clicked cancel. Do nothing.
                     return;
                 }
+
                 #endregion
 
                 // Create a hashtable of values that will eventually be serialized.
                 Hashtable addresses = new Hashtable();
-                addresses.Add("BestModel", this.bestModelInForm);
+
+                #region get solution to be saved
+                // Check if 0 <-> bestModelInForm.
+                if (inputBox.pickedSolutionIndex == 0)
+                {
+                    addresses.Add("Solution", this.bestModelInForm);
+                }
+                else
+                {
+                    int run = inputBox.pickedSolutionIndex / 3;
+                    int modulo = inputBox.pickedSolutionIndex % 3;
+
+                    if (modulo == 0)
+                    {
+                        // If picked index is of kind i * 3 + 3, it has to be bestTest of run - 1.
+                        addresses.Add("Solution", this.allModelsInForm[run - 1].bestTest);
+                    }
+                    else if (modulo == 1)
+                    {
+                        // If picked index is of kind i * 3 + 1, it has to be bestSolution of run.
+                        addresses.Add("Solution", this.allModelsInForm[run].best);
+                    }
+                    else
+                    {
+                        // If picked index is of kind i * 3 + 2, it has to be bestSolution of run.
+                        addresses.Add("Solution", this.allModelsInForm[run].bestTrain);
+                    }
+                }
+                #endregion
+
                 addresses.Add("Parameters", this.formParameters);
+                addresses.Add("DatabaseName", this.formData.databaseName);
+                addresses.Add("FeatureNames", this.formData.featureNames);
+                addresses.Add("NumberOfFolds", this.formData.numberOfFolds);
+                addresses.Add("MathOperators", this.formData.mathOperators);
 
                 // Name to be. Path to be.
-                string fileName = @"../../../../[DATA]/saved/" + inputBox.ToString() + ".dat";
+                string fileName = @"../../../../[DATA]/saved/" + inputBox.pickedName + ".dat";
                 string fullPath = Path.GetFullPath(fileName);
 
                 // To serialize the hashtable and its key/value pairs, first open a stream for writing. 
@@ -909,13 +1052,15 @@ namespace antico
 
                 // Notify the user where the file is saved.
                 string success_message = "File is saved on: " + fullPath + " !";
-                MessageBox.Show(success_message, "Saving successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                CustomDialogBox dialog2 = new CustomDialogBox("Saved", success_message, global::antico.Properties.Resources.new_packet, MessageBoxButtons.OK);
+                dialog2.ShowDialog();
                 return;
             }
 
             // Model does not exist. Warn user!
-            string warning_message = "Model is not yet created!";
-            MessageBox.Show(warning_message, "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            m = "Model is not yet created!";
+            CustomDialogBox dialog3 = new CustomDialogBox("Warning!", m, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
+            dialog3.ShowDialog();
         }
         #endregion
 
@@ -933,7 +1078,9 @@ namespace antico
             if (this.forbid)
             {
                 string m = "Wait! Model calculation is still in progress.";
-                MessageBox.Show(m, "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                CustomDialogBox dialog = new CustomDialogBox("Warning!", m, global::antico.Properties.Resources.stop, MessageBoxButtons.OK);
+                dialog.ShowDialog();
+
                 return;
             }
             #endregion
@@ -968,7 +1115,8 @@ namespace antico
             }
             else
             {
-                MessageBox.Show("Please choose database!", "Choose database!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                CustomDialogBox dialog = new CustomDialogBox("Choose database!", "Please choose database!", global::antico.Properties.Resources.warning, MessageBoxButtons.OK);
+                dialog.ShowDialog();
                 return;
             }
 
@@ -1004,6 +1152,9 @@ namespace antico
 
             // Set up data.
             this.formData = new Data(mathOp, database);
+
+            // Hide, if already not hiden, lookup console sign.
+            this.lookupConsoleFormPictureBox.Visible = false;
 
             // Forbid all other cliks.
             this.forbid = true;
@@ -1226,7 +1377,8 @@ namespace antico
                 this.Invoke((MethodInvoker)delegate { this.waitingAnimation.Visible = false; });
 
                 // Notify user that model is created.
-                MessageBox.Show("Model is created.", "Model is created.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                CustomDialogBox dialog = new CustomDialogBox("Model created", "Model is created.", global::antico.Properties.Resources.information, MessageBoxButtons.OK);
+                dialog.ShowDialog();
 
                 // Printout on label.
                 string input = "\r\n BEST MODEL: \r\n SymbolicTree:  " + this.bestModelInForm.symbolicTree.ToStringInorder();

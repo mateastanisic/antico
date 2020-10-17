@@ -69,47 +69,26 @@ namespace antico
         }
         #endregion
 
-        #region Closing form.
-
-        #region Esc key.
-        /// <summary>
-        /// Frame is closed when pressed Esc key.
-        /// </summary>
-        /// 
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ConsoleForm_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Escape)
-            {
-                this.Visible = false;
-            }
-        }
-        #endregion
-
-        #region Exit sign.
-        /// <summary>
-        /// Closing form when pressing Exit sign.
-        /// </summary>
-        /// 
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ExitSign_MouseClick(object sender, EventArgs e)
-        {
-            this.Visible = false;
-        }
-        #endregion
-
-        #endregion
-
         #region Methods for enabling moving ConsoleForm on user screen.
+
+        /// <summary>
+        /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TitlePanel_MouseUp(object sender, MouseEventArgs e)
+        {
+            this.dragging = false;
+        }
+
         /// <summary>
         /// Flag the wariable dragging true since user pressed mouse button initiating beggining of moving frame.
         /// </summary>
         /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ConsoleForm_MouseDown(object sender, MouseEventArgs e)
+        private void TitlePanel_MouseDown(object sender, MouseEventArgs e)
         {
             this.dragging = true;
             this.dragCursorPoint = Cursor.Position;
@@ -122,7 +101,7 @@ namespace antico
         /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ConsoleForm_MouseMove(object sender, MouseEventArgs e)
+        private void TitlePanel_MouseMove(object sender, MouseEventArgs e)
         {
             if (this.dragging)
             {
@@ -131,58 +110,11 @@ namespace antico
             }
         }
 
-        /// <summary>
-        /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
-        /// </summary>
-        /// 
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ConsoleForm_MouseUp(object sender, MouseEventArgs e)
-        {
-            this.dragging = false;
-        }
-
-        /// <summary>
-        /// Flag the wariable dragging true since user pressed mouse button initiating beggining of moving frame.
-        /// </summary>
-        /// 
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void HeuristicPrintoutTextBox_MouseDown(object sender, MouseEventArgs e)
-        {
-            this.dragging = true;
-            this.dragCursorPoint = Cursor.Position;
-            this.dragFormPoint = this.Location;
-        }
-
-        /// <summary>
-        /// If user previously pressed mouse button (if dragging is true), change location of the Form.
-        /// </summary>
-        /// 
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void HeuristicPrintoutTextBox_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (this.dragging)
-            {
-                Point dif = Point.Subtract(Cursor.Position, new Size(this.dragCursorPoint));
-                this.Location = Point.Add(this.dragFormPoint, new Size(dif));
-            }
-        }
-
-        /// <summary>
-        /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
-        /// </summary>
-        /// 
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void HeuristicPrintoutTextBox_MouseUp(object sender, MouseEventArgs e)
-        {
-            this.dragging = false;
-        }
         #endregion
 
         #region HOVERING
+
+        #region exit
         /// <summary>
         /// Show that pressing ExitSign means exiting the form.
         /// </summary>
@@ -216,16 +148,18 @@ namespace antico
         {
             this.exitSign.Cursor = Cursors.Default;
         }
+        #endregion
 
+        #region title panel
         /// <summary>
         /// Hovering start.
         /// </summary>
         /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void HeuristicPrintoutTextBox_MouseEnter(object sender, EventArgs e)
+        private void TitlePanel_MouseEnter(object sender, EventArgs e)
         {
-            this.heuristicPrintoutTextBox.Cursor = Cursors.Hand;
+            this.titlePanel.Cursor = Cursors.Hand;
         }
 
         /// <summary>
@@ -234,13 +168,102 @@ namespace antico
         /// 
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void HeuristicPrintoutTextBox_MouseLeave(object sender, EventArgs e)
+        private void TitlePanel_MouseLeave(object sender, EventArgs e)
         {
-            this.heuristicPrintoutTextBox.Cursor = Cursors.Default;
+            this.titlePanel.Cursor = Cursors.Default;
+        }
+        #endregion
+
+        #region minimize
+        /// <summary>
+        /// Hovering start.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MinimizeSign_MouseEnter(object sender, EventArgs e)
+        {
+            this.minimizeSign.Cursor = Cursors.Hand;
+        }
+
+        /// <summary>
+        /// Hovering end.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MinimizeSign_MouseLeave(object sender, EventArgs e)
+        {
+            this.minimizeSign.Cursor = Cursors.Default;
+        }
+
+        /// <summary>
+        /// Show that pressing minimizingSign means minimizing the form.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MinimizeSign_MouseHover(object sender, EventArgs e)
+        {
+            ToolTip tt = new ToolTip();
+            tt.SetToolTip(this.minimizeSign, "minimize");
         }
         #endregion
 
         #endregion
+
+        #region CLICKING
+
+        #region exit
+
+        #region Esc key.
+        /// <summary>
+        /// Frame is closed when pressed Esc key.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ConsoleForm_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.Visible = false;
+            }
+        }
+        #endregion
+
+        #region Exit sign.
+        /// <summary>
+        /// Closing form when pressing Exit sign.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ExitSign_MouseClick(object sender, EventArgs e)
+        {
+            this.Visible = false;
+        }
+        #endregion
+
+        #endregion
+
+        #region minimize
+        /// <summary>
+        /// Minimizing form when pressing minimize sign.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MinimizeSign_MouseClick(object sender, MouseEventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+        #endregion
+
+        #endregion
+
+        #endregion
+
     }
     #endregion
 }
