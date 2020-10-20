@@ -264,7 +264,7 @@ namespace antico.abcp
                 if (isDifferent)
                     break;
 
-                if (counter == 1000)
+                if (counter == 10)
                 {
                     // Throw a warning if the program was not able to generate solution different than others 1000 times.
                     throw new WarningException("[GenerateSolutionWithDifferenceControl] Stuck at infinite loop while trying to generate different solution.");
@@ -278,18 +278,18 @@ namespace antico.abcp
         /// Crossover of the two chromosomes.
         /// </summary>
         /// 
-        /// <param name="primaryParent"> First - primary chromosome (parent) that is part of the crossover. </param>
-        /// <param name="secundaryParent"> Secondary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="primaryParentIndex"> (Index of) First - primary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="secundaryParentIndex"> (Index of) Secondary chromosome (parent) that is part of the crossover. </param>
         /// <param name="maxDepth">Maximal depth of trees in population.</param>
         /// <param name="trainData">Train feature values - for calculating fitness.</param>
         /// <param name="testData">Test feature values - for calculating accuracy.</param>
         /// <param name="probability">Probability of choosing non-terminal.</param>
         /// <returns> New solution created with crossover. </returns>
-        internal Chromosome Crossover(Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable trainData, DataTable testData, double probability)
+        internal Chromosome Crossover(int primaryParentIndex, int secundaryParentIndex, int maxDepth, DataTable trainData, DataTable testData, double probability)
         {
             // Make clones of solutions.
-            Chromosome primaryParentClone = (Chromosome)primaryParent.Clone();
-            Chromosome secundaryParentClone = (Chromosome)secundaryParent.Clone();
+            Chromosome primaryParentClone = (Chromosome)this.chromosomes[primaryParentIndex].Clone();
+            Chromosome secundaryParentClone = (Chromosome)this.chromosomes[secundaryParentIndex].Clone();
 
             // Index of crossover point in primary parent.
             int indexOfCrossoverPointOfPrimaryParent;
@@ -358,7 +358,7 @@ namespace antico.abcp
                 }
                 #endregion
 
-                int depth1 = primaryParent.symbolicTree.FindNodeWithIndex(indexOfCrossoverPointOfPrimaryParent).depth;
+                int depth1 = this.chromosomes[primaryParentIndex].symbolicTree.FindNodeWithIndex(indexOfCrossoverPointOfPrimaryParent).depth;
                 int depth2 = crossoverSubtreeOfSecundaryParent.DepthOfSymbolicTree();
                 if (depth1 + depth2 < maxDepth)
                     break;
@@ -380,12 +380,11 @@ namespace antico.abcp
             // Node indices should be re-calculated.
             child.symbolicTree.CalculateIndices();
             // Update number of possible terminals.
-            child.numberOfPossibleTerminals = primaryParent.numberOfPossibleTerminals;
+            child.numberOfPossibleTerminals = this.chromosomes[primaryParentIndex].numberOfPossibleTerminals;
             // Update depth of child solution.
-            child.symbolicTree.DepthOfSymbolicTree();
-            // Update fitness.
-            child.trainFitness = child.CalculateFitness(trainData);
-            child.testFitness = child.CalculateFitness(testData);
+            child.depth = child.symbolicTree.DepthOfSymbolicTree();
+            // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
+            child.UpdateAccuracy(trainData, testData);
             #endregion
 
             return child;
@@ -397,14 +396,14 @@ namespace antico.abcp
         /// (New solution must be different from all other solution in the population.)
         /// </summary>
         /// 
-        /// <param name="primaryParent"> First - primary chromosome (parent) that is part of the crossover. </param>
-        /// <param name="secundaryParent"> Secondary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="primaryParentIndex"> First - primary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="secundaryParentIndex"> Secondary chromosome (parent) that is part of the crossover. </param>
         /// <param name="maxDepth">Maximal depth of trees in population.</param>
         /// <param name="trainData">Train feature values - for calculating fitness.</param>
         /// <param name="testData">Test feature values - for calculating accuracy.</param>
         /// <param name="probability">Probability of choosing non-terminal.</param>
         /// <returns> New solution created with crossover. </returns>
-        public Chromosome CrossoverWithDifferenceControl(Chromosome primaryParent, Chromosome secundaryParent, int maxDepth, DataTable trainData, DataTable testData, double probability)
+        public Chromosome CrossoverWithDifferenceControl(int primaryParentIndex, int secundaryParentIndex, int maxDepth, DataTable trainData, DataTable testData, double probability)
         {
             int counter = 0;
 
@@ -415,7 +414,7 @@ namespace antico.abcp
                 counter++;
 
                 // Do crossover.
-                Chromosome newSolution = (Chromosome)Crossover(primaryParent, secundaryParent, maxDepth, trainData, testData, probability).Clone();
+                Chromosome newSolution = (Chromosome)Crossover(primaryParentIndex, secundaryParentIndex, maxDepth, trainData, testData, probability).Clone();
 
                 // Check if new solution is different.
                 bool isDifferent = true;
@@ -432,8 +431,19 @@ namespace antico.abcp
                 if (isDifferent)
                     return newSolution;
 
-                // Throw a warning if the program was not able to generate solution different than others 100000 times.
-                if (counter == 100000)
+                // Every 10 not-succesful runs try changing second parent.
+                if (counter % 10 == 0)
+                {
+                    while (true)
+                    {
+                        secundaryParentIndex = rand.Next(this.populationSize);
+                        if (secundaryParentIndex != primaryParentIndex)
+                            break;
+                    }
+                }
+
+                // Throw a warning if the program was not able to generate solution different than others 1000 times.
+                if (counter == 1000)
                     throw new WarningException("[CrossoverWithDifferenceControl] Stuck at infinite loop while trying to generate different solution.");
             }
         }

@@ -71,6 +71,7 @@ namespace antico
             this.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "HelperForm";
+            this.SizeChanged += new System.EventHandler(this.HelperForm_SizeChanged);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.HelperForm_KeyUp);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.HelperForm_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.HelperForm_MouseMove);

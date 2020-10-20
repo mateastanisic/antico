@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using antico.abcp;
 using System.Data;
+using LiveCharts.Defaults;
 
 namespace antico
 {
@@ -85,57 +86,7 @@ namespace antico
         }
         #endregion
 
-        #region the best
-
-        #region best train and test combined
-        // Variable that represents best current solution (model) on training and testing data (together).
-        private Chromosome _best;
-
-        // Property for the _best variable.
-        public Chromosome best
-        {
-            get { return _best; }
-            set
-            {
-                // Deep copy.
-                _best = (Chromosome)value.Clone();
-            }
-        }
-        #endregion
-
-        #region best train
-        // Variable that represents best current solution (model) on training data.
-        private Chromosome _bestTrain;
-
-        // Property for the _bestTrain variable.
-        public Chromosome bestTrain
-        {
-            get { return _bestTrain; }
-            set
-            {
-                // Deep copy.
-                _bestTrain = (Chromosome)value.Clone();
-            }
-        }
-        #endregion
-
-        #region best test
-        // Variable that represents best current solution (model) on testing data.
-        private Chromosome _bestTest;
-
-        // Property for the _bestTest variable.
-        public Chromosome bestTest
-        {
-            get { return _bestTest; }
-            set
-            {
-                // Deep copy.
-                _bestTest = (Chromosome)value.Clone();
-            }
-        }
-        #endregion
-
-        #region best indices
+        #region THE BEST (indices)
         // Variable that represents best current solution (model) index on training and testing data (together).
         private int _bestIndex;
 
@@ -165,8 +116,6 @@ namespace antico
             get { return _bestTestIndex; }
             set { _bestTestIndex = value; }
         }
-        #endregion
-
         #endregion
 
         #region current train and test data
@@ -289,16 +238,6 @@ namespace antico
                     bestSolutionIndex = s;
             }
 
-            // Reset known best solutions.
-            this.best = new Chromosome();
-            this.best = (Chromosome)this._population[bestSolutionIndex].Clone();
-
-            this.bestTrain = new Chromosome();
-            this.bestTrain = (Chromosome)this._population[bestTrainSolutionIndex].Clone();
-
-            this.bestTest = new Chromosome();
-            this.bestTest = (Chromosome)this._population[bestTestSolutionIndex].Clone();
-
             // Reset best indices.
             this._bestIndex = bestSolutionIndex;
             this._bestTrainIndex = bestTrainSolutionIndex;
@@ -315,7 +254,8 @@ namespace antico
         /// 
         /// <param name="formForCreatingNewModel">Form that called this method - for printouts.</param>
         /// <param name="consoleTextBox">TextBox for printouts.</param>
-        public void ABCProgramming(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox)
+        /// <param name="run">Number of run - needed for live chart series selection.</param>
+        public void ABCProgramming(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox, int run, ProgressBar progressBar)
         {
             // Helper arrays for keeping track of case when Solution (i) is not improved.
             int[] Limits = new int[this.parameters.populationSize];
@@ -330,14 +270,32 @@ namespace antico
             // 3: Memorize the best. 
             // -- DONE IN CONSTRUCTOR --
 
+            #region add to chart
+            // Add to progress form dictionary.
+            this.AddToProgressFormDictionary(formForCreatingNewModel, run, 0);
+
+            // Check if nothing is yet shown on progress form.
+            if (!formForCreatingNewModel.progressForm.chart.Visible && !formForCreatingNewModel.progressForm.depthsChart.Visible)
+            {
+                // No chart is shown. Start showing chart of this run with fitness values.
+                AddToNewChart(formForCreatingNewModel, run);
+            }
+            else if (formForCreatingNewModel.progressForm.selectedRun == run)
+            {
+                // Something is already visible. 
+                // Add to the chart if this run.
+                AddPointsToChart(formForCreatingNewModel, run, 0);
+            }
+            #endregion
+
             // 4: Set the cycle counter(cycle = 0)
             int Iteration = 0;
             int IterationNotImproving = 0;
 
-            while (Iteration <= this.parameters.maxNumberOfIterations && IterationNotImproving <= this.parameters.maxNumberOfNotImprovingIterations)
+            while (Iteration <= this._parameters.maxNumberOfIterations && IterationNotImproving <= this._parameters.maxNumberOfNotImprovingIterations)
             {
                 // Remeber best fitness from the beggining of the iteration.
-                double OldBestFitness = this._bestTrain.trainFitness;
+                double OldBestFitness = this._population[this._bestTrainIndex].trainFitness;
 
                 // Printout to console.
                 string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
@@ -346,11 +304,12 @@ namespace antico
                 #region ----- EMPLOYED BEES PHASE -----
                 // For all employed bees do ...
                 // (number of employed bees are same as population size)
-                for (var e = 0; e < this.parameters.populationSize; e++)
+                for (var e = 0; e < this._parameters.populationSize; e++)
                 {
-                    #region calculate NewSolution using information sharing mechanism
-                    Chromosome NewSolutionEmployed = new Chromosome();
+                    // Reset TestLimit[e].
+                    TestLimits[e] = 0;
 
+                    #region calculate NewSolution using information sharing mechanism
                     // Helper variables.
                     double OldFitnessEmployed, NewFitnessEmployed;
 
@@ -369,7 +328,7 @@ namespace antico
                             break;
                     }
 
-                    NewSolutionEmployed = (Chromosome)this._population.CrossoverWithDifferenceControl((Chromosome)this._population[e].Clone(), (Chromosome)this._population[r].Clone(), this._parameters.maxDepth, this._train, this._test, this._parameters.probability);
+                    Chromosome NewSolutionEmployed = (Chromosome)this._population.CrossoverWithDifferenceControl(e, r, this._parameters.maxDepth, this._train, this._test, this._parameters.probability);
                     //NewSolutionEmployed = (Chromosome)this.population.Crossover( (Chromosome)this.population[e].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, trainData, this.parameters.probability);
                     #endregion
 
@@ -383,7 +342,10 @@ namespace antico
                     // Update solution if better.
                     if (NewFitnessEmployed > OldFitnessEmployed)
                     {
-                        this._population[e] = (Chromosome)NewSolutionEmployed.Clone();
+                        this._population[e] = NewSolutionEmployed;
+
+                        if (e == bestTrainIndex)
+                            Console.WriteLine("");
 
                         // Solution has become better. Put Limit of that solution to 0.
                         Limits[e] = 0;
@@ -400,7 +362,7 @@ namespace antico
                 formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") employed bee phase done\r\n"); });
 
                 // Reset best solutions.
-                BestSolutions();
+                this.BestSolutions();
 
                 // Calculate the probability values ( P_i ) for the solutions.
                 this._population.CalculateProbabilities(this._bestTrainIndex, this._parameters.alpha);
@@ -439,8 +401,6 @@ namespace antico
                     o++;
 
                     #region calculate NewSolution using information sharing mechanism
-                    Chromosome NewSolutionOnlook = new Chromosome();
-
                     double OldFitnessOnlook, NewFitnessOnlook;
 
                     // Save the cost function value of the current solution.
@@ -458,7 +418,7 @@ namespace antico
                             break;
                     }
 
-                    NewSolutionOnlook = (Chromosome)this._population.CrossoverWithDifferenceControl((Chromosome)this._population[f].Clone(), (Chromosome)this._population[r].Clone(), this._parameters.maxDepth, this._train, this._test, this._parameters.probability);
+                    Chromosome NewSolutionOnlook = this._population.CrossoverWithDifferenceControl(f, r, this._parameters.maxDepth, this._train, this._test, this._parameters.probability);
                     //NewSolutionOnlook = (Chromosome)this.population.Crossover((Chromosome)this.population[f].Clone(), (Chromosome)this.population[r].Clone(), this.parameters.maxDepth, trainData, this.parameters.probability);
                     #endregion
 
@@ -472,8 +432,10 @@ namespace antico
                     // Update solution if better.
                     if (NewFitnessOnlook > OldFitnessOnlook)
                     {
-                        this._population[f] = (Chromosome)NewSolutionOnlook.Clone();
+                        this._population[f] = NewSolutionOnlook;
 
+                        if (f == bestTrainIndex)
+                            Console.WriteLine("");
                         // Solution has become better. Put Limit of that solution to 0.
                         Limits[f] = 0;
 
@@ -498,7 +460,7 @@ namespace antico
                 formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") onlooker bee phase done\r\n"); });
 
                 #region ----- SCOUT BEES PHASE -----
-                for (var s = 0; s < this.parameters.populationSize; s++)
+                for (var s = 0; s < this._parameters.populationSize; s++)
                 {
                     // Check if if EBP or OBP improved this solution.
                     if (TestLimits[s] == 0)
@@ -509,7 +471,8 @@ namespace antico
                     }
 
                     // Check if 'limit' number of iterations in a row this solution is not improved.
-                    if (Limits[s] >= this._parameters.limit)
+                    // TODO: change best after limit?
+                    if (Limits[s] >= this._parameters.limit && s != this._bestTrainIndex)
                     {
                         #region generate new solution with difference control
                         // If that is so, generate new solution using "grow" method.
@@ -541,7 +504,9 @@ namespace antico
                             // End loop if solution is different.
                             if (isDifferent)
                             {
-                                this._population[s] = (Chromosome)NewSolutionScout.Clone();
+                                this._population[s] = NewSolutionScout;
+                                if (s == bestTrainIndex)
+                                    Console.WriteLine("");
                                 break;
                             }
 
@@ -559,10 +524,10 @@ namespace antico
                 formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") scout bee phase done\r\n"); });
 
                 // Reset best solutions.
-                BestSolutions();
+                this.BestSolutions();
 
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
-                if (this._bestTrain.trainFitness != OldBestFitness)
+                if (this._population[this._bestTrainIndex].trainFitness != OldBestFitness)
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
                     IterationNotImproving = 0;
@@ -574,21 +539,294 @@ namespace antico
                 }
 
                 // Printout to console.
-                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") DONE.\r\n"); });
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (train) fitness: " + this._bestTrain.trainFitness.ToString() + "\r\n"); });
-                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (test) fitness: " + this._bestTest.testFitness.ToString() + "\r\n"); });
-                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (train + test) fitness: " + ((double)((this._best.trainFitness + this._best.testFitness) / 2)).ToString() + "\r\n"); });
+                PrintoutToConsoleIterEnd(formForCreatingNewModel, consoleTextBox, Iteration);
 
                 // Increase number of done iterations.
                 Iteration++;
 
                 // Maybe this?
                 // if( BestFitness == 1 ) break;
+
+                #region add to chart
+                // Add to chart.
+                AddToProgressFormDictionary(formForCreatingNewModel, run, Iteration);
+                if (formForCreatingNewModel.progressForm.selectedRun == run)
+                {
+                    // Something is already visible. 
+                    // Add to the chart if this run.
+                    AddPointsToChart(formForCreatingNewModel, run, Iteration);
+                }
+                #endregion
+
+                if (IterationNotImproving > this._parameters.maxNumberOfNotImprovingIterations || Iteration > this._parameters.maxNumberOfIterations)
+                {
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { progressBar.Value = run * this._parameters.maxNumberOfIterations; });
+                }
+                else
+                {
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { progressBar.Value = progressBar.Value + 1; });
+                }
             }
         }
+        #endregion
+
+        #region Printout to console at the end of the iteration.
+        /// <summary>
+        /// Printout to console at the end of one iteration of ABCP algorithm.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called ABCP method.</param>
+        /// <param name="consoleTextBox">Console text box to witch printout needs to be added.</param>
+        /// <param name="Iteration">Current iteration of the algorithm.</param>
+        private void PrintoutToConsoleIterEnd(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox, int Iteration)
+        {
+            string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") DONE.\r\n"); });
+
+            if (this._bestTrainIndex == this._bestIndex)
+            {
+                if (this._bestTestIndex == this._bestIndex)
+                {
+                    // All three are the same.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train=test) train fitness: " + this._population[this._bestIndex].trainFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train=test) test fitness: " + this._population[this._bestIndex].testFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train=test) train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString() + "\r\n"); });
+                }
+                else
+                {
+                    // BestTest is different.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (train) train fitness: " + this._population[this._bestIndex].trainFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (train) test fitness: " + this._population[this._bestIndex].testFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (train) train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString() + "\r\n"); });
+
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (test) train fitness: " + this._population[this._bestTestIndex].trainFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (test) test fitness: " + this._population[this._bestTestIndex].testFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (test) train + test fitness: " + ((double)((this._population[this._bestTestIndex].trainFitness + this._population[this._bestTestIndex].testFitness) / 2)).ToString() + "\r\n"); });
+                }
+            }
+            else
+            {
+                if (this._bestTestIndex == this._bestIndex)
+                {
+                    // BestTrain is different.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (test) train fitness: " + this._population[this._bestIndex].trainFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (test) test fitness: " + this._population[this._bestIndex].testFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (test) train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString() + "\r\n"); });
+
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (train) train fitness: " + this._population[this._bestTrainIndex].trainFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (train) test fitness: " + this._population[this._bestTrainIndex].testFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (train) train + test fitness: " + ((double)((this._population[this._bestTrainIndex].trainFitness + this._population[this._bestTrainIndex].testFitness) / 2)).ToString() + "\r\n"); });
+                }
+                else
+                {
+                    // All are different.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) () train fitness: " + this._population[this._bestIndex].trainFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) () test fitness: " + this._population[this._bestIndex].testFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) () train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString() + "\r\n"); });
+
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (train) train fitness: " + this._population[this._bestTrainIndex].trainFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (train) test fitness: " + this._population[this._bestTrainIndex].testFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (train) train + test fitness: " + ((double)((this._population[this._bestTrainIndex].trainFitness + this._population[this._bestTrainIndex].testFitness) / 2)).ToString() + "\r\n"); });
+
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (test) train fitness: " + this._population[this._bestTestIndex].trainFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (test) test fitness: " + this._population[this._bestTestIndex].testFitness.ToString() + "\r\n"); });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (test) train + test fitness: " + ((double)((this._population[this._bestTestIndex].trainFitness + this._population[this._bestTestIndex].testFitness) / 2)).ToString() + "\r\n"); });
+                }
+            }
+        }
+        #endregion
+
+        #region Helper method for chart handling.
+
+        /// <summary>
+        /// This method is called when points needs to be added to chart that is currently showing on progress form.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called ABCP.</param>
+        /// <param name="run">Current run (+1) of the search for best solution.</param>
+        /// <param name="Iteration">Iteration from which this method is called.</param>
+        private static void AddPointsToChart(CreateNewModelForm formForCreatingNewModel, int run, int Iteration)
+        {
+            switch (formForCreatingNewModel.progressForm.typeOfData)
+            {
+                case "fitness":
+                    // Add new points to train and test series.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { 
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fitnessPoints[run].Item1[Iteration])); 
+                    });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { 
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fitnessPoints[run].Item2[Iteration])); 
+                    });
+                    break;
+                case "depths":
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { 
+                        formForCreatingNewModel.progressForm.depthsChart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.depthPoints[run][Iteration])); 
+                    });
+                    break;
+                case "TP":
+                    // Add new point to train and test series.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tpPoints[run].Item1[Iteration]));
+                    });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tpPoints[run].Item2[Iteration]));
+                    });
+                    break;
+                case "TN":
+                    // Add new point to train and test series.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tnPoints[run].Item1[Iteration]));
+                    });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tnPoints[run].Item2[Iteration]));
+                    });
+                    break;
+                case "FN":
+                    // Add new point to train and test series.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fnPoints[run].Item1[Iteration]));
+                    });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fnPoints[run].Item2[Iteration]));
+                    });
+                    break;
+                case "FP":
+                    // Add new point to train and test series.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fpPoints[run].Item1[Iteration]));
+                    });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fpPoints[run].Item2[Iteration]));
+                    });
+                    break;
+                case "accuracy":
+                    // Add new point to train and test series.
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.accuracyChart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item1[Iteration]));
+                    });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.accuracyChart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item2[Iteration]));
+                    });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.accuracyChart.Series[2].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item3[Iteration]));
+                    });
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.accuracyChart.Series[3].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item4[Iteration]));
+                    });
+                    break;
+                default:
+                    throw new Exception("[ABCProgramming] Type " + formForCreatingNewModel.progressForm.typeOfData + " is not supported.");
+            }
+        }
+
+        /// <summary>
+        /// This method is called when progress form is not showing any chart.
+        /// 
+        /// Sets selectedRun and typeOfData variables in progress form on current run and fitness, 
+        /// respectively. Clears chart and adds two new points.
+        /// 
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called ABCP.</param>
+        /// <param name="run">Current run of the search for best solution.</param>
+        private static void AddToNewChart(CreateNewModelForm formForCreatingNewModel, int run)
+        {
+            // No chart is shown. Start showing chart of this run with fitness values.
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.selectedRun = run; });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.typeOfData = "fitness"; });
+
+            // Add selected run and type to the menu.
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.runToolStripMenuItem.Text = "Run: " + run ; });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.dataForChartToolStripMenuItem.Text = "Data for chart: fitness"; });
+
+            // Clear points from chart.
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Series[0].Values.Clear(); });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Series[1].Values.Clear(); });
+
+            // Make it visible.
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Visible = true; });
+
+            // Add new points to train and test series.
+            for (var p = 0; p < formForCreatingNewModel.progressForm.fitnessPoints[run].Item1.Count; p++)
+            {
+                // Add point to the chart from selected run.
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(p, formForCreatingNewModel.progressForm.fitnessPoints[run].Item1[p])); });
+                if (p < formForCreatingNewModel.progressForm.fitnessPoints[run].Item2.Count)
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(p, formForCreatingNewModel.progressForm.fitnessPoints[run].Item2[p])); });
+            }
+        }
+
+        /// <summary>
+        /// Adding values to dictionaries in progress form needed for showing the progress of different data.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called ABCP.</param>
+        /// <param name="run">Current run of the search for best solution.</param>
+        /// <param name="Iteration">Iteration of ABCP algorithm.</param>
+        private void AddToProgressFormDictionary(CreateNewModelForm formForCreatingNewModel, int run, int Iteration)
+        {
+            // Add points to dictionaries.
+
+            // fitness
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.fitnessPoints[run].Item1.Add(this._population[this._bestTrainIndex].trainFitness);
+            });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.fitnessPoints[run].Item2.Add(this._population[this._bestTrainIndex].testFitness);
+            });
+
+            // depth
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.depthPoints[run].Add(this._population[this._bestIndex].depth);
+            });
+
+            // TP
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.tpPoints[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
+            });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.tpPoints[run].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["TP"]);
+            });
+
+            // TN
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.tnPoints[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
+            });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.tnPoints[run].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["TN"]);
+            });
+
+            // FP
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.fpPoints[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
+            });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { 
+                formForCreatingNewModel.progressForm.fpPoints[run].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["FP"]);
+            });
+
+            // FN
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.fnPoints[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
+            });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.fnPoints[run].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["FN"]);
+            });
+
+            // TP + TN + FP + FN
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
+            });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item2.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
+            });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item3.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
+            });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item4.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
+            });
+        }
+
         #endregion
 
         #endregion

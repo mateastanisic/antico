@@ -173,8 +173,20 @@ namespace antico
 
         #endregion
 
+        #region Form Size changed.
+        /// <summary>
+        /// Change location of exit sign if form size is changed
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void HelperForm_SizeChanged(object sender, EventArgs e)
+        {
+            this.exitSign.Location = new System.Drawing.Point(this.Location.X + this.Size.Width - 41, 6);
+        }
         #endregion
 
+        #endregion
     }
     #endregion
 }

@@ -193,12 +193,7 @@ namespace antico.abcp
                 return false;
             }
 
-            return (obj1.type == obj2.type
-                    && obj1.content == obj2.content
-                    && obj1.index == obj2.index
-                    && obj1.depth == obj2.depth
-                    && obj1.arity == obj2.arity
-                    && obj1.children == obj2.children);
+            return (obj1.ToStringInorder() == obj2.ToStringInorder());
         }
 
         /// <summary>
@@ -221,13 +216,7 @@ namespace antico.abcp
         /// <returns>True if nodes are equal, otherwise false. </returns>
         public bool Equals(SymbolicTreeNode other)
         {
-            return other != null
-                    && this._type == other.type
-                    && this._content == other.content
-                    && this._index == other.index
-                    && this._arity == other.arity
-                    && this._depth == other.depth
-                    && EqualityComparer<List<SymbolicTreeNode>>.Default.Equals(this._children, other.children);
+            return other != null && this.ToStringInorder() == other.ToStringInorder();
         }
 
         /// <summary>
@@ -504,7 +493,7 @@ namespace antico.abcp
             // OR if it choosen that this node should be terminal, but we are at root node 
             // (since root node has to be non-terminal)
             // make this node non-terminal.
-            if ((!chooseNonTerminal && currentDepth == 0) || chooseNonTerminal)
+            if (currentDepth == 0 || chooseNonTerminal)
             {
                 // Set content of current inner node. 
                 this._type = "non-terminal";
@@ -671,8 +660,9 @@ namespace antico.abcp
         /// </summary>
         /// 
         /// <param name="data"> Row of a table with all features. </param>
+        /// <param name="changed"> Flag reference for knowing if content of any node is changed because in that case, whole evaluation needs to be re-done. </param>
         /// <returns> Evaluation of symbolic tree whose root node is current node for given DataRow.</returns>
-        public double Evaluate(DataRow data)
+        public double Evaluate(DataRow data, ref bool changed)
         {
             // Check if node has content.
             if (this._content == null)
@@ -716,15 +706,23 @@ namespace antico.abcp
 
                 #region evaluate child node
                 // Evaluate child node.
-                double childEvaluation = this._children[0].Evaluate(data);
+                double childEvaluation = this._children[0].Evaluate(data, ref changed);
+
+                // Handling with infinity.
+                if (Double.IsPositiveInfinity(childEvaluation))
+                {
+                    childEvaluation = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(childEvaluation))
+                {
+                    childEvaluation = Double.MinValue;
+                }
 
                 // Testing phase. Evaluated numbers shouldn't be NaNs.
                 // TODO: Remove later. (isNaN)
-                if (Double.IsNaN(childEvaluation) )
+                if (Double.IsNaN(childEvaluation))
                 {
-                    var cont = this._children[0].content;
-                    int ind = this._children[0].index;
-                    var dep = this._children[0].depth;
+                    Console.WriteLine("Remove later.");
                 }
                 #endregion
 
@@ -733,16 +731,8 @@ namespace antico.abcp
                 switch (this._content)
                 {
                     case "sin":
-                        // Handling with infinity. 
-                        // Return random number between -1 and 1.
-                        if (Double.IsInfinity(childEvaluation))
-                            return rand.NextDouble() * 2 - 1;
                         return Math.Sin(childEvaluation);
                     case "cos":
-                        // Handling with infinity.
-                        // Return random number between -1 and 1.
-                        if (Double.IsInfinity(childEvaluation))
-                            return rand.NextDouble() * 2 - 1;
                         return Math.Cos(childEvaluation);
                     case "rlog":
                         if (childEvaluation == 0)
@@ -772,26 +762,42 @@ namespace antico.abcp
                 #endregion
 
                 #region evaluate child nodes
-                double child1Evaluation = this._children[0].Evaluate(data);
+                double child1Evaluation = this._children[0].Evaluate(data, ref changed);
 
-                // Testing phase. Evaluated numbers shouldn't be NaNs.
-                // TODO: Remove later. (isNaN)
-                if (Double.IsNaN(child1Evaluation) )
+                // Handling with infinity.
+                if (Double.IsPositiveInfinity(child1Evaluation))
                 {
-                    var cont = this._children[0].content;
-                    int ind = this._children[0].index;
-                    var dep = this._children[0].depth;
+                    child1Evaluation = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(child1Evaluation))
+                {
+                    child1Evaluation = Double.MinValue;
                 }
 
-                double child2Evaluation = this._children[1].Evaluate(data);
+                // Testing phase. Evaluated numbers shouldn't be NaNs.
+                // TODO: Remove later. (isNaN)
+                if (Double.IsNaN(child1Evaluation))
+                {
+                    Console.WriteLine("Remove later.");
+                }
+
+                double child2Evaluation = this._children[1].Evaluate(data, ref changed);
+
+                // Handling with infinity.
+                if (Double.IsPositiveInfinity(child2Evaluation))
+                {
+                    child2Evaluation = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(child2Evaluation))
+                {
+                    child2Evaluation = Double.MinValue;
+                }
 
                 // Testing phase. Evaluated numbers shouldn't be NaNs.
                 // TODO: Remove later. (isNaN)
-                if (Double.IsNaN(child2Evaluation) )
+                if (Double.IsNaN(child2Evaluation))
                 {
-                    var cont = this._children[1].content;
-                    int ind = this._children[1].index;
-                    var dep = this._children[1].depth;
+                    Console.WriteLine("Remove later.");
                 }
                 #endregion
 
@@ -799,80 +805,17 @@ namespace antico.abcp
                 switch (this._content)
                 {
                     case "+":
-                        /// ********************** handling with infinity **********************
-                        /// (+Inf) + (+Inf) = (+Inf)
-                        /// (+Inf) + Number = (+Inf)
-                        /// (+Inf) + (-Inf) = 0
-                        /// (-Inf) + (+Inf) = 0
-                        /// (-Inf) + Number = (-Inf)
-                        /// (-Inf) + (-Inf) = (-Inf)
-                        /// ********************** ********************** **********************
-                        // Check if child evaluations are infinity.
-                        if ((Double.IsNegativeInfinity(child1Evaluation) && Double.IsPositiveInfinity(child2Evaluation)) || (Double.IsPositiveInfinity(child1Evaluation) && Double.IsNegativeInfinity(child2Evaluation)) )
-                            return 0;
-                        else if (Double.IsNegativeInfinity(child1Evaluation) || Double.IsNegativeInfinity(child2Evaluation))
-                            return Double.NegativeInfinity;
-                        else if (Double.IsPositiveInfinity(child1Evaluation) || Double.IsPositiveInfinity(child2Evaluation))
-                            return Double.PositiveInfinity;
-                        else
-                            return child1Evaluation + child2Evaluation;
+                        return child1Evaluation + child2Evaluation;
                     case "-":
-                        /// ********************** handling with infinity **********************
-                        /// (+Inf) - (+Inf) = 0
-                        /// (+Inf) - Number = (+Inf)
-                        /// (+Inf) - (-Inf) = (+Inf)
-                        /// (-Inf) - (+Inf) = (-Inf)
-                        /// (-Inf) - Number = (-Inf)
-                        /// (-Inf) - (-Inf) = 0
-                        /// ********************** ********************** **********************
-                        // Check if child evaluations are infinity.
-                        if ((Double.IsNegativeInfinity(child1Evaluation) && Double.IsNegativeInfinity(child2Evaluation)) || (Double.IsPositiveInfinity(child1Evaluation) && Double.IsPositiveInfinity(child2Evaluation)))
-                            return 0;
-                        else if (Double.IsNegativeInfinity(child1Evaluation))
-                            return Double.NegativeInfinity;
-                        else if (Double.IsPositiveInfinity(child1Evaluation))
-                            return Double.PositiveInfinity;
-                        else
-                            return child1Evaluation - child2Evaluation;
+                        return child1Evaluation - child2Evaluation;
                     case "*":
-                        /// ********************** handling with infinity **********************
-                        /// (+Inf) * (+Inf) = (+Inf)
-                        /// (+Inf) * Number = (+Inf)
-                        /// (+Inf) * (-Inf) = (-Inf)
-                        /// (-Inf) * (+Inf) = (-Inf)
-                        /// (-Inf) * Number = (-Inf)
-                        /// (-Inf) * (-Inf) = (+Inf)
-                        /// ********************** ********************** **********************
-                        // Check if child evaluations are infinity.
-                        if (Double.IsNegativeInfinity(child1Evaluation) && Double.IsNegativeInfinity(child2Evaluation))
-                            return Double.PositiveInfinity;
-                        else if (Double.IsNegativeInfinity(child1Evaluation) || Double.IsNegativeInfinity(child2Evaluation))
-                            return Double.NegativeInfinity;
-                        else if (Double.IsPositiveInfinity(child1Evaluation) || Double.IsPositiveInfinity(child2Evaluation))
-                            return Double.PositiveInfinity;
-                        else
-                            return child1Evaluation - child2Evaluation;
+                        return child1Evaluation - child2Evaluation;
                     case "/":
-                        /// ********************** handling with infinity **********************
-                        /// (+Inf) / (+Inf) = 1
-                        /// (+Inf) / Number = (+Inf)
-                        /// (+Inf) / (-Inf) = -1
-                        /// (-Inf) / (+Inf) = -1
-                        /// (-Inf) / Number = (-Inf)
-                        /// (-Inf) / (-Inf) = 1
-                        /// ********************** ********************** **********************
                         if (child2Evaluation == 0)
+                        {
                             return 1;
-                        else if ((Double.IsPositiveInfinity(child1Evaluation) && Double.IsPositiveInfinity(child2Evaluation)) || (Double.IsNegativeInfinity(child1Evaluation) && Double.IsNegativeInfinity(child2Evaluation)))
-                            return 1;
-                        else if ((Double.IsPositiveInfinity(child1Evaluation) && Double.IsNegativeInfinity(child2Evaluation)) || (Double.IsNegativeInfinity(child1Evaluation) && Double.IsPositiveInfinity(child2Evaluation)))
-                            return -1;
-                        else if (Double.IsPositiveInfinity(child1Evaluation))
-                            return Double.PositiveInfinity;
-                        else if (Double.IsNegativeInfinity(child1Evaluation))
-                            return Double.NegativeInfinity;
-                        else
-                            return child1Evaluation / child2Evaluation;
+                        }
+                        return child1Evaluation / child2Evaluation;
                     default:
                         throw new Exception("[Evaluate] Sent binary mathematical operation is not expected.");   
                 }
@@ -1239,6 +1182,7 @@ namespace antico.abcp
     ///     depth (max. depth of the tree)
     ///     numberOfPossibleTerminals (number of possible features - terminals)
     ///     train & test fitness of the solution
+    ///     number of TP,TN,FP,FN instances of train & test data
     /// 
     /// </summary>
     [Serializable]
@@ -1265,6 +1209,32 @@ namespace antico.abcp
         {
             get { return _testFitness; }
             set { _testFitness = value; }
+        }
+        #endregion
+
+        #region TP, TN, FP, FN
+        // Dictionary for keeping track of TN/TP/FP/FN values of train data.
+        private Dictionary<string, int> TP_TN_FP_FN_train;
+
+        // Property for the TP_TN_FP_FN_train variable.
+        public Dictionary<string, int> Train_TP_TN_FP_FN
+        {
+            get { return TP_TN_FP_FN_train; }
+            set { TP_TN_FP_FN_train = new Dictionary<string, int>(value); }
+        }
+
+        // Dictionary for keeping track of TN/TP/FP/FN values of test data.
+        private Dictionary<string, int> TP_TN_FP_FN_test;
+
+        // Property for the TP_TN_FP_FN_test variable.
+        public Dictionary<string, int> Test_TP_TN_FP_FN
+        {
+            get { return TP_TN_FP_FN_test; }
+            set
+            {
+                TP_TN_FP_FN_test = new Dictionary<string, int>();
+                TP_TN_FP_FN_test = value;
+            }
         }
         #endregion
 
@@ -1334,20 +1304,24 @@ namespace antico.abcp
         {
             Chromosome c = new Chromosome
             {
-                // Copy fitness from chromosome c to this chromosome.
-                _trainFitness = this.trainFitness,
+                // Copy fitness from this chromosome to chromosome c.
+                _trainFitness = this._trainFitness,
 
-                // Copy test fitness from chromosome c to this chromosome.
-                _testFitness = this.testFitness,
+                // Copy test fitness from this chromosome to chromosome c.
+                _testFitness = this._testFitness,
 
-                // Copy numberOfPossibleTerminals from chromosome c to this chromosome.
-                _numberOfPossibleTerminals = this.numberOfPossibleTerminals,
+                // Copy TN/TP/FN/FP values from this chromosome to chromosome c.
+                TP_TN_FP_FN_train = new Dictionary<string, int>(this.TP_TN_FP_FN_train),
+                TP_TN_FP_FN_test = new Dictionary<string, int>(this.TP_TN_FP_FN_test),
 
-                // Copy depth of tree from chromosome c to this chromosome.
-                _depth = this.depth,
+                // Copy numberOfPossibleTerminals from this chromosome to chromosome c.
+                _numberOfPossibleTerminals = this._numberOfPossibleTerminals,
+
+                // Copy depth of tree from this chromosome to chromosome c.
+                _depth = this._depth,
 
                 // Deep copy with variable property set.
-                symbolicTree = (SymbolicTreeNode)this.symbolicTree.Clone()
+                _symbolicTree = (SymbolicTreeNode)this._symbolicTree.Clone()
             };
 
             return c;
@@ -1487,9 +1461,8 @@ namespace antico.abcp
                     // In this method, the distance from the root node to each leaf is equal to the maximum tree depth.
                     this._depth = maxDepth;
 
-                    // Calculate fitness.
-                    this._trainFitness = CalculateFitness(trainData);
-                    this._testFitness = CalculateFitness(testData);
+                    // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
+                    this.UpdateAccuracy(trainData, testData);
 
                     break;
 
@@ -1506,9 +1479,9 @@ namespace antico.abcp
                     // Calculate depth of a generated symbolic tree.
                     this._depth = this._symbolicTree.DepthOfSymbolicTree();
 
-                    // Calculate fitness.
-                    this._trainFitness = CalculateFitness(trainData);
-                    this._testFitness = CalculateFitness(testData);
+                    // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
+                    this.UpdateAccuracy(trainData, testData);
+
                     break;
 
                 default:
@@ -1518,21 +1491,47 @@ namespace antico.abcp
 
         #endregion
 
+        #region Fitnes and TP/TN/FP/FN values
+
         #region Calculate fitness
         /// <summary>
         /// Method for calculating fitness of current solution.
         /// Fitness is calculated as proportion of ( true positives + true negatives) and total number of files.
+        /// 
         /// </summary>
         /// 
         /// <param name="data">Feature values from train/test set needed for calculating fitness.</param>
         /// <returns> Calculated fitness value. </returns>
         public double CalculateFitness(DataTable data)
         {
+            int NumberOfFiles = data.Rows.Count;
+            var result = CalculateTNTPFNFP(data);
+
+            // Calculate fitness.
+            return (result["TP"] + result["TN"]) / (double)(NumberOfFiles);
+        }
+        #endregion
+
+        #region Calculate TP/TN/FP/FN
+        /// <summary>
+        /// Method for calculating TP/TN/FP/FN values using current solutions.
+        /// </summary>
+        /// 
+        /// <param name="data">Feature values from train/test set needed for calculating fitness.</param>
+        /// <returns> Calculated TP/TN/FP/FN values. </returns>
+        public Dictionary<string, int> CalculateTNTPFNFP(DataTable data)
+        {
             // Number of true positives.
             int TP = 0;
 
             // Number of true negatives.
             int TN = 0;
+
+            // Number of false positives.
+            int FP = 0;
+
+            // Number of false negatives.
+            int FN = 0;
 
             // Number of data rows.
             int NumberOfFiles = data.Rows.Count;
@@ -1541,22 +1540,37 @@ namespace antico.abcp
             if (NumberOfFiles == 0)
                 throw new Exception("[CalculateFitness] Number of files is zero!");
 
-            // TODO: Remove later. (r)
-            int r = -1;
+            int r = 0;
 
-            foreach (DataRow row in data.Rows)
+            while (r < data.Rows.Count)
             {
-                // TODO: Remove later. (r)
-                r++;
+                // Flag for keeping track of changes in the tree.
+                bool changed = false;
+
+                // Data row.
+                var row = data.Rows[r];
 
                 // Evaluation of curretn row of data.
-                double evaluation = this._symbolicTree.Evaluate(row);
+                double evaluation = this._symbolicTree.Evaluate(row, ref changed);
+
+                // Check if content of any node in the tree was changed.
+                if (changed)
+                {
+                    // Reset counter variables and start over.
+                    r = 0;
+                    TP = 0;
+                    TN = 0;
+                    FP = 0;
+                    FN = 0;
+
+                    continue;
+                }
 
                 // Testing phase. Evaluated numbers shouldn't be NaNs.
                 // TODO Remove later. (isNaN)
                 if (Double.IsNaN(evaluation))
                 {
-                    var temp = 1;
+                    Console.WriteLine("");
                 }
 
                 // TODO "label" is hardcoded.
@@ -1564,19 +1578,62 @@ namespace antico.abcp
 
                 if (evaluation >= 0 && classification == 1)
                 {
-                    // If evaluation is greater than 0 file is assumed to be malicious.
+                    // If evaluation is greater or equal to zero file is assumed to be malicious.
+                    // File is really malicious.
+                    // Update number of true positives.
                     TP++;
                 }
                 else if (evaluation < 0 && classification == 0)
                 {
-                    // If evaluation isless or equal to zero file is assumed to be benign.
+                    // If evaluation is less or equal to zero file is assumed to be benign.
+                    // File is really benign.
+                    // Update number of true negatives.
                     TN++;
                 }
+                else if (evaluation < 0 && classification == 1)
+                {
+                    // If evaluation is less of zero file is assumed to be benign.
+                    // File is malicious.
+                    // Update number of false positives.
+                    FN++;
+                }
+                else
+                {
+                    // One last case - file is benign, but predicted malicious.
+                    // Update number of false positives.
+                    FP++;
+                }
+                r++;
             }
 
-            // Calculate fitness.
-            return (TP + TN) / (double)(NumberOfFiles);
+            return new Dictionary<string, int>()
+            {
+                { "TP", TP },
+                { "TN", TN },
+                { "FP", FP },
+                { "FN", FN }
+            };
         }
+        #endregion
+
+        #region Calculate and update fitness and TP/TN/FP/FN 
+        /// <summary>
+        /// Method for calculating train and test fitness & train and test TP/TN/FP/FN values values
+        /// and updating them.
+        /// </summary>
+        /// 
+        /// <param name="trainData">Features values from train set.</param>
+        /// <param name="testData">Features values from test set.</param>
+        public void UpdateAccuracy(DataTable trainData, DataTable testData)
+        {
+            this.TP_TN_FP_FN_train = CalculateTNTPFNFP(trainData);
+            this.TP_TN_FP_FN_test = CalculateTNTPFNFP(testData);
+
+            this._trainFitness = (TP_TN_FP_FN_train["TP"] + TP_TN_FP_FN_train["TN"]) / (double)(trainData.Rows.Count);
+            this._testFitness = (TP_TN_FP_FN_test["TP"] + TP_TN_FP_FN_test["TN"]) / (double)(testData.Rows.Count);
+        }
+        #endregion
+
         #endregion
 
         #endregion

@@ -168,16 +168,16 @@ namespace antico.abcp
         {
             // Associate initial values. 
 
-            this._populationSize = 20; // 500
-            this._maxNumberOfIterations = 20; // 100
-            this._numberOfRuns = 1;
+            this._populationSize = 30; // 500
+            this._maxNumberOfIterations = 30; // 100
+            this._numberOfRuns = 2;
             this._maxNumberOfNotImprovingIterations = 15; //50
             this._initialMaxDepth = 6; //6
-            this._maxDepth = 15; //15
-            this._limit = 8; //10
+            this._maxDepth = 20; //15
+            this._limit = 10; //10
             this._generatingTreesMethod = "ramped";
             this._alpha = 0.9;
-            this._probability = 0.6; //???
+            this._probability = 0.9; //???
 
         }
 

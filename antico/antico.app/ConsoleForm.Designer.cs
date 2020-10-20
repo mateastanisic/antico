@@ -48,10 +48,9 @@
             this.printoutPanel.AutoScroll = true;
             this.printoutPanel.BackColor = System.Drawing.Color.Transparent;
             this.printoutPanel.Controls.Add(this.heuristicPrintoutTextBox);
-            this.printoutPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.printoutPanel.Location = new System.Drawing.Point(0, 24);
             this.printoutPanel.Name = "printoutPanel";
-            this.printoutPanel.Size = new System.Drawing.Size(465, 663);
+            this.printoutPanel.Size = new System.Drawing.Size(403, 663);
             this.printoutPanel.TabIndex = 9;
             // 
             // heuristicPrintoutTextBox
@@ -63,13 +62,13 @@
             this.heuristicPrintoutTextBox.ForeColor = System.Drawing.SystemColors.Control;
             this.heuristicPrintoutTextBox.Location = new System.Drawing.Point(0, 0);
             this.heuristicPrintoutTextBox.Margin = new System.Windows.Forms.Padding(5);
-            this.heuristicPrintoutTextBox.MaximumSize = new System.Drawing.Size(465, 0);
-            this.heuristicPrintoutTextBox.MinimumSize = new System.Drawing.Size(435, 663);
+            this.heuristicPrintoutTextBox.MaximumSize = new System.Drawing.Size(400, 0);
+            this.heuristicPrintoutTextBox.MinimumSize = new System.Drawing.Size(400, 663);
             this.heuristicPrintoutTextBox.Multiline = true;
             this.heuristicPrintoutTextBox.Name = "heuristicPrintoutTextBox";
             this.heuristicPrintoutTextBox.ReadOnly = true;
             this.heuristicPrintoutTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.heuristicPrintoutTextBox.Size = new System.Drawing.Size(465, 663);
+            this.heuristicPrintoutTextBox.Size = new System.Drawing.Size(400, 663);
             this.heuristicPrintoutTextBox.TabIndex = 0;
             // 
             // titlePanel
@@ -82,7 +81,7 @@
             this.titlePanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.titlePanel.Location = new System.Drawing.Point(0, 0);
             this.titlePanel.Name = "titlePanel";
-            this.titlePanel.Size = new System.Drawing.Size(465, 24);
+            this.titlePanel.Size = new System.Drawing.Size(400, 24);
             this.titlePanel.TabIndex = 18;
             this.titlePanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TitlePanel_MouseDown);
             this.titlePanel.MouseEnter += new System.EventHandler(this.TitlePanel_MouseEnter);
@@ -115,7 +114,7 @@
             // 
             this.minimizeSign.BackColor = System.Drawing.Color.Transparent;
             this.minimizeSign.Image = global::antico.Properties.Resources.minimize_dark;
-            this.minimizeSign.Location = new System.Drawing.Point(411, 2);
+            this.minimizeSign.Location = new System.Drawing.Point(348, 2);
             this.minimizeSign.Name = "minimizeSign";
             this.minimizeSign.Size = new System.Drawing.Size(20, 20);
             this.minimizeSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -130,7 +129,7 @@
             // 
             this.exitSign.BackColor = System.Drawing.Color.Transparent;
             this.exitSign.Image = global::antico.Properties.Resources.exit;
-            this.exitSign.Location = new System.Drawing.Point(437, 2);
+            this.exitSign.Location = new System.Drawing.Point(374, 2);
             this.exitSign.Name = "exitSign";
             this.exitSign.Size = new System.Drawing.Size(20, 20);
             this.exitSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -146,7 +145,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.WindowText;
-            this.ClientSize = new System.Drawing.Size(465, 687);
+            this.ClientSize = new System.Drawing.Size(400, 687);
             this.Controls.Add(this.printoutPanel);
             this.Controls.Add(this.titlePanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;

@@ -1,4 +1,14 @@
-﻿using System;
+﻿//////////////////////////////////////////////////////////////////////////////////////////
+// antico --- artificial bee colony programming based malware detection                 //
+// Copyright 2020 Matea Stanišić                                                        //
+//                                                                                      //
+//                                                                                      //
+// Matea Stanišić                                                                       //
+// mateastanisic@outlook.com                                                            //
+// Zagreb, Hrvatska                                                                     //
+//////////////////////////////////////////////////////////////////////////////////////////
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

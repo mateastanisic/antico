@@ -31,6 +31,8 @@ namespace antico
         /// </summary>
         private void InitializeComponent()
         {
+            this.DoubleBuffered = true;
+
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CreateNewModelForm));
             this.goBackSign = new System.Windows.Forms.PictureBox();
             this.anticoLabel = new System.Windows.Forms.Label();
@@ -85,10 +87,12 @@ namespace antico
             this.numberOfRunsLayout = new System.Windows.Forms.FlowLayoutPanel();
             this.numberOfRunsLabel = new System.Windows.Forms.Label();
             this.numberOfRunsUpDown = new System.Windows.Forms.NumericUpDown();
-            this.saveParametersSign = new System.Windows.Forms.PictureBox();
-            this.lookupConsoleFormPictureBox = new System.Windows.Forms.PictureBox();
-            this.printoutOfAllSolutionsLabel = new System.Windows.Forms.Label();
-            this.panelForPrintoutLabel = new System.Windows.Forms.Panel();
+            this.lookupConsoleFormSign = new System.Windows.Forms.PictureBox();
+            this.minimizeSign = new System.Windows.Forms.PictureBox();
+            this.exitSign = new System.Windows.Forms.PictureBox();
+            this.uploadSign = new System.Windows.Forms.PictureBox();
+            this.showSolutionsProgressSign = new System.Windows.Forms.PictureBox();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.goBackSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.parametersSettingsSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.startSign)).BeginInit();
@@ -117,18 +121,21 @@ namespace antico
             this.generatingTreeMethodLayout.SuspendLayout();
             this.numberOfRunsLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfRunsUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.saveParametersSign)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.lookupConsoleFormPictureBox)).BeginInit();
-            this.panelForPrintoutLabel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.lookupConsoleFormSign)).BeginInit();
+            
+            ((System.ComponentModel.ISupportInitialize)(this.minimizeSign)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.exitSign)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.uploadSign)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.showSolutionsProgressSign)).BeginInit();
             this.SuspendLayout();
             // 
             // goBackSign
             // 
             this.goBackSign.BackColor = System.Drawing.Color.Transparent;
             this.goBackSign.Image = global::antico.Properties.Resources.back_white;
-            this.goBackSign.Location = new System.Drawing.Point(38, 19);
+            this.goBackSign.Location = new System.Drawing.Point(752, 30);
             this.goBackSign.Name = "goBackSign";
-            this.goBackSign.Size = new System.Drawing.Size(100, 100);
+            this.goBackSign.Size = new System.Drawing.Size(70, 70);
             this.goBackSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.goBackSign.TabIndex = 7;
             this.goBackSign.TabStop = false;
@@ -143,21 +150,20 @@ namespace antico
             this.anticoLabel.BackColor = System.Drawing.Color.Transparent;
             this.anticoLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.anticoLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.anticoLabel.Location = new System.Drawing.Point(432, 19);
+            this.anticoLabel.Location = new System.Drawing.Point(601, 38);
             this.anticoLabel.Name = "anticoLabel";
             this.anticoLabel.Size = new System.Drawing.Size(93, 33);
             this.anticoLabel.TabIndex = 8;
             this.anticoLabel.Text = "antico";
-            this.anticoLabel.Visible = false;
             // 
             // parametersSettingsSign
             // 
             this.parametersSettingsSign.BackColor = System.Drawing.Color.Transparent;
             this.parametersSettingsSign.BackgroundImage = global::antico.Properties.Resources.settings_white;
             this.parametersSettingsSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.parametersSettingsSign.Location = new System.Drawing.Point(38, 154);
+            this.parametersSettingsSign.Location = new System.Drawing.Point(155, 21);
             this.parametersSettingsSign.Name = "parametersSettingsSign";
-            this.parametersSettingsSign.Size = new System.Drawing.Size(100, 100);
+            this.parametersSettingsSign.Size = new System.Drawing.Size(50, 50);
             this.parametersSettingsSign.TabIndex = 9;
             this.parametersSettingsSign.TabStop = false;
             this.parametersSettingsSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ParametersSettingsSign_MouseClick);
@@ -170,9 +176,9 @@ namespace antico
             this.startSign.BackColor = System.Drawing.Color.Transparent;
             this.startSign.BackgroundImage = global::antico.Properties.Resources.start_white;
             this.startSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.startSign.Location = new System.Drawing.Point(38, 289);
+            this.startSign.Location = new System.Drawing.Point(30, 17);
             this.startSign.Name = "startSign";
-            this.startSign.Size = new System.Drawing.Size(100, 100);
+            this.startSign.Size = new System.Drawing.Size(60, 60);
             this.startSign.TabIndex = 10;
             this.startSign.TabStop = false;
             this.startSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.StartSign_MouseClick);
@@ -185,11 +191,12 @@ namespace antico
             this.saveSign.BackColor = System.Drawing.Color.Transparent;
             this.saveSign.BackgroundImage = global::antico.Properties.Resources.save_white;
             this.saveSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.saveSign.Location = new System.Drawing.Point(38, 559);
+            this.saveSign.Location = new System.Drawing.Point(462, 22);
             this.saveSign.Name = "saveSign";
-            this.saveSign.Size = new System.Drawing.Size(100, 100);
+            this.saveSign.Size = new System.Drawing.Size(45, 45);
             this.saveSign.TabIndex = 11;
             this.saveSign.TabStop = false;
+            this.saveSign.Visible = false;
             this.saveSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SaveSign_MouseClick);
             this.saveSign.MouseEnter += new System.EventHandler(this.SaveSign_MouseEnter);
             this.saveSign.MouseLeave += new System.EventHandler(this.SaveSign_MouseLeave);
@@ -200,11 +207,12 @@ namespace antico
             this.visualizeSign.BackColor = System.Drawing.Color.Transparent;
             this.visualizeSign.BackgroundImage = global::antico.Properties.Resources.visual_white;
             this.visualizeSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.visualizeSign.Location = new System.Drawing.Point(38, 424);
+            this.visualizeSign.Location = new System.Drawing.Point(384, 18);
             this.visualizeSign.Name = "visualizeSign";
-            this.visualizeSign.Size = new System.Drawing.Size(100, 100);
+            this.visualizeSign.Size = new System.Drawing.Size(55, 55);
             this.visualizeSign.TabIndex = 12;
             this.visualizeSign.TabStop = false;
+            this.visualizeSign.Visible = false;
             this.visualizeSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.VisualizeSign_MouseClick);
             this.visualizeSign.MouseEnter += new System.EventHandler(this.VisualizeSign_MouseEnter);
             this.visualizeSign.MouseLeave += new System.EventHandler(this.VisualizeSign_MouseLeave);
@@ -215,12 +223,14 @@ namespace antico
             this.waitingAnimation.BackColor = System.Drawing.Color.Transparent;
             this.waitingAnimation.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.waitingAnimation.Image = global::antico.Properties.Resources.wait;
-            this.waitingAnimation.Location = new System.Drawing.Point(429, 119);
+            this.waitingAnimation.Location = new System.Drawing.Point(371, 160);
             this.waitingAnimation.Name = "waitingAnimation";
-            this.waitingAnimation.Size = new System.Drawing.Size(276, 270);
+            this.waitingAnimation.Size = new System.Drawing.Size(270, 270);
             this.waitingAnimation.TabIndex = 14;
             this.waitingAnimation.TabStop = false;
             this.waitingAnimation.Visible = false;
+            // Trigger on waitingAnimation visibilitx changed. (For end of model search.)
+            this.waitingAnimation.VisibleChanged += new System.EventHandler(this.WaitingAnimation_VisibilityChanged);
             // 
             // databaseRadioLayout
             // 
@@ -229,17 +239,17 @@ namespace antico
             this.databaseRadioLayout.Controls.Add(this.databaseComboBox);
             this.databaseRadioLayout.Location = new System.Drawing.Point(3, 3);
             this.databaseRadioLayout.Name = "databaseRadioLayout";
-            this.databaseRadioLayout.Size = new System.Drawing.Size(245, 71);
+            this.databaseRadioLayout.Size = new System.Drawing.Size(497, 40);
             this.databaseRadioLayout.TabIndex = 15;
             // 
             // databaseLabel
             // 
             this.databaseLabel.AutoSize = true;
-            this.databaseLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.databaseLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.databaseLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.databaseLabel.Location = new System.Drawing.Point(3, 0);
             this.databaseLabel.Name = "databaseLabel";
-            this.databaseLabel.Size = new System.Drawing.Size(85, 17);
+            this.databaseLabel.Size = new System.Drawing.Size(67, 17);
             this.databaseLabel.TabIndex = 17;
             this.databaseLabel.Text = "DATABASE:\r\n";
             // 
@@ -248,15 +258,15 @@ namespace antico
             this.databaseComboBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.databaseComboBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.databaseComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.databaseComboBox.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.databaseComboBox.FormattingEnabled = true;
             this.databaseComboBox.Items.AddRange(new object[] {
             "ClaMP",
             "ember"});
-            this.databaseComboBox.Location = new System.Drawing.Point(94, 3);
+            this.databaseComboBox.Location = new System.Drawing.Point(76, 3);
             this.databaseComboBox.Name = "databaseComboBox";
-            this.databaseComboBox.Size = new System.Drawing.Size(133, 21);
+            this.databaseComboBox.Size = new System.Drawing.Size(133, 25);
             this.databaseComboBox.TabIndex = 20;
-            this.databaseComboBox.SelectedIndex = 0;
             // 
             // mainLayout
             // 
@@ -273,10 +283,9 @@ namespace antico
             this.mainLayout.Controls.Add(this.probabilityLayout);
             this.mainLayout.Controls.Add(this.generatingTreeMethodLayout);
             this.mainLayout.Controls.Add(this.numberOfRunsLayout);
-            this.mainLayout.Controls.Add(this.saveParametersSign);
-            this.mainLayout.Location = new System.Drawing.Point(228, 154);
+            this.mainLayout.Location = new System.Drawing.Point(30, 107);
             this.mainLayout.Name = "mainLayout";
-            this.mainLayout.Size = new System.Drawing.Size(669, 370);
+            this.mainLayout.Size = new System.Drawing.Size(500, 550);
             this.mainLayout.TabIndex = 16;
             this.mainLayout.Visible = false;
             // 
@@ -292,19 +301,19 @@ namespace antico
             this.nonTerminalSelectionLayout.Controls.Add(this.cosSelected);
             this.nonTerminalSelectionLayout.Controls.Add(this.expSelected);
             this.nonTerminalSelectionLayout.Controls.Add(this.rlogSelected);
-            this.nonTerminalSelectionLayout.Location = new System.Drawing.Point(254, 3);
+            this.nonTerminalSelectionLayout.Location = new System.Drawing.Point(3, 49);
             this.nonTerminalSelectionLayout.Name = "nonTerminalSelectionLayout";
-            this.nonTerminalSelectionLayout.Size = new System.Drawing.Size(286, 71);
+            this.nonTerminalSelectionLayout.Size = new System.Drawing.Size(493, 40);
             this.nonTerminalSelectionLayout.TabIndex = 18;
             // 
             // nonTerminalsLabel
             // 
             this.nonTerminalsLabel.AutoSize = true;
-            this.nonTerminalsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.nonTerminalsLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.nonTerminalsLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.nonTerminalsLabel.Location = new System.Drawing.Point(3, 0);
             this.nonTerminalsLabel.Name = "nonTerminalsLabel";
-            this.nonTerminalsLabel.Size = new System.Drawing.Size(126, 17);
+            this.nonTerminalsLabel.Size = new System.Drawing.Size(100, 17);
             this.nonTerminalsLabel.TabIndex = 17;
             this.nonTerminalsLabel.Text = "NON-TERMINALS:";
             // 
@@ -313,10 +322,11 @@ namespace antico
             this.plusSelected.AutoSize = true;
             this.plusSelected.Checked = true;
             this.plusSelected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.plusSelected.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.plusSelected.ForeColor = System.Drawing.SystemColors.Control;
-            this.plusSelected.Location = new System.Drawing.Point(135, 3);
+            this.plusSelected.Location = new System.Drawing.Point(109, 3);
             this.plusSelected.Name = "plusSelected";
-            this.plusSelected.Size = new System.Drawing.Size(32, 17);
+            this.plusSelected.Size = new System.Drawing.Size(33, 21);
             this.plusSelected.TabIndex = 18;
             this.plusSelected.Text = "+";
             this.plusSelected.UseVisualStyleBackColor = true;
@@ -326,10 +336,11 @@ namespace antico
             this.minusSelected.AutoSize = true;
             this.minusSelected.Checked = true;
             this.minusSelected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.minusSelected.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.minusSelected.ForeColor = System.Drawing.SystemColors.Control;
-            this.minusSelected.Location = new System.Drawing.Point(173, 3);
+            this.minusSelected.Location = new System.Drawing.Point(148, 3);
             this.minusSelected.Name = "minusSelected";
-            this.minusSelected.Size = new System.Drawing.Size(29, 17);
+            this.minusSelected.Size = new System.Drawing.Size(31, 21);
             this.minusSelected.TabIndex = 19;
             this.minusSelected.Text = "-";
             this.minusSelected.UseVisualStyleBackColor = true;
@@ -339,10 +350,11 @@ namespace antico
             this.timesSelected.AutoSize = true;
             this.timesSelected.Checked = true;
             this.timesSelected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.timesSelected.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.timesSelected.ForeColor = System.Drawing.SystemColors.Control;
-            this.timesSelected.Location = new System.Drawing.Point(208, 3);
+            this.timesSelected.Location = new System.Drawing.Point(185, 3);
             this.timesSelected.Name = "timesSelected";
-            this.timesSelected.Size = new System.Drawing.Size(30, 17);
+            this.timesSelected.Size = new System.Drawing.Size(32, 21);
             this.timesSelected.TabIndex = 20;
             this.timesSelected.Text = "*";
             this.timesSelected.UseVisualStyleBackColor = true;
@@ -352,10 +364,11 @@ namespace antico
             this.divisionSelected.AutoSize = true;
             this.divisionSelected.Checked = true;
             this.divisionSelected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.divisionSelected.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.divisionSelected.ForeColor = System.Drawing.SystemColors.Control;
-            this.divisionSelected.Location = new System.Drawing.Point(244, 3);
+            this.divisionSelected.Location = new System.Drawing.Point(223, 3);
             this.divisionSelected.Name = "divisionSelected";
-            this.divisionSelected.Size = new System.Drawing.Size(31, 17);
+            this.divisionSelected.Size = new System.Drawing.Size(32, 21);
             this.divisionSelected.TabIndex = 21;
             this.divisionSelected.Text = "/";
             this.divisionSelected.UseVisualStyleBackColor = true;
@@ -365,10 +378,11 @@ namespace antico
             this.sinSelected.AutoSize = true;
             this.sinSelected.Checked = true;
             this.sinSelected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.sinSelected.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.sinSelected.ForeColor = System.Drawing.SystemColors.Control;
-            this.sinSelected.Location = new System.Drawing.Point(3, 26);
+            this.sinSelected.Location = new System.Drawing.Point(261, 3);
             this.sinSelected.Name = "sinSelected";
-            this.sinSelected.Size = new System.Drawing.Size(39, 17);
+            this.sinSelected.Size = new System.Drawing.Size(42, 21);
             this.sinSelected.TabIndex = 22;
             this.sinSelected.Text = "sin";
             this.sinSelected.UseVisualStyleBackColor = true;
@@ -378,10 +392,11 @@ namespace antico
             this.cosSelected.AutoSize = true;
             this.cosSelected.Checked = true;
             this.cosSelected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cosSelected.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.cosSelected.ForeColor = System.Drawing.SystemColors.Control;
-            this.cosSelected.Location = new System.Drawing.Point(48, 26);
+            this.cosSelected.Location = new System.Drawing.Point(309, 3);
             this.cosSelected.Name = "cosSelected";
-            this.cosSelected.Size = new System.Drawing.Size(43, 17);
+            this.cosSelected.Size = new System.Drawing.Size(45, 21);
             this.cosSelected.TabIndex = 23;
             this.cosSelected.Text = "cos";
             this.cosSelected.UseVisualStyleBackColor = true;
@@ -391,10 +406,11 @@ namespace antico
             this.expSelected.AutoSize = true;
             this.expSelected.Checked = true;
             this.expSelected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.expSelected.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.expSelected.ForeColor = System.Drawing.SystemColors.Control;
-            this.expSelected.Location = new System.Drawing.Point(97, 26);
+            this.expSelected.Location = new System.Drawing.Point(360, 3);
             this.expSelected.Name = "expSelected";
-            this.expSelected.Size = new System.Drawing.Size(43, 17);
+            this.expSelected.Size = new System.Drawing.Size(46, 21);
             this.expSelected.TabIndex = 24;
             this.expSelected.Text = "exp";
             this.expSelected.UseVisualStyleBackColor = true;
@@ -404,10 +420,11 @@ namespace antico
             this.rlogSelected.AutoSize = true;
             this.rlogSelected.Checked = true;
             this.rlogSelected.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.rlogSelected.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.rlogSelected.ForeColor = System.Drawing.SystemColors.Control;
-            this.rlogSelected.Location = new System.Drawing.Point(146, 26);
+            this.rlogSelected.Location = new System.Drawing.Point(412, 3);
             this.rlogSelected.Name = "rlogSelected";
-            this.rlogSelected.Size = new System.Drawing.Size(43, 17);
+            this.rlogSelected.Size = new System.Drawing.Size(49, 21);
             this.rlogSelected.TabIndex = 25;
             this.rlogSelected.Text = "rlog";
             this.rlogSelected.UseVisualStyleBackColor = true;
@@ -417,42 +434,43 @@ namespace antico
             this.colonySizeLayout.BackColor = System.Drawing.Color.Transparent;
             this.colonySizeLayout.Controls.Add(this.colonySize);
             this.colonySizeLayout.Controls.Add(this.colonySizeUpDown);
-            this.colonySizeLayout.Location = new System.Drawing.Point(546, 3);
+            this.colonySizeLayout.Location = new System.Drawing.Point(3, 95);
             this.colonySizeLayout.Name = "colonySizeLayout";
-            this.colonySizeLayout.Size = new System.Drawing.Size(107, 60);
+            this.colonySizeLayout.Size = new System.Drawing.Size(497, 40);
             this.colonySizeLayout.TabIndex = 18;
             // 
             // colonySize
             // 
             this.colonySize.AutoSize = true;
-            this.colonySize.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.colonySize.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.colonySize.ForeColor = System.Drawing.SystemColors.Control;
             this.colonySize.Location = new System.Drawing.Point(3, 0);
             this.colonySize.Name = "colonySize";
-            this.colonySize.Size = new System.Drawing.Size(70, 34);
+            this.colonySize.Size = new System.Drawing.Size(83, 17);
             this.colonySize.TabIndex = 17;
             this.colonySize.Text = "COLONY SIZE:";
             // 
             // colonySizeUpDown
             // 
+            this.colonySizeUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.colonySizeUpDown.Increment = new decimal(new int[] {
             10,
             0,
             0,
             0});
-            this.colonySizeUpDown.Location = new System.Drawing.Point(3, 37);
+            this.colonySizeUpDown.Location = new System.Drawing.Point(92, 3);
             this.colonySizeUpDown.Maximum = new decimal(new int[] {
             600,
             0,
             0,
             0});
             this.colonySizeUpDown.Minimum = new decimal(new int[] {
-            10,
+            1,
             0,
             0,
             0});
             this.colonySizeUpDown.Name = "colonySizeUpDown";
-            this.colonySizeUpDown.Size = new System.Drawing.Size(60, 20);
+            this.colonySizeUpDown.Size = new System.Drawing.Size(60, 24);
             this.colonySizeUpDown.TabIndex = 18;
             this.colonySizeUpDown.Value = new decimal(new int[] {
             100,
@@ -465,42 +483,43 @@ namespace antico
             this.maximalNumberOfIterationsLayout.BackColor = System.Drawing.Color.Transparent;
             this.maximalNumberOfIterationsLayout.Controls.Add(this.maximalNumberOfIterationsLabel);
             this.maximalNumberOfIterationsLayout.Controls.Add(this.maxNoOfIterUpDown);
-            this.maximalNumberOfIterationsLayout.Location = new System.Drawing.Point(3, 80);
+            this.maximalNumberOfIterationsLayout.Location = new System.Drawing.Point(3, 141);
             this.maximalNumberOfIterationsLayout.Name = "maximalNumberOfIterationsLayout";
-            this.maximalNumberOfIterationsLayout.Size = new System.Drawing.Size(245, 60);
+            this.maximalNumberOfIterationsLayout.Size = new System.Drawing.Size(497, 40);
             this.maximalNumberOfIterationsLayout.TabIndex = 19;
             // 
             // maximalNumberOfIterationsLabel
             // 
             this.maximalNumberOfIterationsLabel.AutoSize = true;
-            this.maximalNumberOfIterationsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.maximalNumberOfIterationsLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.maximalNumberOfIterationsLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.maximalNumberOfIterationsLabel.Location = new System.Drawing.Point(3, 0);
             this.maximalNumberOfIterationsLabel.Name = "maximalNumberOfIterationsLabel";
-            this.maximalNumberOfIterationsLabel.Size = new System.Drawing.Size(158, 34);
+            this.maximalNumberOfIterationsLabel.Size = new System.Drawing.Size(194, 17);
             this.maximalNumberOfIterationsLabel.TabIndex = 17;
             this.maximalNumberOfIterationsLabel.Text = "MAXIMAL NUMBER OF ITERATIONS:";
             // 
             // maxNoOfIterUpDown
             // 
+            this.maxNoOfIterUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.maxNoOfIterUpDown.Increment = new decimal(new int[] {
             10,
             0,
             0,
             0});
-            this.maxNoOfIterUpDown.Location = new System.Drawing.Point(167, 3);
+            this.maxNoOfIterUpDown.Location = new System.Drawing.Point(203, 3);
             this.maxNoOfIterUpDown.Maximum = new decimal(new int[] {
             1000,
             0,
             0,
             0});
             this.maxNoOfIterUpDown.Minimum = new decimal(new int[] {
-            10,
+            1,
             0,
             0,
             0});
             this.maxNoOfIterUpDown.Name = "maxNoOfIterUpDown";
-            this.maxNoOfIterUpDown.Size = new System.Drawing.Size(60, 20);
+            this.maxNoOfIterUpDown.Size = new System.Drawing.Size(60, 24);
             this.maxNoOfIterUpDown.TabIndex = 18;
             this.maxNoOfIterUpDown.Value = new decimal(new int[] {
             500,
@@ -513,42 +532,43 @@ namespace antico
             this.maxNoOfNotImprovingIterationsLayout.BackColor = System.Drawing.Color.Transparent;
             this.maxNoOfNotImprovingIterationsLayout.Controls.Add(this.maxNoOfNotImprovingIterationsLabel);
             this.maxNoOfNotImprovingIterationsLayout.Controls.Add(this.maxNoOfNotImprovingIterUpDown);
-            this.maxNoOfNotImprovingIterationsLayout.Location = new System.Drawing.Point(254, 80);
+            this.maxNoOfNotImprovingIterationsLayout.Location = new System.Drawing.Point(3, 187);
             this.maxNoOfNotImprovingIterationsLayout.Name = "maxNoOfNotImprovingIterationsLayout";
-            this.maxNoOfNotImprovingIterationsLayout.Size = new System.Drawing.Size(312, 60);
+            this.maxNoOfNotImprovingIterationsLayout.Size = new System.Drawing.Size(497, 40);
             this.maxNoOfNotImprovingIterationsLayout.TabIndex = 20;
             // 
             // maxNoOfNotImprovingIterationsLabel
             // 
             this.maxNoOfNotImprovingIterationsLabel.AutoSize = true;
-            this.maxNoOfNotImprovingIterationsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.maxNoOfNotImprovingIterationsLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.maxNoOfNotImprovingIterationsLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.maxNoOfNotImprovingIterationsLabel.Location = new System.Drawing.Point(3, 0);
             this.maxNoOfNotImprovingIterationsLabel.Name = "maxNoOfNotImprovingIterationsLabel";
-            this.maxNoOfNotImprovingIterationsLabel.Size = new System.Drawing.Size(273, 34);
+            this.maxNoOfNotImprovingIterationsLabel.Size = new System.Drawing.Size(285, 17);
             this.maxNoOfNotImprovingIterationsLabel.TabIndex = 17;
             this.maxNoOfNotImprovingIterationsLabel.Text = "MAXIMAL NUMBER OF NOT IMPROVING ITERATIONS:";
             // 
             // maxNoOfNotImprovingIterUpDown
             // 
+            this.maxNoOfNotImprovingIterUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.maxNoOfNotImprovingIterUpDown.Increment = new decimal(new int[] {
             10,
             0,
             0,
             0});
-            this.maxNoOfNotImprovingIterUpDown.Location = new System.Drawing.Point(3, 37);
+            this.maxNoOfNotImprovingIterUpDown.Location = new System.Drawing.Point(294, 3);
             this.maxNoOfNotImprovingIterUpDown.Maximum = new decimal(new int[] {
             250,
             0,
             0,
             0});
             this.maxNoOfNotImprovingIterUpDown.Minimum = new decimal(new int[] {
-            10,
+            1,
             0,
             0,
             0});
             this.maxNoOfNotImprovingIterUpDown.Name = "maxNoOfNotImprovingIterUpDown";
-            this.maxNoOfNotImprovingIterUpDown.Size = new System.Drawing.Size(60, 20);
+            this.maxNoOfNotImprovingIterUpDown.Size = new System.Drawing.Size(60, 24);
             this.maxNoOfNotImprovingIterUpDown.TabIndex = 18;
             this.maxNoOfNotImprovingIterUpDown.Value = new decimal(new int[] {
             200,
@@ -561,42 +581,43 @@ namespace antico
             this.limitLayout.BackColor = System.Drawing.Color.Transparent;
             this.limitLayout.Controls.Add(this.limitLabel);
             this.limitLayout.Controls.Add(this.limitUpDown);
-            this.limitLayout.Location = new System.Drawing.Point(572, 80);
+            this.limitLayout.Location = new System.Drawing.Point(3, 233);
             this.limitLayout.Name = "limitLayout";
-            this.limitLayout.Size = new System.Drawing.Size(81, 60);
+            this.limitLayout.Size = new System.Drawing.Size(497, 40);
             this.limitLayout.TabIndex = 21;
             // 
             // limitLabel
             // 
             this.limitLabel.AutoSize = true;
-            this.limitLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.limitLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.limitLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.limitLabel.Location = new System.Drawing.Point(3, 0);
             this.limitLabel.Name = "limitLabel";
-            this.limitLabel.Size = new System.Drawing.Size(46, 17);
+            this.limitLabel.Size = new System.Drawing.Size(39, 17);
             this.limitLabel.TabIndex = 17;
             this.limitLabel.Text = "LIMIT:";
             // 
             // limitUpDown
             // 
+            this.limitUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.limitUpDown.Increment = new decimal(new int[] {
             10,
             0,
             0,
             0});
-            this.limitUpDown.Location = new System.Drawing.Point(3, 20);
+            this.limitUpDown.Location = new System.Drawing.Point(48, 3);
             this.limitUpDown.Maximum = new decimal(new int[] {
             200,
             0,
             0,
             0});
             this.limitUpDown.Minimum = new decimal(new int[] {
-            50,
+            1,
             0,
             0,
             0});
             this.limitUpDown.Name = "limitUpDown";
-            this.limitUpDown.Size = new System.Drawing.Size(60, 20);
+            this.limitUpDown.Size = new System.Drawing.Size(60, 24);
             this.limitUpDown.TabIndex = 18;
             this.limitUpDown.Value = new decimal(new int[] {
             100,
@@ -609,37 +630,33 @@ namespace antico
             this.initialMaxDepthLayout.BackColor = System.Drawing.Color.Transparent;
             this.initialMaxDepthLayout.Controls.Add(this.initialMaxDepthLabel);
             this.initialMaxDepthLayout.Controls.Add(this.initialMaxDepthUpDown);
-            this.initialMaxDepthLayout.Location = new System.Drawing.Point(3, 146);
+            this.initialMaxDepthLayout.Location = new System.Drawing.Point(3, 279);
             this.initialMaxDepthLayout.Name = "initialMaxDepthLayout";
-            this.initialMaxDepthLayout.Size = new System.Drawing.Size(342, 44);
+            this.initialMaxDepthLayout.Size = new System.Drawing.Size(497, 40);
             this.initialMaxDepthLayout.TabIndex = 19;
             // 
             // initialMaxDepthLabel
             // 
             this.initialMaxDepthLabel.AutoSize = true;
-            this.initialMaxDepthLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.initialMaxDepthLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.initialMaxDepthLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.initialMaxDepthLabel.Location = new System.Drawing.Point(3, 0);
             this.initialMaxDepthLabel.Name = "initialMaxDepthLabel";
-            this.initialMaxDepthLabel.Size = new System.Drawing.Size(172, 17);
+            this.initialMaxDepthLabel.Size = new System.Drawing.Size(139, 17);
             this.initialMaxDepthLabel.TabIndex = 17;
             this.initialMaxDepthLabel.Text = "INITIAL MAXIMAL DEPTH:";
             // 
             // initialMaxDepthUpDown
             // 
-            this.initialMaxDepthUpDown.Location = new System.Drawing.Point(181, 3);
-            this.initialMaxDepthUpDown.Maximum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
+            this.initialMaxDepthUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
+            this.initialMaxDepthUpDown.Location = new System.Drawing.Point(148, 3);
             this.initialMaxDepthUpDown.Minimum = new decimal(new int[] {
             2,
             0,
             0,
             0});
             this.initialMaxDepthUpDown.Name = "initialMaxDepthUpDown";
-            this.initialMaxDepthUpDown.Size = new System.Drawing.Size(60, 20);
+            this.initialMaxDepthUpDown.Size = new System.Drawing.Size(60, 24);
             this.initialMaxDepthUpDown.TabIndex = 18;
             this.initialMaxDepthUpDown.Value = new decimal(new int[] {
             6,
@@ -652,37 +669,33 @@ namespace antico
             this.maxDepthLayout.BackColor = System.Drawing.Color.Transparent;
             this.maxDepthLayout.Controls.Add(this.maxDepthLabel);
             this.maxDepthLayout.Controls.Add(this.maxDepthUpDown);
-            this.maxDepthLayout.Location = new System.Drawing.Point(351, 146);
+            this.maxDepthLayout.Location = new System.Drawing.Point(3, 325);
             this.maxDepthLayout.Name = "maxDepthLayout";
-            this.maxDepthLayout.Size = new System.Drawing.Size(302, 44);
+            this.maxDepthLayout.Size = new System.Drawing.Size(497, 40);
             this.maxDepthLayout.TabIndex = 20;
             // 
             // maxDepthLabel
             // 
             this.maxDepthLabel.AutoSize = true;
-            this.maxDepthLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.maxDepthLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.maxDepthLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.maxDepthLabel.Location = new System.Drawing.Point(3, 0);
             this.maxDepthLabel.Name = "maxDepthLabel";
-            this.maxDepthLabel.Size = new System.Drawing.Size(123, 17);
+            this.maxDepthLabel.Size = new System.Drawing.Size(99, 17);
             this.maxDepthLabel.TabIndex = 17;
             this.maxDepthLabel.Text = "MAXIMAL DEPTH:";
             // 
             // maxDepthUpDown
             // 
-            this.maxDepthUpDown.Location = new System.Drawing.Point(132, 3);
-            this.maxDepthUpDown.Maximum = new decimal(new int[] {
-            30,
-            0,
-            0,
-            0});
+            this.maxDepthUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
+            this.maxDepthUpDown.Location = new System.Drawing.Point(108, 3);
             this.maxDepthUpDown.Minimum = new decimal(new int[] {
             2,
             0,
             0,
             0});
             this.maxDepthUpDown.Name = "maxDepthUpDown";
-            this.maxDepthUpDown.Size = new System.Drawing.Size(60, 20);
+            this.maxDepthUpDown.Size = new System.Drawing.Size(60, 24);
             this.maxDepthUpDown.TabIndex = 18;
             this.maxDepthUpDown.Value = new decimal(new int[] {
             15,
@@ -695,31 +708,32 @@ namespace antico
             this.alphaLayout.BackColor = System.Drawing.Color.Transparent;
             this.alphaLayout.Controls.Add(this.alphaLabel);
             this.alphaLayout.Controls.Add(this.alphaUpDown);
-            this.alphaLayout.Location = new System.Drawing.Point(3, 196);
+            this.alphaLayout.Location = new System.Drawing.Point(3, 371);
             this.alphaLayout.Name = "alphaLayout";
-            this.alphaLayout.Size = new System.Drawing.Size(175, 53);
+            this.alphaLayout.Size = new System.Drawing.Size(497, 40);
             this.alphaLayout.TabIndex = 22;
             // 
             // alphaLabel
             // 
             this.alphaLabel.AutoSize = true;
-            this.alphaLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.alphaLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.alphaLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.alphaLabel.Location = new System.Drawing.Point(3, 0);
             this.alphaLabel.Name = "alphaLabel";
-            this.alphaLabel.Size = new System.Drawing.Size(57, 17);
+            this.alphaLabel.Size = new System.Drawing.Size(46, 17);
             this.alphaLabel.TabIndex = 17;
             this.alphaLabel.Text = "ALPHA:";
             // 
             // alphaUpDown
             // 
             this.alphaUpDown.DecimalPlaces = 2;
+            this.alphaUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.alphaUpDown.Increment = new decimal(new int[] {
             1,
             0,
             0,
             65536});
-            this.alphaUpDown.Location = new System.Drawing.Point(66, 3);
+            this.alphaUpDown.Location = new System.Drawing.Point(55, 3);
             this.alphaUpDown.Maximum = new decimal(new int[] {
             99,
             0,
@@ -731,7 +745,7 @@ namespace antico
             0,
             131072});
             this.alphaUpDown.Name = "alphaUpDown";
-            this.alphaUpDown.Size = new System.Drawing.Size(60, 20);
+            this.alphaUpDown.Size = new System.Drawing.Size(60, 24);
             this.alphaUpDown.TabIndex = 18;
             this.alphaUpDown.Value = new decimal(new int[] {
             9,
@@ -744,31 +758,32 @@ namespace antico
             this.probabilityLayout.BackColor = System.Drawing.Color.Transparent;
             this.probabilityLayout.Controls.Add(this.probabilityLabel);
             this.probabilityLayout.Controls.Add(this.probabilityUpDown);
-            this.probabilityLayout.Location = new System.Drawing.Point(184, 196);
+            this.probabilityLayout.Location = new System.Drawing.Point(3, 417);
             this.probabilityLayout.Name = "probabilityLayout";
-            this.probabilityLayout.Size = new System.Drawing.Size(212, 53);
+            this.probabilityLayout.Size = new System.Drawing.Size(493, 40);
             this.probabilityLayout.TabIndex = 23;
             // 
             // probabilityLabel
             // 
             this.probabilityLabel.AutoSize = true;
-            this.probabilityLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.probabilityLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.probabilityLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.probabilityLabel.Location = new System.Drawing.Point(3, 0);
             this.probabilityLabel.Name = "probabilityLabel";
-            this.probabilityLabel.Size = new System.Drawing.Size(101, 17);
+            this.probabilityLabel.Size = new System.Drawing.Size(82, 17);
             this.probabilityLabel.TabIndex = 17;
             this.probabilityLabel.Text = "PROBABILITY:";
             // 
             // probabilityUpDown
             // 
             this.probabilityUpDown.DecimalPlaces = 2;
+            this.probabilityUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.probabilityUpDown.Increment = new decimal(new int[] {
             1,
             0,
             0,
             65536});
-            this.probabilityUpDown.Location = new System.Drawing.Point(110, 3);
+            this.probabilityUpDown.Location = new System.Drawing.Point(91, 3);
             this.probabilityUpDown.Maximum = new decimal(new int[] {
             99,
             0,
@@ -780,7 +795,7 @@ namespace antico
             0,
             131072});
             this.probabilityUpDown.Name = "probabilityUpDown";
-            this.probabilityUpDown.Size = new System.Drawing.Size(60, 20);
+            this.probabilityUpDown.Size = new System.Drawing.Size(60, 24);
             this.probabilityUpDown.TabIndex = 18;
             this.probabilityUpDown.Value = new decimal(new int[] {
             9,
@@ -795,19 +810,19 @@ namespace antico
             this.generatingTreeMethodLayout.Controls.Add(this.rampedMethodRadioButton);
             this.generatingTreeMethodLayout.Controls.Add(this.growMethodRadioButton);
             this.generatingTreeMethodLayout.Controls.Add(this.fullMethodRadioButton);
-            this.generatingTreeMethodLayout.Location = new System.Drawing.Point(402, 196);
+            this.generatingTreeMethodLayout.Location = new System.Drawing.Point(3, 463);
             this.generatingTreeMethodLayout.Name = "generatingTreeMethodLayout";
-            this.generatingTreeMethodLayout.Size = new System.Drawing.Size(251, 53);
+            this.generatingTreeMethodLayout.Size = new System.Drawing.Size(493, 40);
             this.generatingTreeMethodLayout.TabIndex = 18;
             // 
             // generatingTreeMethod
             // 
             this.generatingTreeMethod.AutoSize = true;
-            this.generatingTreeMethod.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.generatingTreeMethod.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.generatingTreeMethod.ForeColor = System.Drawing.SystemColors.Control;
             this.generatingTreeMethod.Location = new System.Drawing.Point(3, 0);
             this.generatingTreeMethod.Name = "generatingTreeMethod";
-            this.generatingTreeMethod.Size = new System.Drawing.Size(208, 17);
+            this.generatingTreeMethod.Size = new System.Drawing.Size(162, 17);
             this.generatingTreeMethod.TabIndex = 17;
             this.generatingTreeMethod.Text = "GENERATING TREE METHOD:";
             // 
@@ -815,10 +830,11 @@ namespace antico
             // 
             this.rampedMethodRadioButton.AutoSize = true;
             this.rampedMethodRadioButton.Checked = true;
+            this.rampedMethodRadioButton.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.rampedMethodRadioButton.ForeColor = System.Drawing.SystemColors.Control;
-            this.rampedMethodRadioButton.Location = new System.Drawing.Point(3, 20);
+            this.rampedMethodRadioButton.Location = new System.Drawing.Point(171, 3);
             this.rampedMethodRadioButton.Name = "rampedMethodRadioButton";
-            this.rampedMethodRadioButton.Size = new System.Drawing.Size(60, 17);
+            this.rampedMethodRadioButton.Size = new System.Drawing.Size(69, 21);
             this.rampedMethodRadioButton.TabIndex = 0;
             this.rampedMethodRadioButton.TabStop = true;
             this.rampedMethodRadioButton.Text = "ramped";
@@ -827,10 +843,11 @@ namespace antico
             // growMethodRadioButton
             // 
             this.growMethodRadioButton.AutoSize = true;
+            this.growMethodRadioButton.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.growMethodRadioButton.ForeColor = System.Drawing.SystemColors.Control;
-            this.growMethodRadioButton.Location = new System.Drawing.Point(69, 20);
+            this.growMethodRadioButton.Location = new System.Drawing.Point(246, 3);
             this.growMethodRadioButton.Name = "growMethodRadioButton";
-            this.growMethodRadioButton.Size = new System.Drawing.Size(48, 17);
+            this.growMethodRadioButton.Size = new System.Drawing.Size(54, 21);
             this.growMethodRadioButton.TabIndex = 1;
             this.growMethodRadioButton.Text = "grow";
             this.growMethodRadioButton.UseVisualStyleBackColor = true;
@@ -838,10 +855,11 @@ namespace antico
             // fullMethodRadioButton
             // 
             this.fullMethodRadioButton.AutoSize = true;
+            this.fullMethodRadioButton.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.fullMethodRadioButton.ForeColor = System.Drawing.SystemColors.Control;
-            this.fullMethodRadioButton.Location = new System.Drawing.Point(123, 20);
+            this.fullMethodRadioButton.Location = new System.Drawing.Point(306, 3);
             this.fullMethodRadioButton.Name = "fullMethodRadioButton";
-            this.fullMethodRadioButton.Size = new System.Drawing.Size(38, 17);
+            this.fullMethodRadioButton.Size = new System.Drawing.Size(43, 21);
             this.fullMethodRadioButton.TabIndex = 18;
             this.fullMethodRadioButton.Text = "full";
             this.fullMethodRadioButton.UseVisualStyleBackColor = true;
@@ -851,32 +869,33 @@ namespace antico
             this.numberOfRunsLayout.BackColor = System.Drawing.Color.Transparent;
             this.numberOfRunsLayout.Controls.Add(this.numberOfRunsLabel);
             this.numberOfRunsLayout.Controls.Add(this.numberOfRunsUpDown);
-            this.numberOfRunsLayout.Location = new System.Drawing.Point(3, 255);
+            this.numberOfRunsLayout.Location = new System.Drawing.Point(3, 509);
             this.numberOfRunsLayout.Name = "numberOfRunsLayout";
-            this.numberOfRunsLayout.Size = new System.Drawing.Size(537, 44);
+            this.numberOfRunsLayout.Size = new System.Drawing.Size(493, 40);
             this.numberOfRunsLayout.TabIndex = 20;
             // 
             // numberOfRunsLabel
             // 
             this.numberOfRunsLabel.AutoSize = true;
-            this.numberOfRunsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.numberOfRunsLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.numberOfRunsLabel.ForeColor = System.Drawing.SystemColors.Control;
             this.numberOfRunsLabel.Location = new System.Drawing.Point(3, 0);
             this.numberOfRunsLabel.Name = "numberOfRunsLabel";
-            this.numberOfRunsLabel.Size = new System.Drawing.Size(137, 17);
+            this.numberOfRunsLabel.Size = new System.Drawing.Size(109, 17);
             this.numberOfRunsLabel.TabIndex = 17;
             this.numberOfRunsLabel.Text = "NUMBER OF RUNS:";
             // 
             // numberOfRunsUpDown
             // 
-            this.numberOfRunsUpDown.Location = new System.Drawing.Point(146, 3);
+            this.numberOfRunsUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
+            this.numberOfRunsUpDown.Location = new System.Drawing.Point(118, 3);
             this.numberOfRunsUpDown.Minimum = new decimal(new int[] {
             1,
             0,
             0,
             0});
             this.numberOfRunsUpDown.Name = "numberOfRunsUpDown";
-            this.numberOfRunsUpDown.Size = new System.Drawing.Size(60, 20);
+            this.numberOfRunsUpDown.Size = new System.Drawing.Size(60, 24);
             this.numberOfRunsUpDown.TabIndex = 18;
             this.numberOfRunsUpDown.Value = new decimal(new int[] {
             1,
@@ -884,65 +903,91 @@ namespace antico
             0,
             0});
             // 
-            // saveParametersSign
+            // lookupConsoleFormSign
             // 
-            this.saveParametersSign.BackColor = System.Drawing.Color.Transparent;
-            this.saveParametersSign.BackgroundImage = global::antico.Properties.Resources.save_params;
-            this.saveParametersSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.saveParametersSign.Location = new System.Drawing.Point(546, 255);
-            this.saveParametersSign.Name = "saveParametersSign";
-            this.saveParametersSign.Size = new System.Drawing.Size(107, 43);
-            this.saveParametersSign.TabIndex = 17;
-            this.saveParametersSign.TabStop = false;
-            this.saveParametersSign.Click += new System.EventHandler(this.SaveParametersSign_Click);
-            this.saveParametersSign.MouseEnter += new System.EventHandler(this.SaveParametersSign_MouseEnter);
-            this.saveParametersSign.MouseLeave += new System.EventHandler(this.SaveParametersSign_MouseLeave);
-            this.saveParametersSign.MouseHover += new System.EventHandler(this.SaveParametersSign_MouseHover);
+            this.lookupConsoleFormSign.BackColor = System.Drawing.Color.Transparent;
+            this.lookupConsoleFormSign.BackgroundImage = global::antico.Properties.Resources.console_lookup_darker;
+            this.lookupConsoleFormSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.lookupConsoleFormSign.Location = new System.Drawing.Point(228, 23);
+            this.lookupConsoleFormSign.Name = "lookupConsoleFormSign";
+            this.lookupConsoleFormSign.Size = new System.Drawing.Size(50, 50);
+            this.lookupConsoleFormSign.TabIndex = 17;
+            this.lookupConsoleFormSign.TabStop = false;
+            this.lookupConsoleFormSign.Visible = false;
+            this.lookupConsoleFormSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.LookupConsoleFormSign_MouseClick);
+            this.lookupConsoleFormSign.MouseEnter += new System.EventHandler(this.LookupConsoleFormSign_MouseEnter);
+            this.lookupConsoleFormSign.MouseLeave += new System.EventHandler(this.LookupConsoleForSign_MouseLeave);
+            this.lookupConsoleFormSign.MouseHover += new System.EventHandler(this.LookupConsoleFormSign_MouseHover);
             // 
-            // lookupConsoleFormPictureBox
+            // minimizeSign
             // 
-            this.lookupConsoleFormPictureBox.BackColor = System.Drawing.Color.Transparent;
-            this.lookupConsoleFormPictureBox.BackgroundImage = global::antico.Properties.Resources.lookup;
-            this.lookupConsoleFormPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.lookupConsoleFormPictureBox.Location = new System.Drawing.Point(944, 638);
-            this.lookupConsoleFormPictureBox.Name = "lookupConsoleFormPictureBox";
-            this.lookupConsoleFormPictureBox.Size = new System.Drawing.Size(56, 37);
-            this.lookupConsoleFormPictureBox.TabIndex = 17;
-            this.lookupConsoleFormPictureBox.TabStop = false;
-            this.lookupConsoleFormPictureBox.Visible = false;
-            this.lookupConsoleFormPictureBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.LookupConsoleFormPictureBox_MouseClick);
-            this.lookupConsoleFormPictureBox.MouseEnter += new System.EventHandler(this.LookupConsoleFormPictureBox_MouseEnter);
-            this.lookupConsoleFormPictureBox.MouseLeave += new System.EventHandler(this.LookupConsoleFormPictureBox_MouseLeave);
-            this.lookupConsoleFormPictureBox.MouseHover += new System.EventHandler(this.LookupConsoleFormPictureBox_MouseHover);
+            this.minimizeSign.BackColor = System.Drawing.Color.Transparent;
+            this.minimizeSign.Image = global::antico.Properties.Resources.minimizee;
+            this.minimizeSign.Location = new System.Drawing.Point(832, 30);
+            this.minimizeSign.Name = "minimizeSign";
+            this.minimizeSign.Size = new System.Drawing.Size(70, 70);
+            this.minimizeSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.minimizeSign.TabIndex = 23;
+            this.minimizeSign.TabStop = false;
+            this.minimizeSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.MinimizeSign_MouseClick);
+            this.minimizeSign.MouseEnter += new System.EventHandler(this.MinimizeSign_MouseEnter);
+            this.minimizeSign.MouseLeave += new System.EventHandler(this.MinimizeSign_MouseLeave);
+            this.minimizeSign.MouseHover += new System.EventHandler(this.MinimizeSign_MouseHover);
             // 
-            // printoutOfAllSolutionsLabel
+            // exitSign
             // 
-            this.printoutOfAllSolutionsLabel.AutoSize = true;
-            this.printoutOfAllSolutionsLabel.Font = new System.Drawing.Font("Source Sans Pro", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.printoutOfAllSolutionsLabel.Location = new System.Drawing.Point(0, 0);
-            this.printoutOfAllSolutionsLabel.Margin = new System.Windows.Forms.Padding(5);
-            this.printoutOfAllSolutionsLabel.MaximumSize = new System.Drawing.Size(745, 0);
-            this.printoutOfAllSolutionsLabel.MinimumSize = new System.Drawing.Size(745, 635);
-            this.printoutOfAllSolutionsLabel.Name = "printoutOfAllSolutionsLabel";
-            this.printoutOfAllSolutionsLabel.Size = new System.Drawing.Size(745, 635);
-            this.printoutOfAllSolutionsLabel.TabIndex = 18;
-            this.printoutOfAllSolutionsLabel.Visible = false;
-            this.printoutOfAllSolutionsLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PrintoutOfAllSolutionsLabel_MouseDown);
-            this.printoutOfAllSolutionsLabel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PrintoutOfAllSolutionsLabel_MouseMove);
-            this.printoutOfAllSolutionsLabel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PrintoutOfAllSolutionsLabel_MouseUp);
+            this.exitSign.BackColor = System.Drawing.Color.Transparent;
+            this.exitSign.Image = global::antico.Properties.Resources.exit_white;
+            this.exitSign.Location = new System.Drawing.Point(912, 30);
+            this.exitSign.Name = "exitSign";
+            this.exitSign.Size = new System.Drawing.Size(70, 70);
+            this.exitSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.exitSign.TabIndex = 24;
+            this.exitSign.TabStop = false;
+            this.exitSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ExitSign_MouseClick);
+            this.exitSign.MouseEnter += new System.EventHandler(this.ExitSign_MouseEnter);
+            this.exitSign.MouseLeave += new System.EventHandler(this.ExitSign_MouseLeave);
+            this.exitSign.MouseHover += new System.EventHandler(this.ExitSign_MouseHover);
             // 
-            // panelForPrintoutLabel
+            // uploadSign
             // 
-            this.panelForPrintoutLabel.AutoScroll = true;
-            this.panelForPrintoutLabel.BackColor = System.Drawing.Color.Transparent;
-            this.panelForPrintoutLabel.Controls.Add(this.printoutOfAllSolutionsLabel);
-            this.panelForPrintoutLabel.Location = new System.Drawing.Point(173, 19);
-            this.panelForPrintoutLabel.Name = "panelForPrintoutLabel";
-            this.panelForPrintoutLabel.Size = new System.Drawing.Size(765, 640);
-            this.panelForPrintoutLabel.TabIndex = 19;
-            this.panelForPrintoutLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PanelForPrintoutLabel_MouseDown);
-            this.panelForPrintoutLabel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PanelForPrintoutLabel_MouseMove);
-            this.panelForPrintoutLabel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PanelForPrintoutLabel_MouseUp);
+            this.uploadSign.BackColor = System.Drawing.Color.Transparent;
+            this.uploadSign.BackgroundImage = global::antico.Properties.Resources.upload;
+            this.uploadSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.uploadSign.Location = new System.Drawing.Point(90, 17);
+            this.uploadSign.Name = "uploadSign";
+            this.uploadSign.Size = new System.Drawing.Size(50, 50);
+            this.uploadSign.TabIndex = 25;
+            this.uploadSign.TabStop = false;
+            this.uploadSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.UploadSign_MouseClick);
+            this.uploadSign.MouseEnter += new System.EventHandler(this.UploadSign_MouseEnter);
+            this.uploadSign.MouseLeave += new System.EventHandler(this.UploadSign_MouseLeave);
+            this.uploadSign.MouseHover += new System.EventHandler(this.UploadSign_MouseHover);
+            // 
+            // showSolutionsProgressSign
+            // 
+            this.showSolutionsProgressSign.BackColor = System.Drawing.Color.Transparent;
+            this.showSolutionsProgressSign.BackgroundImage = global::antico.Properties.Resources.progress_chart_darker;
+            this.showSolutionsProgressSign.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.showSolutionsProgressSign.Location = new System.Drawing.Point(304, 18);
+            this.showSolutionsProgressSign.Name = "showSolutionsProgressSign";
+            this.showSolutionsProgressSign.Size = new System.Drawing.Size(55, 55);
+            this.showSolutionsProgressSign.TabIndex = 26;
+            this.showSolutionsProgressSign.TabStop = false;
+            this.showSolutionsProgressSign.Visible = false;
+            this.showSolutionsProgressSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ShowSolutionsProgressSign_MouseClick);
+            this.showSolutionsProgressSign.MouseEnter += new System.EventHandler(this.ShowSolutionsProgressSign_MouseEnter);
+            this.showSolutionsProgressSign.MouseLeave += new System.EventHandler(this.ShowSolutionsProgressSign_MouseLeave);
+            this.showSolutionsProgressSign.MouseHover += new System.EventHandler(this.ShowSolutionsProgressSign_MouseHover);
+            // 
+            // progressBar
+            // 
+            this.progressBar.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.progressBar.Location = new System.Drawing.Point(0, 677);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(1012, 10);
+            this.progressBar.TabIndex = 27;
+            this.progressBar.Visible = false;
             // 
             // CreateNewModelForm
             // 
@@ -951,16 +996,20 @@ namespace antico
             this.BackgroundImage = global::antico.Properties.Resources.images;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1012, 687);
-            this.Controls.Add(this.lookupConsoleFormPictureBox);
+            this.Controls.Add(this.progressBar);
+            this.Controls.Add(this.mainLayout);
+            this.Controls.Add(this.showSolutionsProgressSign);
+            this.Controls.Add(this.uploadSign);
+            this.Controls.Add(this.exitSign);
+            this.Controls.Add(this.minimizeSign);
+            this.Controls.Add(this.lookupConsoleFormSign);
             this.Controls.Add(this.visualizeSign);
             this.Controls.Add(this.saveSign);
             this.Controls.Add(this.startSign);
             this.Controls.Add(this.parametersSettingsSign);
             this.Controls.Add(this.anticoLabel);
             this.Controls.Add(this.goBackSign);
-            this.Controls.Add(this.mainLayout);
             this.Controls.Add(this.waitingAnimation);
-            this.Controls.Add(this.panelForPrintoutLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CreateNewModelForm";
@@ -970,6 +1019,7 @@ namespace antico
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CreateNewModelForm_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CreateNewModelForm_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CreateNewModelForm_MouseUp);
+            this.Resize += new System.EventHandler(this.CreateNewModelForm_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.goBackSign)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.parametersSettingsSign)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.startSign)).EndInit();
@@ -1010,10 +1060,11 @@ namespace antico
             this.numberOfRunsLayout.ResumeLayout(false);
             this.numberOfRunsLayout.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfRunsUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.saveParametersSign)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.lookupConsoleFormPictureBox)).EndInit();
-            this.panelForPrintoutLabel.ResumeLayout(false);
-            this.panelForPrintoutLabel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.lookupConsoleFormSign)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.minimizeSign)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.exitSign)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.uploadSign)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.showSolutionsProgressSign)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1073,10 +1124,14 @@ namespace antico
         private System.Windows.Forms.FlowLayoutPanel numberOfRunsLayout;
         private System.Windows.Forms.Label numberOfRunsLabel;
         private System.Windows.Forms.NumericUpDown numberOfRunsUpDown;
-        private System.Windows.Forms.PictureBox saveParametersSign;
-        private System.Windows.Forms.PictureBox lookupConsoleFormPictureBox;
+        private System.Windows.Forms.PictureBox lookupConsoleFormSign;
         private System.Windows.Forms.Label printoutOfAllSolutionsLabel;
         private System.Windows.Forms.Panel panelForPrintoutLabel;
         private System.Windows.Forms.ComboBox databaseComboBox;
+        private PictureBox minimizeSign;
+        private PictureBox exitSign;
+        private PictureBox uploadSign;
+        private PictureBox showSolutionsProgressSign;
+        private ProgressBar progressBar;
     }
 }

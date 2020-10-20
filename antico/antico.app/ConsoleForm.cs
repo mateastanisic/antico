@@ -65,7 +65,7 @@ namespace antico
         {
             Application.DoEvents();
             // Set location of the frame.
-            this.Location = newModelForm.DesktopLocation;
+            this.Location = new Point(newModelForm.DesktopLocation.X + newModelForm.Size.Width, newModelForm.DesktopLocation.Y);
         }
         #endregion
 

@@ -59,13 +59,13 @@ namespace antico
         internal MainFrame()
         {
             this.InitializeComponent();
+            this.DoubleBuffered = true;
 
             // Load text font.
             PrivateFontCollection anticoFont = new PrivateFontCollection();
             anticoFont.AddFontFile("../../../../[FONTS]/UnicaOne-Regular.ttf");
             this.anticoLabel.Font = new Font(anticoFont.Families[0], 35, System.Drawing.FontStyle.Regular);
             this.anticoLabelDesign = this.anticoLabel;
-
         }
         #endregion
 
@@ -116,7 +116,7 @@ namespace antico
 
         #region Making hand cursor when hovering picture boxes that are behaving like buttons.
 
-        #region exit sign
+        #region exit 
         /// <summary>
         /// Hovering start.
         /// </summary>
@@ -240,7 +240,7 @@ namespace antico
 
         #region Showing ToolTip when hovering picture boxes that are behaving like buttons.
 
-        #region exit sign
+        #region exit 
         /// <summary>
         /// Show that pressing exitPictureBox means exiting the application.
         /// </summary>
@@ -342,7 +342,7 @@ namespace antico
         }
         #endregion
 
-        #region new model sign
+        #region new model 
         /// <summary>
         /// Forward user to createNewModel form when clicking on createNewModelSign.
         /// </summary>
@@ -361,7 +361,7 @@ namespace antico
         }
         #endregion
 
-        #region is this file malicious sign
+        #region is this file malicious 
         /// <summary>
         /// Forward user to form where he can check if his file is malicious.
         /// </summary>
@@ -377,7 +377,7 @@ namespace antico
         }
         #endregion
 
-        #region about antico sign
+        #region about antico 
         /// <summary>
         /// Forward user to form where he can learn about antico project.
         /// </summary>

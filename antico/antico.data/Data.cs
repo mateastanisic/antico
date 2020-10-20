@@ -297,7 +297,7 @@ namespace antico.data
         public Data(List<string> mathOperators, string databaseName)
         {
             // Deafult mathematical operations.
-            this._mathOperators = new List<string>(this._mathOperationsArity.Keys);
+            this._mathOperators = new List<string>(mathOperators);
 
             // Defining connection.
             this.connection = new NpgsqlConnection(this.connectionString);
@@ -307,7 +307,7 @@ namespace antico.data
 
             // Set up number of folds. 
             // TODO: custom number of folds
-            List<string> databaseFoldsNames = SettingNumberOfFoldsAndReturnDatabaseNames(3);
+            List<string> databaseFoldsNames = SettingNumberOfFoldsAndReturnDatabaseNames(0);
 
             // Setting up the variables based on number of folds.
             if (this._numberOfFolds == 0)
