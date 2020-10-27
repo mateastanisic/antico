@@ -46,7 +46,8 @@ namespace antico
     ///         - bestModelInForm (best solution of all runs) - reseting after every change of parameters/data and every new "click" on "start" sign
     ///         - formParameters (class Parameters)
     ///         - formData (class Data)
-    ///         
+    ///     - uploaded model class instance for saving data of model uploaded via file
+    ///     
     /// </summary>
     /// 
     public partial class CreateNewModelForm : Form
@@ -90,12 +91,9 @@ namespace antico
         private bool forbid = false;
         #endregion
 
-        #region Sign flags.
-        // Variable that is used to track if lookupConsoleFormSign is "enabled".
-        private bool consoleSign = false;
-
-        // Variable that is used to track if showSolutionsProgressSign is "enabled".
-        private bool progressSign = false;
+        #region List of choosen folds.
+        // Variable to keep track of folds choosen to be representative of each run.
+        List<int> choosenFold;
         #endregion
 
         #region Thread.
@@ -117,6 +115,14 @@ namespace antico
             { 24 , "#A9DCF1" }, { 25, "#BBDCE7" }, { 26 , "#BBE7E7" }, { 27 , "#BBE7DC" }, 
             { 28 , "#BBE7D1" }
         };
+        #endregion
+
+        #region Uploaded model.
+        // Class that represents model uploaded from the file.
+        private UploadedModel upload;
+
+        // Flag to know if model was uploaded.
+        private bool uploaded;
         #endregion
 
         #endregion
@@ -156,6 +162,9 @@ namespace antico
             this.progressForm = new ProgressForm(mainForm.Location);
             this.progressForm.Visible = false;
             this.progressForm.VisibleChanged += new EventHandler(this.ProgressForm_VisibilityChanged);
+
+            // Set flag to zero since no model was uploaded.
+            this.uploaded = false;
         }
 
         #endregion
@@ -487,7 +496,7 @@ namespace antico
         {
             // Show hand cursor only if search is ongoing or done. 
             // Also, check out if console is already opened.
-            if (!this.consoleForm.Visible && (this.forbid || this.bestModelInForm != null))
+            if (!this.consoleForm.Visible && (this.forbid || this.bestModelInForm != null || this.uploaded))
             {
                 this.lookupConsoleFormSign.Cursor = Cursors.Hand;
             }
@@ -540,7 +549,7 @@ namespace antico
         {
             // Show hand cursor only if search is ongoing or done. 
             // Also, check out if form is already opened.
-            if (!this.progressForm.Visible && (this.forbid || this.bestModelInForm != null))
+            if (!this.progressForm.Visible && (this.forbid || this.bestModelInForm != null || this.uploaded))
             {
                 this.showSolutionsProgressSign.Cursor = Cursors.Hand;
             }            
@@ -677,7 +686,7 @@ namespace antico
         {
             // Show tool tip only if search is ongoing or done. 
             // Also, check out if console is already opened.
-            if (this.consoleForm.Visible == false && (this.forbid || this.bestModelInForm != null))
+            if (this.consoleForm.Visible == false && (this.forbid || this.bestModelInForm != null || this.uploaded))
             {
                 ToolTip tt = new ToolTip();
                 tt.SetToolTip(this.lookupConsoleFormSign, "show console");
@@ -711,7 +720,7 @@ namespace antico
         {
             // Show tool tip only if search is ongoing or done. 
             // Also, check out if form is already opened.
-            if (this.progressForm.Visible == false && (this.forbid || this.bestModelInForm != null))
+            if (this.progressForm.Visible == false && (this.forbid || this.bestModelInForm != null || this.uploaded))
             {
                 ToolTip tt = new ToolTip();
                 tt.SetToolTip(this.showSolutionsProgressSign, "show solution progress over iterations");
@@ -878,6 +887,9 @@ namespace antico
             }
             #endregion
 
+            // New search has started. Flag that no model is uploaded.
+            this.uploaded = false;
+
             // Hide printoutOfAllSolutionsLabel and panelForPrintoutLabel if previously added to form.
             if (this.Controls.Contains(this.panelForPrintoutLabel))
             {
@@ -900,6 +912,7 @@ namespace antico
                 int lim = Decimal.ToInt32(limitUpDown.Value);
                 double a = Decimal.ToDouble(alphaUpDown.Value);
                 double prob = Decimal.ToDouble(probabilityUpDown.Value);
+                int nof = Decimal.ToInt32(numberOfFoldsUpDown.Value);
                 string method = "ramped";
 
                 if (this.growMethodRadioButton.Checked)
@@ -952,7 +965,7 @@ namespace antico
                 this.formParameters = new Parameters(ps, maxnoi, maxnonii, nooruns, imd, md, method, lim, a, prob);
 
                 // Set up data.
-                this.formData = new Data(mathOp, database);
+                this.formData = new Data(mathOp, database, nof);
 
                 // Do needed changes on form(s) before starting new search.
                 this.BeforeWeStart();
@@ -1040,7 +1053,7 @@ namespace antico
                 #endregion
 
                 // Check if model exists.
-                if (this.allModelsInForm != null && this.bestModelInForm != null)
+                if (this.allModelsInForm != null && this.bestModelInForm != null && !this.uploaded)
                 {
                     #region select solution
                     // Choices for saving.
@@ -1143,6 +1156,42 @@ namespace antico
                     }
                     #endregion
 
+                    #endregion
+
+                    #region viewer 
+                    // Create a viewer object .
+                    Microsoft.Msagl.GraphViewerGdi.GViewer viewer = new Microsoft.Msagl.GraphViewerGdi.GViewer();
+                    // Bind the graph to the viewer.
+                    viewer.Graph = graph;
+
+                    // Associate the viewer with the form.
+                    this.formForVisualizationOfModel.SuspendLayout();
+                    viewer.Dock = DockStyle.Fill;
+                    viewer.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Viewer_KeyUp);
+                    this.formForVisualizationOfModel.Controls.Add(viewer);
+                    this.formForVisualizationOfModel.ResumeLayout();
+                    #endregion
+
+                    // Show the form.
+                    this.formForVisualizationOfModel.ShowDialog();
+
+                    return;
+                }
+                else if (this.uploaded)
+                {
+
+                    // Create a new helper form.
+                    this.formForVisualizationOfModel = new HelperForm();
+                    this.formForVisualizationOfModel.Text = "Model";
+                    this.formForVisualizationOfModel.WindowState = FormWindowState.Maximized;
+                    this.formForVisualizationOfModel.exitSign.Location = new System.Drawing.Point(System.Windows.Forms.SystemInformation.PrimaryMonitorMaximizedWindowSize.Width - 41, 6);
+
+                    #region graph
+                    // Create a graph object.
+                    Graph graph = new Graph("Model");
+
+                    // Draw symbolic tree.
+                    this.DrawSymbolicTree(this.upload.model.symbolicTree, ref graph);
                     #endregion
 
                     #region viewer 
@@ -1289,17 +1338,39 @@ namespace antico
                     Hashtable addresses = new Hashtable();
 
                     // If there will be more version, to keep track of it when loading.
-                    addresses.Add("SAVEVersion", 1);
+                    addresses.Add("SAVEVersion", 2);
 
                     #region picked solution
                     // Check if 0 <-> bestModelInForm.
                     if (inputBox.pickedSolutionIndex == 0)
                     {
                         addresses.Add("Solution", this.bestModelInForm);
+                        bool breakloop = false;
+
+                        // Add choosen run.
+                        for (var j = 0; j < this.allModelsInForm.Count; j++)
+                        {
+                            for (var q = 0; q < modulsChoices.Count; q++)
+                            {
+                                if ( modulsChoices[q].Item1 == j && this.allModelsInForm[j].population[modulsChoices[q].Item2].trainFitness == this.bestModelInForm.trainFitness)
+                                {
+                                    // Add choosed run solution.
+                                    addresses.Add("ChoosedRun", j + 1);
+                                    breakloop = true;
+                                    break;
+                                }
+                            }
+
+                            if (breakloop)
+                                break;
+                        }
                     }
                     else
                     {
                         addresses.Add("Solution", this.allModelsInForm[modulsChoices[inputBox.pickedSolutionIndex - 1].Item1].population[modulsChoices[inputBox.pickedSolutionIndex - 1].Item2]);
+
+                        // Add choosed run solution.
+                        addresses.Add("ChoosedRun", modulsChoices[inputBox.pickedSolutionIndex - 1].Item1 + 1);
                     }
                     #endregion
 
@@ -1372,10 +1443,18 @@ namespace antico
         {
             // Show console form only if search is ongoing or done. 
             // Also, check out if console is already opened.
-            if (!this.consoleForm.Visible && (this.forbid || this.bestModelInForm != null))
+            if (!this.consoleForm.Visible && (this.forbid || this.bestModelInForm != null) && !this.uploaded)
             {
                 // Show form.
                 this.consoleForm.Visible = true;
+                this.lookupConsoleFormSign.BackgroundImage = antico.Properties.Resources.console_lookup_darker;
+            }
+            else if (!this.consoleForm.Visible && this.uploaded)
+            {
+                MessageBox.Show("Console output " + this.upload.consoleOutput.Substring(0, 10));
+                // If model was uploaded, show form with console output loaded from file.
+                this.consoleForm.Visible = true;
+                this.consoleForm.printoutTextBox.Text = this.upload.consoleOutput;
                 this.lookupConsoleFormSign.BackgroundImage = antico.Properties.Resources.console_lookup_darker;
             }
         }
@@ -1390,17 +1469,140 @@ namespace antico
         /// <param name="e"></param>
         private void UploadSign_MouseClick(object sender, MouseEventArgs e)
         {
-            // TODO: upload file (click)
-            string message = "Feature still not implemented!";
+            #region check if another process is already running
+            // Check if another process already runnning.
+            if (this.forbid)
+            {
+                string m = "Wait! Model calculation is still in progress.";
+                CustomDialogBox dialog = new CustomDialogBox("Warning!", m, global::antico.Properties.Resources.stop, MessageBoxButtons.OK);
+                dialog.ShowDialog();
 
-            CustomDialogBox not_implemented = new CustomDialogBox("antico responds", message, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
-            not_implemented.ShowDialog();
+                return;
+            }
+            #endregion
 
-            // If successful, hide other signs for which we don't have data.
-            //this.lookupConsoleFormSign.Visible = false;
-            //this.showSolutionsProgressSign.Visible = false;
-            //this.saveSign.Visible = false; // always do this! since we already saved this previously
-            //this.visualizeSign.Visible = false;
+            DialogResult result = this.uploadFileDialog.ShowDialog(); // Show the dialog.
+            if (result == DialogResult.OK) // Test result.
+            {
+                string file = this.uploadFileDialog.FileName;
+                try
+                {
+                    // Load file.
+                    LoadFile(file);
+
+                    // Set flag on true.
+                    this.uploaded = true;
+
+                    // Hide save sign since this model is already saved.
+                    this.saveSign.Visible = false;
+
+                    // Show all other signs.
+                    this.lookupConsoleFormSign.Visible = true;
+                    this.lookupConsoleFormSign.BackgroundImage = antico.Properties.Resources.console_lookup;
+                    this.showSolutionsProgressSign.Visible = true;
+                    this.showSolutionsProgressSign.BackgroundImage = antico.Properties.Resources.progress_chart;
+                    this.visualizeSign.Visible = true;
+
+                    // Hide layout for parameters.
+                    this.mainLayout.Visible = false;
+
+                    #region printout to form - parameters, fitness and other
+                    // Add printoutOfAllSolutionsLabel to form if it wasn't previously added.
+                    if (!this.Controls.Contains(this.panelForPrintoutLabel))
+                    {
+                        AddControlForPrintOutToForm();
+                    }
+
+                    // Print train fitness of the solution.
+                    this.printoutOfAllSolutionsLabel.Text = "\r\n Train fitness of solution: " + this.upload.model.trainFitness.ToString() + "\r\n";
+                    // Print test fitness of the solution.
+                    this.printoutOfAllSolutionsLabel.Text += " Test fitness of solution: " + this.upload.model.testFitness.ToString() + "\r\n\r\n";
+                    // Print database name.
+                    this.printoutOfAllSolutionsLabel.Text += " Database name: " + this.upload.databaseName + "\r\n";
+
+                    // Version higher than 1 have saved choosenRun.
+                    if (this.upload.version > 1)
+                    {
+                        // Print index of the best run.
+                        this.printoutOfAllSolutionsLabel.Text += " Run index: " + (this.upload.choosenRun).ToString() + "\r\n";
+
+                        int numOfIter = this.upload.fitnessPoints[this.upload.choosenRun].Item1.Count;
+
+                        // Print number of iterations.
+                        this.printoutOfAllSolutionsLabel.Text += " Number of iterations: " + (numOfIter - 2).ToString() + "\r\n";
+                        // Print depth of solution tree.
+                        this.printoutOfAllSolutionsLabel.Text += " Depth of the solution tree: " + this.upload.depthPoints[this.upload.choosenRun][numOfIter - 1] + "\r\n";
+
+                        // Print TN, TP, FN, FP of train data.
+                        this.printoutOfAllSolutionsLabel.Text += " Number of TN: " + this.upload.accuracyPointsTrain[this.upload.choosenRun].Item1[numOfIter - 1] + "\r\n";
+                        this.printoutOfAllSolutionsLabel.Text += " Number of TP: " + this.upload.accuracyPointsTrain[this.upload.choosenRun].Item2[numOfIter - 1] + "\r\n";
+                        this.printoutOfAllSolutionsLabel.Text += " Number of FN: " + this.upload.accuracyPointsTrain[this.upload.choosenRun].Item3[numOfIter - 1] + "\r\n";
+                        this.printoutOfAllSolutionsLabel.Text += " Number of FP: " + this.upload.accuracyPointsTrain[this.upload.choosenRun].Item4[numOfIter - 1] + "\r\n";
+
+                        // When opening progress form show fitness progress of choosen run.
+                        this.progressForm.ShowChart(this.upload.choosenRun, "fitness");
+                    }
+                    else
+                    {
+                        // Try to find the run.
+                        for (var r = 0; r < this.upload.fitnessPoints.Keys.Count; r++)
+                        {
+                            int numOfIter = this.upload.fitnessPoints[r + 1].Item1.Count;
+                            if (this.upload.fitnessPoints[r + 1].Item1[numOfIter - 1] == this.upload.model.trainFitness)
+                            {
+                                if (this.upload.fitnessPoints.Keys.Count >= 2)
+                                {
+                                    // Print index of the best run.
+                                    this.printoutOfAllSolutionsLabel.Text += " Run index: " + (r + 1).ToString() + "\r\n";
+                                }
+
+                                // Print number of iterations.
+                                this.printoutOfAllSolutionsLabel.Text += " Number of iterations: " + (numOfIter - 2).ToString() + "\r\n";
+                                // Print depth of solution tree.
+                                this.printoutOfAllSolutionsLabel.Text += " Depth of the solution tree: " + this.upload.depthPoints[r + 1][numOfIter - 1] + "\r\n";
+
+                                // Print TN, TP, FN, FP of train data.
+                                this.printoutOfAllSolutionsLabel.Text += " Number of TN: " + this.upload.accuracyPointsTrain[r + 1].Item1[numOfIter - 1] + "\r\n";
+                                this.printoutOfAllSolutionsLabel.Text += " Number of TP: " + this.upload.accuracyPointsTrain[r + 1].Item2[numOfIter - 1] + "\r\n";
+                                this.printoutOfAllSolutionsLabel.Text += " Number of FN: " + this.upload.accuracyPointsTrain[r + 1].Item3[numOfIter - 1] + "\r\n";
+                                this.printoutOfAllSolutionsLabel.Text += " Number of FP: " + this.upload.accuracyPointsTrain[r + 1].Item4[numOfIter - 1] + "\r\n";
+
+                                break;
+                            }
+                        }
+                    }
+
+                    // Print parameters.
+                    this.printoutOfAllSolutionsLabel.Text += "\r\n Population size: " + this.upload.parameters.populationSize + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Maximal number of iterations: " + this.upload.parameters.maxNumberOfIterations + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Maximal number of not improving iterations: " + this.upload.parameters.maxNumberOfNotImprovingIterations + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Number of runs: " + this.upload.parameters.numberOfRuns + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Limit: " + this.upload.parameters.limit + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Alpha: " + this.upload.parameters.alpha + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Initial maximal depth of solution tree: " + this.upload.parameters.initialMaxDepth + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Maximal depth of solution tree: " + this.upload.parameters.maxDepth + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Probability of choosing non-terminal over terminal in crossover: " + this.upload.parameters.probability + "\r\n";
+                    this.printoutOfAllSolutionsLabel.Text += " Method for generating solution trees: " + this.upload.parameters.generatingTreesMethod + "\r\n\r\n";
+
+                    // Print mathematical operators.
+                    this.printoutOfAllSolutionsLabel.Text += " Mathematical operations used in search: \r\n";
+                    for (var j = 0; j < this.upload.mathOperators.Count; j++)
+                    {
+                        this.printoutOfAllSolutionsLabel.Text += " " + this.upload.mathOperators[j] + " ";
+                    }
+                    this.printoutOfAllSolutionsLabel.Text += "\r\n";
+
+                    // Show printout.
+                    this.panelForPrintoutLabel.Visible = true;
+                    this.printoutOfAllSolutionsLabel.Visible = true;
+                    #endregion
+
+                }
+                catch (IOException)
+                {
+                    throw new Exception("[UploadSign_MouseClick] Coudn't load the file.");
+                }
+            }
         }
         #endregion
 
@@ -1413,7 +1615,9 @@ namespace antico
         /// <param name="e"></param>
         private void ShowSolutionsProgressSign_MouseClick(object sender, MouseEventArgs e)
         {
-            if (this.progressForm.Visible == false && (this.forbid || this.bestModelInForm != null))
+            // Show progress form only if previously not opened and if best model in form is not null or
+            // if search is still ongoing or if the model was uploaded via file.
+            if (this.progressForm.Visible == false && (this.forbid || this.bestModelInForm != null || this.uploaded))
             {
                 this.progressForm.Visible = true;
                 this.showSolutionsProgressSign.BackgroundImage = antico.Properties.Resources.progress_chart_darker;
@@ -1522,10 +1726,8 @@ namespace antico
             input += "\r\n test fitness:  " + this.bestModelInForm.testFitness.ToString();
             input += "\r\n (train+test) fitness:  " + ((double)(this.bestModelInForm.trainFitness + this.bestModelInForm.testFitness) / 2).ToString() + "\r\n\r\n";
 
-            this.printoutOfAllSolutionsLabel.Text = "";
             this.panelForPrintoutLabel.Visible = true;
-            this.printoutOfAllSolutionsLabel.Visible = true;
-            this.printoutOfAllSolutionsLabel.Text += input;
+            this.printoutOfAllSolutionsLabel.Text = input;
 
             // Printout of all best solutions.
             for (var run = 0; run < this.formParameters.numberOfRuns; run++)
@@ -1540,7 +1742,15 @@ namespace antico
                 double tempTestFitness = this.allModelsInForm[run].population[indBest].testFitness;
 
                 // Best train + test.
-                input = "\r\n BEST SOLUTION IN RUN:" + run + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBest].symbolicTree.ToStringInorder();
+                if (this.formData.numberOfFolds == 0)
+                    input = "\r\n BEST SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBest].symbolicTree.ToStringInorder();
+                else
+                {
+                    input = "\r\n BEST SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n";
+                    input += " FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                    input += "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBest].symbolicTree.ToStringInorder();
+                }
+
                 input += "\r\n train fitness:  " + tempTrainFitness;
                 input += "\r\n test fitness:  " + tempTestFitness;
                 input += "\r\n (train+test) fitness:  " + ((double)(tempTrainFitness + tempTestFitness) / 2).ToString() + "\r\n";
@@ -1553,7 +1763,15 @@ namespace antico
                     tempTestFitness = this.allModelsInForm[run].population[indBestTrain].testFitness;
 
                     // Best train.
-                    input += "\r\n BEST(TRAIN) SOLUTION IN RUN:" + run + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTrain].symbolicTree.ToStringInorder();
+                    if (this.formData.numberOfFolds == 0)
+                        input += "\r\n BEST(TRAIN) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTrain].symbolicTree.ToStringInorder();
+                    else
+                    {
+                        input += "\r\n BEST (TRAIN) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n";
+                        input += " FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                        input += "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTrain].symbolicTree.ToStringInorder();
+                    }
+
                     input += "\r\n train fitness:  " + tempTrainFitness;
                     input += "\r\n test fitness:  " + tempTestFitness;
                     input += "\r\n (train+test) fitness:  " + ((double)(tempTrainFitness + tempTestFitness) / 2).ToString() + "\r\n";
@@ -1567,7 +1785,15 @@ namespace antico
                     tempTestFitness = this.allModelsInForm[run].population[indBestTest].testFitness;
 
                     // Best test.
-                    input += "\r\n BEST(TEST) SOLUTION IN RUN:" + run + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTest].symbolicTree.ToStringInorder();
+                    if (this.formData.numberOfFolds == 0)
+                        input += "\r\n BEST(TEST) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTest].symbolicTree.ToStringInorder();
+                    else
+                    {
+                        input += "\r\n BEST (TEST) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n";
+                        input += " FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                        input += "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTest].symbolicTree.ToStringInorder();
+                    }
+
                     input += "\r\n train fitness:  " + tempTrainFitness;
                     input += "\r\n test fitness:  " + tempTestFitness;
                     input += "\r\n (train+test) fitness:  " + ((double)(tempTrainFitness + tempTestFitness) / 2).ToString() + "\r\n\r\n";
@@ -1577,6 +1803,8 @@ namespace antico
                 // Add to label.
                 this.printoutOfAllSolutionsLabel.Text += input;
             }
+
+            this.printoutOfAllSolutionsLabel.Visible = true;
         }
         #endregion
 
@@ -1655,11 +1883,24 @@ namespace antico
         /// </summary>
         private void BeforeWeStart()
         {
-            // TODO progress bar
+            // Progress bar (re)set.
             this.progressBar.Visible = true;
             this.progressBar.Step = 1;
             this.progressBar.Value = 0;
-            this.progressBar.Maximum = this.formParameters.numberOfRuns * this.formParameters.maxNumberOfIterations;
+            if (this.formData.numberOfFolds == 0)
+            {
+                this.progressBar.Maximum = this.formParameters.numberOfRuns * this.formParameters.maxNumberOfIterations;
+            }
+            else
+            {
+                this.progressBar.Maximum = this.formParameters.numberOfRuns * this.formParameters.maxNumberOfIterations * this.formData.numberOfFolds;
+
+                // Set name of the drop down menu to "Fold" in progress form.
+                this.progressForm.runToolStripMenuItem.Text = "Fold";
+
+                // Initialize list of choosen fold indices.
+                choosenFold = new List<int>();
+            }
 
             // Forbid all other cliks.
             this.forbid = true;
@@ -1684,6 +1925,11 @@ namespace antico
             // Remove old values from the chart.
             this.progressForm.chart.Series[0].Values.Clear();
             this.progressForm.chart.Series[1].Values.Clear();
+            this.progressForm.depthsChart.Series[0].Values.Clear();
+            this.progressForm.accuracyChart.Series[0].Values.Clear();
+            this.progressForm.accuracyChart.Series[1].Values.Clear();
+            this.progressForm.accuracyChart.Series[2].Values.Clear();
+            this.progressForm.accuracyChart.Series[3].Values.Clear();
 
             // (Re)Set dictionary of points in progress form.
             this.progressForm.fitnessPoints = new Dictionary<int, Tuple<List<double>, List<double>>>();
@@ -1697,6 +1943,11 @@ namespace antico
             // Reset options for runs.
             this.progressForm.runToolStripMenuItem.DropDownItems.Clear();
             this.progressForm.selectedRun = -1;
+
+            // Hide all charts.
+            this.progressForm.chart.Visible = false;
+            this.progressForm.depthsChart.Visible = false;
+            this.progressForm.accuracyChart.Visible = false;
 
             // Open console and progress form if already not opened.
             if (CheckOpened(this.consoleForm.Text))
@@ -1732,6 +1983,55 @@ namespace antico
                 }
             }
             return false;
+        }
+        #endregion
+
+        #region Load file.
+        /// <summary>
+        /// Loads file with specific path and name (file) and saves it in UploadedModel class.
+        /// </summary>
+        /// 
+        /// <param name="file">Name of the file to be loaded into instance of UploadedModel class.</param>
+        private void LoadFile(string file)
+        {
+            // Declare the hashtable reference.
+            Hashtable addresses = null;
+
+            // Open the file containing the data that you want to deserialize.
+            FileStream fs = new FileStream(file, FileMode.Open);
+            try
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+
+                // Deserialize the hashtable from the file and  
+                // assign the reference to the local variable.
+                addresses = (Hashtable)formatter.Deserialize(fs);
+            }
+            catch (SerializationException e)
+            {
+                string m = "Failed to deserialize. Reason: " + e.Message;
+                CustomDialogBox dialog = new CustomDialogBox("Failed", m, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
+                dialog.ShowDialog();
+                throw new Exception("[LoadFile] Failed to deserialize. Reason: " + e.Message);
+            }
+            finally
+            {
+                fs.Close();
+            }
+
+            // New uploaded model.
+            this.upload = new UploadedModel();
+
+            // Load values from file into UploadedModel class.
+            foreach (DictionaryEntry de in addresses)
+            {
+                this.upload.Load(de.Key.ToString(), de.Value, ref progressForm);
+            }
+
+            for (var r = 0; r < this.upload.fitnessPoints.Keys.Count; r++)
+            {
+                this.progressForm.runToolStripMenuItem.DropDownItems.Add((r + 1).ToString());
+            }
         }
         #endregion
 
@@ -1778,6 +2078,7 @@ namespace antico
         /// <summary>
         /// Preforms all runs of ABCP algorithm.
         /// </summary>
+        /// <returns>(Relevant only if numberOfFollds > 0). Fold that was choosen to be the best.</returns>
         private void ABCPRuns()
         {
             for (var run = 0; run < this.formParameters.numberOfRuns; run++)
@@ -1786,27 +2087,11 @@ namespace antico
                 string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
                 this.consoleForm.Invoke((MethodInvoker)delegate { this.consoleForm.printoutTextBox.AppendText("\r\n[" + time + "] RUN: " + run.ToString() + "\r\n"); });
 
-                // Add new keys to dictionary.
-                if (!this.progressForm.fitnessPoints.ContainsKey(run + 1))
-                    this.progressForm.fitnessPoints.Add(run + 1, Tuple.Create(new List<double>(), new List<double>()));
-                if (!this.progressForm.tpPoints.ContainsKey(run + 1))
-                    this.progressForm.tpPoints.Add(run + 1, Tuple.Create(new List<int>(), new List<int>()));
-                if (!this.progressForm.tnPoints.ContainsKey(run + 1))
-                    this.progressForm.tnPoints.Add(run + 1, Tuple.Create(new List<int>(), new List<int>()));
-                if (!this.progressForm.fpPoints.ContainsKey(run + 1))
-                    this.progressForm.fpPoints.Add(run + 1, Tuple.Create(new List<int>(), new List<int>()));
-                if (!this.progressForm.fnPoints.ContainsKey(run + 1))
-                    this.progressForm.fnPoints.Add(run + 1, Tuple.Create(new List<int>(), new List<int>()));
-                if (!this.progressForm.depthPoints.ContainsKey(run + 1))
-                    this.progressForm.depthPoints.Add(run + 1, new List<int>());
-                if (!this.progressForm.accuracyPointsTrain.ContainsKey(run + 1))
-                    this.progressForm.accuracyPointsTrain.Add(run + 1, Tuple.Create(new List<int>(), new List<int>(), new List<int>(), new List<int>()) );
-
-                // Add option to menu for selecting this run.
-                this.progressForm.Invoke((MethodInvoker)delegate { this.progressForm.runToolStripMenuItem.DropDownItems.Add((run + 1).ToString()); });
-
                 // Do this run.
-                this.PreformABCP(run);
+                int fold = this.PreformABCP(run);
+
+                if (fold != -1)
+                    choosenFold.Add(fold);
 
                 // Printout on console.
                 this.Invoke((MethodInvoker)delegate { this.consoleForm.printoutTextBox.AppendText("\r\n********************************************************\r\n"); });
@@ -1836,8 +2121,11 @@ namespace antico
         /// </summary>
         /// 
         /// <param name="run">Index of the current run.</param>
-        private void PreformABCP(int run)
+        /// <returns>(Relevant only if numberOfFollds > 0). Fold that was choosen to be the best.</returns>
+        private int PreformABCP(int run)
         {
+            int retVal = -1;
+
             // Check if parameters and data are previously set.
             if (this.formData == null || this.formParameters == null)
                 throw new Exception("[PreformABCP] Parameters/Data not set!");
@@ -1845,16 +2133,33 @@ namespace antico
             // Train model in this run depending on number of folds.
             if (this.formData.numberOfFolds == 0)
             {
+                // Add new key to dictionaries in progressForm.
+                if (!this.progressForm.fitnessPoints.ContainsKey(run + 1))
+                    this.progressForm.fitnessPoints.Add(run + 1, Tuple.Create(new List<double>(), new List<double>()));
+                if (!this.progressForm.tpPoints.ContainsKey(run + 1))
+                    this.progressForm.tpPoints.Add(run + 1, Tuple.Create(new List<int>(), new List<int>()));
+                if (!this.progressForm.tnPoints.ContainsKey(run + 1))
+                    this.progressForm.tnPoints.Add(run + 1, Tuple.Create(new List<int>(), new List<int>()));
+                if (!this.progressForm.fpPoints.ContainsKey(run + 1))
+                    this.progressForm.fpPoints.Add(run + 1, Tuple.Create(new List<int>(), new List<int>()));
+                if (!this.progressForm.fnPoints.ContainsKey(run + 1))
+                    this.progressForm.fnPoints.Add(run + 1, Tuple.Create(new List<int>(), new List<int>()));
+                if (!this.progressForm.depthPoints.ContainsKey(run + 1))
+                    this.progressForm.depthPoints.Add(run + 1, new List<int>());
+                if (!this.progressForm.accuracyPointsTrain.ContainsKey(run + 1))
+                    this.progressForm.accuracyPointsTrain.Add(run + 1, Tuple.Create(new List<int>(), new List<int>(), new List<int>(), new List<int>()));
+
+                // Add option to menu for selecting this run.
+                this.progressForm.Invoke((MethodInvoker)delegate { this.progressForm.runToolStripMenuItem.DropDownItems.Add((run + 1).ToString()); });
+
                 // Initialization of model.
                 this.allModelsInForm.Add(new ABCP(this.formParameters, this.formData, this.formData.trainFeatures, this.formData.testFeatures, this, this.consoleForm.printoutTextBox));
 
                 // Search for best model.
-                this.allModelsInForm[run].ABCProgramming(this, this.consoleForm.printoutTextBox, run + 1, this.progressBar);
+                this.allModelsInForm[run].qsABCP(this, this.consoleForm.printoutTextBox, run + 1, this.progressBar);
             }
             else
             {
-                // TODO progress form folds
-
                 // Train with folds.
 
                 // Variable for saving models from all folds.
@@ -1870,6 +2175,29 @@ namespace antico
                 // Create model for every fold.
                 for (var f = 0; f < this.formData.numberOfFolds; f++)
                 {
+                    #region add key to dictionaries
+                    int dictKey = run * this.formData.numberOfFolds + f + 1;
+                    // Add new key to dictionaries in progressForm.
+                    if (!this.progressForm.fitnessPoints.ContainsKey(dictKey))
+                        this.progressForm.fitnessPoints.Add(dictKey, Tuple.Create(new List<double>(), new List<double>()));
+                    if (!this.progressForm.tpPoints.ContainsKey(dictKey))
+                        this.progressForm.tpPoints.Add(dictKey, Tuple.Create(new List<int>(), new List<int>()));
+                    if (!this.progressForm.tnPoints.ContainsKey(dictKey))
+                        this.progressForm.tnPoints.Add(dictKey, Tuple.Create(new List<int>(), new List<int>()));
+                    if (!this.progressForm.fpPoints.ContainsKey(dictKey))
+                        this.progressForm.fpPoints.Add(dictKey, Tuple.Create(new List<int>(), new List<int>()));
+                    if (!this.progressForm.fnPoints.ContainsKey(dictKey))
+                        this.progressForm.fnPoints.Add(dictKey, Tuple.Create(new List<int>(), new List<int>()));
+                    if (!this.progressForm.depthPoints.ContainsKey(dictKey))
+                        this.progressForm.depthPoints.Add(dictKey, new List<int>());
+                    if (!this.progressForm.accuracyPointsTrain.ContainsKey(dictKey))
+                        this.progressForm.accuracyPointsTrain.Add(dictKey, Tuple.Create(new List<int>(), new List<int>(), new List<int>(), new List<int>()));
+                    #endregion
+
+                    // Add option to menu for selecting this run.
+                    //this.progressForm.Invoke((MethodInvoker)delegate { this.progressForm.runToolStripMenuItem.DropDownItems.Add("(run-" + (run + 1).ToString() + ") " + (f + 1).ToString()); });
+                    this.progressForm.Invoke((MethodInvoker)delegate { this.progressForm.runToolStripMenuItem.DropDownItems.Add(dictKey.ToString()); });
+
                     // Printout on console.
                     string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
                     this.consoleForm.Invoke((MethodInvoker)delegate { this.consoleForm.printoutTextBox.AppendText("\r\n-----------------------------------------------------------------\r\n"); });
@@ -1879,7 +2207,7 @@ namespace antico
                     allFoldModelsInThisRun.Add(new ABCP(this.formParameters, this.formData, this.formData.trainFeaturesFolds[f], this.formData.testFeaturesFolds[f], this, this.consoleForm.printoutTextBox));
 
                     // Search for best model.
-                    allFoldModelsInThisRun[f].ABCProgramming(this, this.consoleForm.printoutTextBox, run, this.progressBar);
+                    allFoldModelsInThisRun[f].basicABCP(this, this.consoleForm.printoutTextBox, dictKey, this.progressBar);
 
                     // Input for the printout to console.
                     string input = "";
@@ -2053,6 +2381,8 @@ namespace antico
 
                 // Add best model to allModelsInForm variable.
                 this.allModelsInForm.Add(allFoldModelsInThisRun[bestFoldIndex]);
+
+                retVal = bestFoldIndex;
             }
             #region update best solution in form if this run improved it
             int iBest = this.allModelsInForm[run].bestIndex;
@@ -2067,6 +2397,8 @@ namespace antico
             {
                 this.bestModelInForm = (Chromosome)this.allModelsInForm[run].population[iBest].Clone();
             }
+
+            return retVal;
             #endregion
         }
         #endregion

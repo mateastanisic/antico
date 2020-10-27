@@ -660,9 +660,8 @@ namespace antico.abcp
         /// </summary>
         /// 
         /// <param name="data"> Row of a table with all features. </param>
-        /// <param name="changed"> Flag reference for knowing if content of any node is changed because in that case, whole evaluation needs to be re-done. </param>
         /// <returns> Evaluation of symbolic tree whose root node is current node for given DataRow.</returns>
-        public double Evaluate(DataRow data, ref bool changed)
+        public double Evaluate(DataRow data)
         {
             // Check if node has content.
             if (this._content == null)
@@ -706,7 +705,7 @@ namespace antico.abcp
 
                 #region evaluate child node
                 // Evaluate child node.
-                double childEvaluation = this._children[0].Evaluate(data, ref changed);
+                double childEvaluation = this._children[0].Evaluate(data);
 
                 // Handling with infinity.
                 if (Double.IsPositiveInfinity(childEvaluation))
@@ -762,7 +761,7 @@ namespace antico.abcp
                 #endregion
 
                 #region evaluate child nodes
-                double child1Evaluation = this._children[0].Evaluate(data, ref changed);
+                double child1Evaluation = this._children[0].Evaluate(data);
 
                 // Handling with infinity.
                 if (Double.IsPositiveInfinity(child1Evaluation))
@@ -781,7 +780,7 @@ namespace antico.abcp
                     Console.WriteLine("Remove later.");
                 }
 
-                double child2Evaluation = this._children[1].Evaluate(data, ref changed);
+                double child2Evaluation = this._children[1].Evaluate(data);
 
                 // Handling with infinity.
                 if (Double.IsPositiveInfinity(child2Evaluation))
@@ -834,7 +833,7 @@ namespace antico.abcp
         /// <summary>
         /// Calculate indices of the Symbolic (sub)Tree whose root node is the current node.
         /// </summary>
-        internal void CalculateIndices()
+        public void CalculateIndices()
         {
             // Helper variable for assigning indices to the nodes.
             int count = 0;
@@ -936,7 +935,7 @@ namespace antico.abcp
         /// 
         /// <param name="i">Index of a node to be found.</param>
         /// <returns> Node with wanted index in a (sub)tree whose root is the current node. </returns>
-        internal SymbolicTreeNode FindNodeWithIndex(int i)
+        public SymbolicTreeNode FindNodeWithIndex(int i)
         {
             // Make sure index is positive number.
             if (i < 0)
@@ -1016,7 +1015,7 @@ namespace antico.abcp
         /// </summary>
         /// 
         /// <returns> Maximal depth of the (sub)tree (maximal variable depth of nodes in (sub)tree). </returns>
-        internal int DepthOfSymbolicTree()
+        public int DepthOfSymbolicTree()
         {
             // Set initial depth as -1.
             int MaxDepth = -1;
@@ -1544,27 +1543,11 @@ namespace antico.abcp
 
             while (r < data.Rows.Count)
             {
-                // Flag for keeping track of changes in the tree.
-                bool changed = false;
-
                 // Data row.
                 var row = data.Rows[r];
 
                 // Evaluation of curretn row of data.
-                double evaluation = this._symbolicTree.Evaluate(row, ref changed);
-
-                // Check if content of any node in the tree was changed.
-                if (changed)
-                {
-                    // Reset counter variables and start over.
-                    r = 0;
-                    TP = 0;
-                    TN = 0;
-                    FP = 0;
-                    FN = 0;
-
-                    continue;
-                }
+                double evaluation = this._symbolicTree.Evaluate(row);
 
                 // Testing phase. Evaluated numbers shouldn't be NaNs.
                 // TODO Remove later. (isNaN)

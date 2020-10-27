@@ -83,7 +83,7 @@
             this.PanelForMoving.Dock = System.Windows.Forms.DockStyle.Top;
             this.PanelForMoving.Location = new System.Drawing.Point(0, 0);
             this.PanelForMoving.Name = "PanelForMoving";
-            this.PanelForMoving.Size = new System.Drawing.Size(1012, 53);
+            this.PanelForMoving.Size = new System.Drawing.Size(1012, 44);
             this.PanelForMoving.TabIndex = 23;
             this.PanelForMoving.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PanelForMoving_MouseDown);
             this.PanelForMoving.MouseEnter += new System.EventHandler(this.PanelForMoving_MouseEnter);

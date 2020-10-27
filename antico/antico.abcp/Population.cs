@@ -291,85 +291,15 @@ namespace antico.abcp
             Chromosome primaryParentClone = (Chromosome)this.chromosomes[primaryParentIndex].Clone();
             Chromosome secundaryParentClone = (Chromosome)this.chromosomes[secundaryParentIndex].Clone();
 
-            // Index of crossover point in primary parent.
-            int indexOfCrossoverPointOfPrimaryParent;
-            // Subtree of crossover point in secundary parent.
-            SymbolicTreeNode crossoverSubtreeOfSecundaryParent = new SymbolicTreeNode();
-
-            // Search for crossover points in parents until they that satisfy condition on depth of child.
-            while (true)
-            {
-                #region primary parent crossover point selection
-                // Make list of nonTerminal and terminal indices in primaryParent.
-                List<int> nonTerminalIndicesOfPrimaryParent = new List<int>();
-                List<int> terminalIndicesOfPrimaryParent = new List<int>();
-                SeparateIndices(primaryParentClone.symbolicTree, ref nonTerminalIndicesOfPrimaryParent, ref terminalIndicesOfPrimaryParent);
-
-                // Randomly select non-terminal or terminal (probability of selecting non-terminal is predefined) from secundary parent.
-                if ((rand.Next(100) < (probability * 100)) && (nonTerminalIndicesOfPrimaryParent.Count > 1))
-                {
-                    // Index of the (to-be) selected non-terminal.
-                    int crossoverPointOfPrimaryParent;
-
-                    // Do not consider crossover point at root node (index = 0) in first parent since in that way we would be cloning second parent into a child.
-                    while (true)
-                    {
-                        // Chose index of a non-terminal node from secundary parent.
-                        crossoverPointOfPrimaryParent = rand.Next(nonTerminalIndicesOfPrimaryParent.Count);
-                        if (crossoverPointOfPrimaryParent != 0)
-                            break;
-                    }
-
-                    // Clone selected subtree.
-                    indexOfCrossoverPointOfPrimaryParent = nonTerminalIndicesOfPrimaryParent[crossoverPointOfPrimaryParent];
-                }
-                else
-                {
-                    // Chose index of a non-terminal node from secundary parent.
-                    int crossoverPointOfPrimaryParent = rand.Next(terminalIndicesOfPrimaryParent.Count);
-
-                    // Clone selected subtree.
-                    indexOfCrossoverPointOfPrimaryParent = terminalIndicesOfPrimaryParent[crossoverPointOfPrimaryParent];
-                }
-                #endregion
-
-                #region secundary parent crossover point selection
-                // Make list of nonTerminal and terminal nodes in secundaryParent.
-                List<SymbolicTreeNode> nonTerminalNodesOfSecundaryParent = new List<SymbolicTreeNode>();
-                List<SymbolicTreeNode> terminalNodesOfSecundaryParent = new List<SymbolicTreeNode>();
-                SeparateNodes(secundaryParentClone.symbolicTree, ref nonTerminalNodesOfSecundaryParent, ref terminalNodesOfSecundaryParent);
-
-                // Randomly select non-terminal or terminal (probability of selecting non-terminal is predefined) from secundary parent.
-                if ((rand.Next(100) < (probability * 100)) && (nonTerminalNodesOfSecundaryParent.Count != 0))
-                {
-                    // Chose index of a non-terminal node from secundary parent.
-                    int crossoverPointOfSecundaryParent = rand.Next(nonTerminalNodesOfSecundaryParent.Count);
-
-                    // Clone selected subtree.
-                    crossoverSubtreeOfSecundaryParent = (SymbolicTreeNode)nonTerminalNodesOfSecundaryParent[crossoverPointOfSecundaryParent].Clone();
-                }
-                else
-                {
-                    // Chose index of a non-terminal node from secundary parent.
-                    int crossoverPointOfSecundaryParent = rand.Next(terminalNodesOfSecundaryParent.Count);
-
-                    // Clone selected subtree.
-                    crossoverSubtreeOfSecundaryParent = (SymbolicTreeNode)terminalNodesOfSecundaryParent[crossoverPointOfSecundaryParent].Clone();
-                }
-                #endregion
-
-                int depth1 = this.chromosomes[primaryParentIndex].symbolicTree.FindNodeWithIndex(indexOfCrossoverPointOfPrimaryParent).depth;
-                int depth2 = crossoverSubtreeOfSecundaryParent.DepthOfSymbolicTree();
-                if (depth1 + depth2 < maxDepth)
-                    break;
-
-            }
+            // ITEM1 - Index of crossover point in primary parent.
+            // ITEM2 - Subtree of crossover point in secundary parent.
+            Tuple<int, SymbolicTreeNode> subtrees = ChooseSubtrees(primaryParentClone, secundaryParentClone, probability, maxDepth);
 
             // Variable for tracking if we found the crossover point in PlaceNodeAtPoint method.
             bool found = false;
 
             // Place subtree of secondary parent in primary parent crossover point to create a child.
-            var ret = PlaceNodeAtPoint((SymbolicTreeNode)primaryParentClone.symbolicTree, indexOfCrossoverPointOfPrimaryParent, crossoverSubtreeOfSecundaryParent, ref found);
+            var ret = PlaceNodeAtPoint((SymbolicTreeNode)primaryParentClone.symbolicTree, subtrees.Item1, subtrees.Item2, ref found);
 
             #region child setup
             // Solution created with crossover.
@@ -396,8 +326,8 @@ namespace antico.abcp
         /// (New solution must be different from all other solution in the population.)
         /// </summary>
         /// 
-        /// <param name="primaryParentIndex"> First - primary chromosome (parent) that is part of the crossover. </param>
-        /// <param name="secundaryParentIndex"> Secondary chromosome (parent) that is part of the crossover. </param>
+        /// <param name="primaryParentIndex"> First - primary chromosome (parent) participating in the crossover. </param>
+        /// <param name="secundaryParentIndex"> Secondary chromosome (parent) participating in the crossover. </param>
         /// <param name="maxDepth">Maximal depth of trees in population.</param>
         /// <param name="trainData">Train feature values - for calculating fitness.</param>
         /// <param name="testData">Test feature values - for calculating accuracy.</param>
@@ -635,7 +565,7 @@ namespace antico.abcp
         /// <param name="crossoverSubtreeOfSecundaryParent">Subtree to be added at changing point.</param>
         /// <param name="found">Reference to a variable that represents if node with given index is found. It is used for better preformance.</param>
         /// /// <returns> New, or old, (sub)tree. </returns>
-        private Tuple<SymbolicTreeNode, bool> PlaceNodeAtPoint(SymbolicTreeNode node, int indexOfCrossoverPointOfPrimaryParent, SymbolicTreeNode crossoverSubtreeOfSecundaryParent, ref bool found)
+        public Tuple<SymbolicTreeNode, bool> PlaceNodeAtPoint(SymbolicTreeNode node, int indexOfCrossoverPointOfPrimaryParent, SymbolicTreeNode crossoverSubtreeOfSecundaryParent, ref bool found)
         {
             // Node is previously found - return tuple of current node and found variable.
             if (found)
@@ -813,6 +743,84 @@ namespace antico.abcp
                 throw new Exception("[PlaceNodeAtPoint] Given node arity = " + node.arity + " is not expected! Arity higher than 2 is not covered yet!");
             }
 
+        }
+        
+        public Tuple<int, SymbolicTreeNode> ChooseSubtrees(Chromosome primaryParent, Chromosome secundaryParent, double chooseNonTerminalPointProbability, int maxDepth)
+        {
+            // Index of crossover point in primary parent.
+            int indexOfCrossoverPointOfPrimaryParent;
+            // Subtree of crossover point in secundary parent.
+            SymbolicTreeNode crossoverSubtreeOfSecundaryParent = new SymbolicTreeNode();
+
+            // Search for crossover points in parents until they that satisfy condition on depth of child.
+            while (true)
+            {
+                #region primary parent crossover point selection
+                // Make list of nonTerminal and terminal indices in primaryParent.
+                List<int> nonTerminalIndicesOfPrimaryParent = new List<int>();
+                List<int> terminalIndicesOfPrimaryParent = new List<int>();
+                SeparateIndices(primaryParent.symbolicTree, ref nonTerminalIndicesOfPrimaryParent, ref terminalIndicesOfPrimaryParent);
+
+                // Randomly select non-terminal or terminal (probability of selecting non-terminal is predefined) from secundary parent.
+                if ((rand.Next(100) < (chooseNonTerminalPointProbability * 100)) && (nonTerminalIndicesOfPrimaryParent.Count > 1))
+                {
+                    // Index of the (to-be) selected non-terminal.
+                    int crossoverPointOfPrimaryParent;
+
+                    // Do not consider crossover point at root node (index = 0) in first parent since in that way we would be cloning second parent into a child.
+                    while (true)
+                    {
+                        // Chose index of a non-terminal node from secundary parent.
+                        crossoverPointOfPrimaryParent = rand.Next(nonTerminalIndicesOfPrimaryParent.Count);
+                        if (crossoverPointOfPrimaryParent != 0)
+                            break;
+                    }
+
+                    // Clone selected subtree.
+                    indexOfCrossoverPointOfPrimaryParent = nonTerminalIndicesOfPrimaryParent[crossoverPointOfPrimaryParent];
+                }
+                else
+                {
+                    // Chose index of a non-terminal node from secundary parent.
+                    int crossoverPointOfPrimaryParent = rand.Next(terminalIndicesOfPrimaryParent.Count);
+
+                    // Clone selected subtree.
+                    indexOfCrossoverPointOfPrimaryParent = terminalIndicesOfPrimaryParent[crossoverPointOfPrimaryParent];
+                }
+                #endregion
+
+                #region secundary parent crossover point selection
+                // Make list of nonTerminal and terminal nodes in secundaryParent.
+                List<SymbolicTreeNode> nonTerminalNodesOfSecundaryParent = new List<SymbolicTreeNode>();
+                List<SymbolicTreeNode> terminalNodesOfSecundaryParent = new List<SymbolicTreeNode>();
+                SeparateNodes(secundaryParent.symbolicTree, ref nonTerminalNodesOfSecundaryParent, ref terminalNodesOfSecundaryParent);
+
+                // Randomly select non-terminal or terminal (probability of selecting non-terminal is predefined) from secundary parent.
+                if ((rand.Next(100) < (chooseNonTerminalPointProbability * 100)) && (nonTerminalNodesOfSecundaryParent.Count != 0))
+                {
+                    // Chose index of a non-terminal node from secundary parent.
+                    int crossoverPointOfSecundaryParent = rand.Next(nonTerminalNodesOfSecundaryParent.Count);
+
+                    // Clone selected subtree.
+                    crossoverSubtreeOfSecundaryParent = (SymbolicTreeNode)nonTerminalNodesOfSecundaryParent[crossoverPointOfSecundaryParent].Clone();
+                }
+                else
+                {
+                    // Chose index of a non-terminal node from secundary parent.
+                    int crossoverPointOfSecundaryParent = rand.Next(terminalNodesOfSecundaryParent.Count);
+
+                    // Clone selected subtree.
+                    crossoverSubtreeOfSecundaryParent = (SymbolicTreeNode)terminalNodesOfSecundaryParent[crossoverPointOfSecundaryParent].Clone();
+                }
+                #endregion
+
+                int depth1 = primaryParent.symbolicTree.FindNodeWithIndex(indexOfCrossoverPointOfPrimaryParent).depth;
+                int depth2 = crossoverSubtreeOfSecundaryParent.DepthOfSymbolicTree();
+                if (depth1 + depth2 < maxDepth)
+                    break;
+            }
+
+            return Tuple.Create(indexOfCrossoverPointOfPrimaryParent, crossoverSubtreeOfSecundaryParent);
         }
         #endregion
 

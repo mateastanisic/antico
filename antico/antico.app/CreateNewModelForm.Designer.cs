@@ -31,8 +31,6 @@ namespace antico
         /// </summary>
         private void InitializeComponent()
         {
-            this.DoubleBuffered = true;
-
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CreateNewModelForm));
             this.goBackSign = new System.Windows.Forms.PictureBox();
             this.anticoLabel = new System.Windows.Forms.Label();
@@ -87,12 +85,18 @@ namespace antico
             this.numberOfRunsLayout = new System.Windows.Forms.FlowLayoutPanel();
             this.numberOfRunsLabel = new System.Windows.Forms.Label();
             this.numberOfRunsUpDown = new System.Windows.Forms.NumericUpDown();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.numberOfFoldsLabel = new System.Windows.Forms.Label();
+            this.numberOfFoldsUpDown = new System.Windows.Forms.NumericUpDown();
             this.lookupConsoleFormSign = new System.Windows.Forms.PictureBox();
             this.minimizeSign = new System.Windows.Forms.PictureBox();
             this.exitSign = new System.Windows.Forms.PictureBox();
             this.uploadSign = new System.Windows.Forms.PictureBox();
             this.showSolutionsProgressSign = new System.Windows.Forms.PictureBox();
             this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.uploadFileDialog = new System.Windows.Forms.OpenFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.goBackSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.parametersSettingsSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.startSign)).BeginInit();
@@ -121,8 +125,10 @@ namespace antico
             this.generatingTreeMethodLayout.SuspendLayout();
             this.numberOfRunsLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfRunsUpDown)).BeginInit();
+            this.flowLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numberOfFoldsUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lookupConsoleFormSign)).BeginInit();
-            
             ((System.ComponentModel.ISupportInitialize)(this.minimizeSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.exitSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.uploadSign)).BeginInit();
@@ -148,11 +154,11 @@ namespace antico
             // 
             this.anticoLabel.AutoSize = true;
             this.anticoLabel.BackColor = System.Drawing.Color.Transparent;
-            this.anticoLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.anticoLabel.Font = new System.Drawing.Font("Source Sans Pro", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.anticoLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
             this.anticoLabel.Location = new System.Drawing.Point(601, 38);
             this.anticoLabel.Name = "anticoLabel";
-            this.anticoLabel.Size = new System.Drawing.Size(93, 33);
+            this.anticoLabel.Size = new System.Drawing.Size(93, 37);
             this.anticoLabel.TabIndex = 8;
             this.anticoLabel.Text = "antico";
             // 
@@ -229,7 +235,6 @@ namespace antico
             this.waitingAnimation.TabIndex = 14;
             this.waitingAnimation.TabStop = false;
             this.waitingAnimation.Visible = false;
-            // Trigger on waitingAnimation visibilitx changed. (For end of model search.)
             this.waitingAnimation.VisibleChanged += new System.EventHandler(this.WaitingAnimation_VisibilityChanged);
             // 
             // databaseRadioLayout
@@ -239,7 +244,7 @@ namespace antico
             this.databaseRadioLayout.Controls.Add(this.databaseComboBox);
             this.databaseRadioLayout.Location = new System.Drawing.Point(3, 3);
             this.databaseRadioLayout.Name = "databaseRadioLayout";
-            this.databaseRadioLayout.Size = new System.Drawing.Size(497, 40);
+            this.databaseRadioLayout.Size = new System.Drawing.Size(497, 35);
             this.databaseRadioLayout.TabIndex = 15;
             // 
             // databaseLabel
@@ -283,6 +288,8 @@ namespace antico
             this.mainLayout.Controls.Add(this.probabilityLayout);
             this.mainLayout.Controls.Add(this.generatingTreeMethodLayout);
             this.mainLayout.Controls.Add(this.numberOfRunsLayout);
+            this.mainLayout.Controls.Add(this.numberOfFoldsLabel);
+            this.mainLayout.Controls.Add(this.numberOfFoldsUpDown);
             this.mainLayout.Location = new System.Drawing.Point(30, 107);
             this.mainLayout.Name = "mainLayout";
             this.mainLayout.Size = new System.Drawing.Size(500, 550);
@@ -301,9 +308,9 @@ namespace antico
             this.nonTerminalSelectionLayout.Controls.Add(this.cosSelected);
             this.nonTerminalSelectionLayout.Controls.Add(this.expSelected);
             this.nonTerminalSelectionLayout.Controls.Add(this.rlogSelected);
-            this.nonTerminalSelectionLayout.Location = new System.Drawing.Point(3, 49);
+            this.nonTerminalSelectionLayout.Location = new System.Drawing.Point(3, 44);
             this.nonTerminalSelectionLayout.Name = "nonTerminalSelectionLayout";
-            this.nonTerminalSelectionLayout.Size = new System.Drawing.Size(493, 40);
+            this.nonTerminalSelectionLayout.Size = new System.Drawing.Size(493, 35);
             this.nonTerminalSelectionLayout.TabIndex = 18;
             // 
             // nonTerminalsLabel
@@ -434,9 +441,9 @@ namespace antico
             this.colonySizeLayout.BackColor = System.Drawing.Color.Transparent;
             this.colonySizeLayout.Controls.Add(this.colonySize);
             this.colonySizeLayout.Controls.Add(this.colonySizeUpDown);
-            this.colonySizeLayout.Location = new System.Drawing.Point(3, 95);
+            this.colonySizeLayout.Location = new System.Drawing.Point(3, 85);
             this.colonySizeLayout.Name = "colonySizeLayout";
-            this.colonySizeLayout.Size = new System.Drawing.Size(497, 40);
+            this.colonySizeLayout.Size = new System.Drawing.Size(497, 35);
             this.colonySizeLayout.TabIndex = 18;
             // 
             // colonySize
@@ -483,9 +490,9 @@ namespace antico
             this.maximalNumberOfIterationsLayout.BackColor = System.Drawing.Color.Transparent;
             this.maximalNumberOfIterationsLayout.Controls.Add(this.maximalNumberOfIterationsLabel);
             this.maximalNumberOfIterationsLayout.Controls.Add(this.maxNoOfIterUpDown);
-            this.maximalNumberOfIterationsLayout.Location = new System.Drawing.Point(3, 141);
+            this.maximalNumberOfIterationsLayout.Location = new System.Drawing.Point(3, 126);
             this.maximalNumberOfIterationsLayout.Name = "maximalNumberOfIterationsLayout";
-            this.maximalNumberOfIterationsLayout.Size = new System.Drawing.Size(497, 40);
+            this.maximalNumberOfIterationsLayout.Size = new System.Drawing.Size(497, 35);
             this.maximalNumberOfIterationsLayout.TabIndex = 19;
             // 
             // maximalNumberOfIterationsLabel
@@ -532,9 +539,9 @@ namespace antico
             this.maxNoOfNotImprovingIterationsLayout.BackColor = System.Drawing.Color.Transparent;
             this.maxNoOfNotImprovingIterationsLayout.Controls.Add(this.maxNoOfNotImprovingIterationsLabel);
             this.maxNoOfNotImprovingIterationsLayout.Controls.Add(this.maxNoOfNotImprovingIterUpDown);
-            this.maxNoOfNotImprovingIterationsLayout.Location = new System.Drawing.Point(3, 187);
+            this.maxNoOfNotImprovingIterationsLayout.Location = new System.Drawing.Point(3, 167);
             this.maxNoOfNotImprovingIterationsLayout.Name = "maxNoOfNotImprovingIterationsLayout";
-            this.maxNoOfNotImprovingIterationsLayout.Size = new System.Drawing.Size(497, 40);
+            this.maxNoOfNotImprovingIterationsLayout.Size = new System.Drawing.Size(497, 35);
             this.maxNoOfNotImprovingIterationsLayout.TabIndex = 20;
             // 
             // maxNoOfNotImprovingIterationsLabel
@@ -581,9 +588,9 @@ namespace antico
             this.limitLayout.BackColor = System.Drawing.Color.Transparent;
             this.limitLayout.Controls.Add(this.limitLabel);
             this.limitLayout.Controls.Add(this.limitUpDown);
-            this.limitLayout.Location = new System.Drawing.Point(3, 233);
+            this.limitLayout.Location = new System.Drawing.Point(3, 208);
             this.limitLayout.Name = "limitLayout";
-            this.limitLayout.Size = new System.Drawing.Size(497, 40);
+            this.limitLayout.Size = new System.Drawing.Size(497, 35);
             this.limitLayout.TabIndex = 21;
             // 
             // limitLabel
@@ -630,9 +637,9 @@ namespace antico
             this.initialMaxDepthLayout.BackColor = System.Drawing.Color.Transparent;
             this.initialMaxDepthLayout.Controls.Add(this.initialMaxDepthLabel);
             this.initialMaxDepthLayout.Controls.Add(this.initialMaxDepthUpDown);
-            this.initialMaxDepthLayout.Location = new System.Drawing.Point(3, 279);
+            this.initialMaxDepthLayout.Location = new System.Drawing.Point(3, 249);
             this.initialMaxDepthLayout.Name = "initialMaxDepthLayout";
-            this.initialMaxDepthLayout.Size = new System.Drawing.Size(497, 40);
+            this.initialMaxDepthLayout.Size = new System.Drawing.Size(497, 35);
             this.initialMaxDepthLayout.TabIndex = 19;
             // 
             // initialMaxDepthLabel
@@ -669,9 +676,9 @@ namespace antico
             this.maxDepthLayout.BackColor = System.Drawing.Color.Transparent;
             this.maxDepthLayout.Controls.Add(this.maxDepthLabel);
             this.maxDepthLayout.Controls.Add(this.maxDepthUpDown);
-            this.maxDepthLayout.Location = new System.Drawing.Point(3, 325);
+            this.maxDepthLayout.Location = new System.Drawing.Point(3, 290);
             this.maxDepthLayout.Name = "maxDepthLayout";
-            this.maxDepthLayout.Size = new System.Drawing.Size(497, 40);
+            this.maxDepthLayout.Size = new System.Drawing.Size(497, 35);
             this.maxDepthLayout.TabIndex = 20;
             // 
             // maxDepthLabel
@@ -708,9 +715,9 @@ namespace antico
             this.alphaLayout.BackColor = System.Drawing.Color.Transparent;
             this.alphaLayout.Controls.Add(this.alphaLabel);
             this.alphaLayout.Controls.Add(this.alphaUpDown);
-            this.alphaLayout.Location = new System.Drawing.Point(3, 371);
+            this.alphaLayout.Location = new System.Drawing.Point(3, 331);
             this.alphaLayout.Name = "alphaLayout";
-            this.alphaLayout.Size = new System.Drawing.Size(497, 40);
+            this.alphaLayout.Size = new System.Drawing.Size(497, 35);
             this.alphaLayout.TabIndex = 22;
             // 
             // alphaLabel
@@ -758,9 +765,9 @@ namespace antico
             this.probabilityLayout.BackColor = System.Drawing.Color.Transparent;
             this.probabilityLayout.Controls.Add(this.probabilityLabel);
             this.probabilityLayout.Controls.Add(this.probabilityUpDown);
-            this.probabilityLayout.Location = new System.Drawing.Point(3, 417);
+            this.probabilityLayout.Location = new System.Drawing.Point(3, 372);
             this.probabilityLayout.Name = "probabilityLayout";
-            this.probabilityLayout.Size = new System.Drawing.Size(493, 40);
+            this.probabilityLayout.Size = new System.Drawing.Size(493, 35);
             this.probabilityLayout.TabIndex = 23;
             // 
             // probabilityLabel
@@ -810,9 +817,9 @@ namespace antico
             this.generatingTreeMethodLayout.Controls.Add(this.rampedMethodRadioButton);
             this.generatingTreeMethodLayout.Controls.Add(this.growMethodRadioButton);
             this.generatingTreeMethodLayout.Controls.Add(this.fullMethodRadioButton);
-            this.generatingTreeMethodLayout.Location = new System.Drawing.Point(3, 463);
+            this.generatingTreeMethodLayout.Location = new System.Drawing.Point(3, 413);
             this.generatingTreeMethodLayout.Name = "generatingTreeMethodLayout";
-            this.generatingTreeMethodLayout.Size = new System.Drawing.Size(493, 40);
+            this.generatingTreeMethodLayout.Size = new System.Drawing.Size(493, 35);
             this.generatingTreeMethodLayout.TabIndex = 18;
             // 
             // generatingTreeMethod
@@ -869,9 +876,10 @@ namespace antico
             this.numberOfRunsLayout.BackColor = System.Drawing.Color.Transparent;
             this.numberOfRunsLayout.Controls.Add(this.numberOfRunsLabel);
             this.numberOfRunsLayout.Controls.Add(this.numberOfRunsUpDown);
-            this.numberOfRunsLayout.Location = new System.Drawing.Point(3, 509);
+            this.numberOfRunsLayout.Controls.Add(this.flowLayoutPanel1);
+            this.numberOfRunsLayout.Location = new System.Drawing.Point(3, 454);
             this.numberOfRunsLayout.Name = "numberOfRunsLayout";
-            this.numberOfRunsLayout.Size = new System.Drawing.Size(493, 40);
+            this.numberOfRunsLayout.Size = new System.Drawing.Size(493, 35);
             this.numberOfRunsLayout.TabIndex = 20;
             // 
             // numberOfRunsLabel
@@ -898,6 +906,79 @@ namespace antico
             this.numberOfRunsUpDown.Size = new System.Drawing.Size(60, 24);
             this.numberOfRunsUpDown.TabIndex = 18;
             this.numberOfRunsUpDown.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.BackColor = System.Drawing.Color.Transparent;
+            this.flowLayoutPanel1.Controls.Add(this.label1);
+            this.flowLayoutPanel1.Controls.Add(this.numericUpDown1);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 33);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(493, 35);
+            this.flowLayoutPanel1.TabIndex = 21;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
+            this.label1.ForeColor = System.Drawing.SystemColors.Control;
+            this.label1.Location = new System.Drawing.Point(3, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(109, 17);
+            this.label1.TabIndex = 17;
+            this.label1.Text = "NUMBER OF RUNS:";
+            // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
+            this.numericUpDown1.Location = new System.Drawing.Point(118, 3);
+            this.numericUpDown1.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(60, 24);
+            this.numericUpDown1.TabIndex = 18;
+            this.numericUpDown1.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // numberOfFoldsLabel
+            // 
+            this.numberOfFoldsLabel.AutoSize = true;
+            this.numberOfFoldsLabel.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
+            this.numberOfFoldsLabel.ForeColor = System.Drawing.SystemColors.Control;
+            this.numberOfFoldsLabel.Location = new System.Drawing.Point(3, 492);
+            this.numberOfFoldsLabel.Name = "numberOfFoldsLabel";
+            this.numberOfFoldsLabel.Size = new System.Drawing.Size(115, 17);
+            this.numberOfFoldsLabel.TabIndex = 22;
+            this.numberOfFoldsLabel.Text = "NUMBER OF FOLDS:";
+            // 
+            // numberOfFoldsUpDown
+            // 
+            this.numberOfFoldsUpDown.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
+            this.numberOfFoldsUpDown.Location = new System.Drawing.Point(124, 495);
+            this.numberOfFoldsUpDown.Maximum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.numberOfFoldsUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numberOfFoldsUpDown.Name = "numberOfFoldsUpDown";
+            this.numberOfFoldsUpDown.Size = new System.Drawing.Size(57, 24);
+            this.numberOfFoldsUpDown.TabIndex = 22;
+            this.numberOfFoldsUpDown.Value = new decimal(new int[] {
             1,
             0,
             0,
@@ -989,6 +1070,10 @@ namespace antico
             this.progressBar.TabIndex = 27;
             this.progressBar.Visible = false;
             // 
+            // uploadFileDialog
+            // 
+            this.uploadFileDialog.FileName = "uploadFileDialog";
+            // 
             // CreateNewModelForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1010,6 +1095,7 @@ namespace antico
             this.Controls.Add(this.anticoLabel);
             this.Controls.Add(this.goBackSign);
             this.Controls.Add(this.waitingAnimation);
+            this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CreateNewModelForm";
@@ -1029,6 +1115,7 @@ namespace antico
             this.databaseRadioLayout.ResumeLayout(false);
             this.databaseRadioLayout.PerformLayout();
             this.mainLayout.ResumeLayout(false);
+            this.mainLayout.PerformLayout();
             this.nonTerminalSelectionLayout.ResumeLayout(false);
             this.nonTerminalSelectionLayout.PerformLayout();
             this.colonySizeLayout.ResumeLayout(false);
@@ -1060,6 +1147,10 @@ namespace antico
             this.numberOfRunsLayout.ResumeLayout(false);
             this.numberOfRunsLayout.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfRunsUpDown)).EndInit();
+            this.flowLayoutPanel1.ResumeLayout(false);
+            this.flowLayoutPanel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numberOfFoldsUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lookupConsoleFormSign)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.minimizeSign)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.exitSign)).EndInit();
@@ -1133,5 +1224,11 @@ namespace antico
         private PictureBox uploadSign;
         private PictureBox showSolutionsProgressSign;
         private ProgressBar progressBar;
+        private FlowLayoutPanel flowLayoutPanel1;
+        private System.Windows.Forms.Label label1;
+        private NumericUpDown numericUpDown1;
+        private System.Windows.Forms.Label numberOfFoldsLabel;
+        private NumericUpDown numberOfFoldsUpDown;
+        private OpenFileDialog uploadFileDialog;
     }
 }

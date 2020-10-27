@@ -294,7 +294,8 @@ namespace antico.data
         /// 
         /// <param name="mathOperators"> String array containing choosen mathematical operators for training a model.</param>
         /// <param name="databaseName"> Name of the database. </param>
-        public Data(List<string> mathOperators, string databaseName)
+        /// <param name="nof">Number of folds.</param>
+        public Data(List<string> mathOperators, string databaseName, int nof)
         {
             // Deafult mathematical operations.
             this._mathOperators = new List<string>(mathOperators);
@@ -307,7 +308,7 @@ namespace antico.data
 
             // Set up number of folds. 
             // TODO: custom number of folds
-            List<string> databaseFoldsNames = SettingNumberOfFoldsAndReturnDatabaseNames(0);
+            List<string> databaseFoldsNames = SettingNumberOfFoldsAndReturnDatabaseNames(nof);
 
             // Setting up the variables based on number of folds.
             if (this._numberOfFolds == 0)
@@ -423,6 +424,12 @@ namespace antico.data
         /// <returns>List of database names splited in specific number of folds.</returns>
         private List<string> SettingNumberOfFoldsAndReturnDatabaseNames(int folds)
         {
+            // One fold is actually zero folds.
+            if (folds == 1)
+            {
+                folds = 0;
+            }
+
             // Check if database name is set up.
             if (this._databaseName == "")
                 throw new Exception("[SettingNumberOfFolds] Database name is not defined.");

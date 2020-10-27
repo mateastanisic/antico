@@ -114,8 +114,10 @@ namespace antico
         }
 
         /// <summary>
-        /// Besic initialization.
+        /// Initialization of form with parameters.
         /// </summary>
+        /// 
+        /// <param name="location">Point representing location of the parent form.</param>
         public ProgressForm(Point location)
         {
             InitializeComponent();
@@ -129,7 +131,6 @@ namespace antico
             depthPoints = new Dictionary<int, List<int>>();
             accuracyPointsTrain = new Dictionary<int, Tuple<List<int>, List<int>, List<int>, List<int>>>();
 
-            // TODO: custom location of progress form (also update location in console form)
             this.Location = location;
 
             // Menu initialization.
@@ -602,13 +603,17 @@ namespace antico
         /// 
         /// <param name="run">Run from which data will be visualized.</param>
         /// <param name="type">Type of data to be visualized (fitness/depths/TN/TP/FN/FP). </param>
-        private void ShowChart(int run, string type)
+        public void ShowChart(int run, string type)
         {
             // Set up selected run and type of data.
             this.selectedRun = run;
             this.typeOfData = type;
 
-            this.runToolStripMenuItem.Text = "Run: " + this.selectedRun;
+            if (this.runToolStripMenuItem.Text.Contains("Run"))
+                this.runToolStripMenuItem.Text = "Run: " + this.selectedRun;
+            else if (this.runToolStripMenuItem.Text.Contains("Fold"))
+                this.runToolStripMenuItem.Text = "Fold: " + this.selectedRun;
+
             this.dataForChartToolStripMenuItem.Text = "Data for chart: " + this.typeOfData;
 
             if (type == "depths")
@@ -1034,9 +1039,19 @@ namespace antico
         }
         #endregion
 
+        #region Change text of runToolStripMenuItem
+        /// <summary>
+        /// Changes text of runToolStripMenuItem.
+        /// </summary>
+        /// 
+        /// <param name="text">Text to put on runToolStripMenuItem.Text.</param>
+        public void ToolRoolStrip_ChangeText(string text)
+        {
+            this.runToolStripMenuItem.Text = text;
+        }
         #endregion
 
-
+        #endregion
     }
     #endregion
 }

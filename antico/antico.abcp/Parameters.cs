@@ -230,28 +230,6 @@ namespace antico.abcp
         }
         #endregion
 
-        #region Copy
-        /// <summary>
-        /// Helper method for cloning Parameters p values to this values.
-        /// </summary>
-        /// 
-        /// <param name="p">Another class variable Parameters</param>
-        internal void Clone(Parameters p)
-        {
-            // Associate values of class Parameters p to this instance of class variables.
-            this._populationSize = p.populationSize;
-            this._maxNumberOfIterations = p.maxNumberOfIterations;
-            this._maxNumberOfNotImprovingIterations = p.maxNumberOfNotImprovingIterations;
-            this._numberOfRuns = p.numberOfRuns;
-            this._initialMaxDepth = p.initialMaxDepth;
-            this._maxDepth = p.maxDepth;
-            this._generatingTreesMethod = p.generatingTreesMethod;
-            this._limit = p.limit;
-            this._alpha = p.alpha;
-            this._probability = p.probability;
-        }
-        #endregion
-
         #endregion
     }
     #endregion

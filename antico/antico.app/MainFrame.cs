@@ -12,6 +12,16 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Drawing.Text;
+using System.IO;
+using System.Diagnostics;
+using YaraSharp;
+using System.Collections.Generic;
+using System.Collections;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+using System.Data;
+using System.Net;
+using Microsoft.WindowsAPICodePack.Shell;
 
 namespace antico
 {
@@ -31,11 +41,16 @@ namespace antico
     {
         #region ATTRIBUTES
 
+        #region random
+        // Variable for generating random numbers.
+        private static Random rand;
+        #endregion
+
         #region Variables for moving the form.
         // Variables needed for allowing user to move app window on screen.
         private bool dragging = false;
-        private Point dragCursorPoint;
-        private Point dragFormPoint;
+        private System.Drawing.Point dragCursorPoint;
+        private System.Drawing.Point dragFormPoint;
         #endregion
 
         #region Variables for design.
@@ -48,9 +63,24 @@ namespace antico
         private CreateNewModelForm formForCreatingNewModel;
         #endregion
 
+        #region Detection model.
+        // Model for detection.
+        UploadedModel detection;
+        #endregion
+
         #endregion
 
         #region OPERATIONS
+
+        #region Static constructor.
+        /// <summary>
+        /// New static random.
+        /// </summary>
+        static MainFrame()
+        {
+            rand = new Random();
+        }
+        #endregion
 
         #region Initialize.
         /// <summary>
@@ -66,6 +96,11 @@ namespace antico
             anticoFont.AddFontFile("../../../../[FONTS]/UnicaOne-Regular.ttf");
             this.anticoLabel.Font = new Font(anticoFont.Families[0], 35, System.Drawing.FontStyle.Regular);
             this.anticoLabelDesign = this.anticoLabel;
+
+            // Upload model for detection.
+            // TODO: hardcoded
+            LoadFile(@"../../../../[DATA]/saved/4_RUN1_best_solution_0.955__21_10_2020.dat");
+
         }
         #endregion
 
@@ -94,8 +129,8 @@ namespace antico
         {
             if (this.dragging)
             {
-                Point dif = Point.Subtract(Cursor.Position, new Size(this.dragCursorPoint));
-                this.Location = Point.Add(this.dragFormPoint, new Size(dif));
+                System.Drawing.Point dif = System.Drawing.Point.Subtract(Cursor.Position, new System.Drawing.Size(this.dragCursorPoint));
+                this.Location = System.Drawing.Point.Add(this.dragFormPoint, new System.Drawing.Size(dif));
             }
         }
 
@@ -161,6 +196,30 @@ namespace antico
         private void MinimizeSign_MouseLeave(object sender, EventArgs e)
         {
             this.minimizeSign.Cursor = Cursors.Default;
+        }
+        #endregion
+
+        #region go back
+        /// <summary>
+        /// Hovering start.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GoBack_MouseEnter(object sender, EventArgs e)
+        {
+            this.goBackSign.Cursor = Cursors.Hand;
+        }
+
+        /// <summary>
+        /// Hovering end.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GoBack_MouseLeave(object sender, EventArgs e)
+        {
+            this.goBackSign.Cursor = Cursors.Default;
         }
         #endregion
 
@@ -268,6 +327,20 @@ namespace antico
         }
         #endregion
 
+        #region go back
+        /// <summary>
+        /// Show that pressing goBackSign means going back to main frame.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GoBack_MouseHover(object sender, EventArgs e)
+        {
+            ToolTip tt = new ToolTip();
+            tt.SetToolTip(this.goBackSign, "go back");
+        }
+        #endregion
+
         #region create model
         /// <summary>
         /// Show what createNewModelSign picture box represents.
@@ -325,7 +398,7 @@ namespace antico
         /// <param name="e"></param>
         private void ExitPictureBox_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            System.Windows.Forms.Application.Exit();
         }
         #endregion
 
@@ -339,6 +412,27 @@ namespace antico
         private void MinimizeSign_MouseClick(object sender, MouseEventArgs e)
         {
             this.WindowState = FormWindowState.Minimized;
+        }
+        #endregion
+
+        #region go back
+        /// <summary>
+        /// "Goes back" to main frame when pressing GoBack sign.
+        /// </summary>
+        /// 
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GoBack_MouseClick(object sender, MouseEventArgs e)
+        {
+            // Remove label about antico.
+            this.Controls.Remove(this.aboutAnticoLabel);
+            // Remove go back sign.
+            this.Controls.Remove(this.goBackSign);
+
+            // Show signs for new form, file detection and about antico.
+            this.aboutAnticoSign.Visible = true;
+            this.createNewModelSign.Visible = true;
+            this.isThisMaliciousSign.Visible = true;
         }
         #endregion
 
@@ -370,10 +464,183 @@ namespace antico
         /// <param name="e"></param>
         private void IsThisMaliciousSign_MouseClick(object sender, MouseEventArgs e)
         {
-            string message = "Feature still not implemented!";
+            // TODO: only for clamp database.
 
-            CustomDialogBox not_implemented = new CustomDialogBox("antico responds", message, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
-            not_implemented.ShowDialog();
+            DialogResult result = this.chooseFileToDetermineIfMaliciousDialog.ShowDialog(); // Show the dialog.
+            if (result == DialogResult.OK) // Test result.
+            {
+                string file = this.chooseFileToDetermineIfMaliciousDialog.FileName;
+                string outputFile = "";
+
+                #region extract features with python script
+                try
+                {
+                    // Create process info.
+                    var psi = new ProcessStartInfo();
+                    // Location to python.
+                    psi.FileName = Path.GetFullPath(@"../../../../[PYTHON]/Python/python.exe").ToString();
+
+                    // Provide script and arguments.
+                    //var script = "r'" + Path.GetFullPath(@"../../../../[PYTHON]/extractFeatures.py").ToString() + "'";
+                    //outputFile = "r'" + Path.GetFullPath(@"../../../../[PYTHON]/ExtractedFeatures/" + Path.GetFileName(file) + rand.Next(10000).ToString() + "_clamp_features.csv").ToString() + "'";
+                    var script = "../../../../[PYTHON]/extractFeatures.py";
+                    outputFile = ("../../../../[PYTHON]/ExtractedFeatures/" + Path.GetFileName(file) + rand.Next(10000).ToString() + "_clamp_features.csv").ToString();
+                    psi.Arguments = string.Format("{0} {1} {2}", script, file, outputFile);
+
+                    // Process configuration.
+                    psi.UseShellExecute = false;
+                    psi.CreateNoWindow = true;
+                    psi.RedirectStandardOutput = true;
+                    psi.RedirectStandardError = true;
+
+                    // Execute process and get output.
+                    var errors = "";
+                    var results = "";
+
+                    // Execute script.
+                    using (var process = Process.Start(psi))
+                    {
+                        errors = process.StandardError.ReadToEnd();
+                        results = process.StandardOutput.ReadToEnd();
+                    }
+                    if (errors != "")
+                    {
+                        throw new Exception("[IsThisMaliciousSign_MouseClick]\r\n" + errors);
+                    }
+
+                }
+                catch (IOException)
+                {
+                    throw new Exception("[UploadSign_MouseClick] Coudn't process the file.");
+                }
+                #endregion
+
+                int packed = 0;
+                string packer = "NoPacker";
+
+                #region find out packer and packer type using YaraSharp
+                //  All API calls happens here.
+                YSInstance instance = new YSInstance();
+
+                //  Declare external variables (could be null).
+                Dictionary<string, object> externals = new Dictionary<string, object>()
+                {
+                    { "filename", string.Empty },
+                    { "filepath", string.Empty },
+                    { "extension", string.Empty }
+                };
+
+                //  Get list of YARA rules.
+                List<string> rulesFile = new List<string>();
+                // Get path to downloads folder.
+                string downloadsPath = KnownFolders.Downloads.Path;
+                downloadsPath = downloadsPath + @"\peid.yara";
+
+                // Download rules (peid.yara) to users computer since YaraSharp can't read non-english charachters in file path.
+                WebClient Client = new WebClient();
+                Client.DownloadFile(new Uri("https://raw.githubusercontent.com/urwithajit9/ClaMP/master/scripts/peid.yara"), downloadsPath);
+
+                rulesFile.Add(Path.GetFullPath(downloadsPath).ToString());
+
+                //  Context is where yara is initialized.
+                //  From yr_initialize() to yr_finalize().
+                using (YSContext context = new YSContext())
+                {
+                    //  Compiling rules.
+                    using (YSCompiler compiler = instance.CompileFromFiles(rulesFile, externals))
+                    {
+                        //  Get compiled rules.
+                        YSRules rules = compiler.GetRules();
+
+                        //  Get errors.
+                        YSReport errors = compiler.GetErrors();
+                        //  Get warnings.
+                        YSReport warnings = compiler.GetWarnings();
+
+
+                        //  Some file to test yara rules.
+                        string Filename = file;
+
+                        //  Get matches.
+                        List<YSMatches> Matches = instance.ScanFile(Filename, rules,
+                                new Dictionary<string, object>()
+                                {
+                                    { "filename", Path.GetFileName(Filename) },
+                                    { "filepath", Path.GetFullPath(Filename) },
+                                    { "extension", Path.GetExtension(Filename) }
+                                },
+                                0);
+
+                        //  Get packer name if packed.
+                        if (Matches.Count > 0)
+                        {
+                            packed = 1;
+                            packer = Matches[0].Rule.Identifier;
+                        }
+                    }
+                }
+                #endregion
+
+                #region determine if file is malicious using best model so far
+
+                DataTable fileFeatures = new DataTable();
+
+                #region csv to datatable
+
+                using (StreamReader sr = new StreamReader(outputFile))
+                {
+                    string[] headers = sr.ReadLine().Split(',');
+                    foreach (string header in headers)
+                    {
+                        fileFeatures.Columns.Add(header);
+                    }
+                    while (!sr.EndOfStream)
+                    {
+                        string[] rows = sr.ReadLine().Split(',');
+
+                        if (rows[0] == "")
+                            continue;
+
+                        DataRow dr = fileFeatures.NewRow();
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            if (headers[i] == "packer")
+                            {
+                                dr[i] = packed;
+                                continue;
+                            }
+                            if (headers[i] == "packer_type")
+                            {
+                                dr[i] = packer;
+                                continue;
+                            }
+
+                            dr[i] = rows[i];
+                        }
+
+                        fileFeatures.Rows.Add(dr);
+                    }
+                }
+                #endregion
+
+                double evaluation = this.detection.model.symbolicTree.Evaluate(fileFeatures.Rows[0]);
+
+                if (evaluation >= 0)
+                {
+                    string mnok = "Your file is malicious!";
+
+                    CustomDialogBox dialog = new CustomDialogBox("Malicious", mnok, global::antico.Properties.Resources.nok_shield, MessageBoxButtons.OK);
+                    dialog.ShowDialog();
+                }
+                else
+                {
+                    string mok = "Your file is benign!";
+
+                    CustomDialogBox dialog = new CustomDialogBox("Benign", mok, global::antico.Properties.Resources.ok_shield, MessageBoxButtons.OK);
+                    dialog.ShowDialog();
+                }
+                #endregion
+            }
         }
         #endregion
 
@@ -386,14 +653,114 @@ namespace antico
         /// <param name="e"></param>
         private void AboutAnticoSign_MouseClick(object sender, MouseEventArgs e)
         {
-            string message = "Feature still not implemented!";
+            // About antico text.
+            string input = "";
+            input += "Antico is an aplication for generating a model for detecting malware\r\n";
+            input += "using metaheuristic artificial bee colony programming.\r\n";
 
-            CustomDialogBox not_implemented = new CustomDialogBox("antico responds", message, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
-            not_implemented.ShowDialog();
+            input += "\r\n\r\n";
+            input += "The source code can be found at:\r\n";
+            input += "https://github.com/mateastanisic/antico";
+
+            input += "\r\n\r\n\r\n\r\n\r\n\r\n\r\n";
+            input += "\u00a9 Matea Stanišić (mateastanisic@outlook.com)\r\n";
+            input += "University of Zagreb, Faculty of Science\r\n";
+            input += "Department of mathematics, Graduate university programme in computer science and mathematics";
+
+            // 
+            // aboutAnticoLabel
+            // 
+            this.aboutAnticoLabel = new System.Windows.Forms.Label();
+            this.aboutAnticoLabel.BackColor = System.Drawing.SystemColors.Control;
+            this.aboutAnticoLabel.Font = new System.Drawing.Font("Source Sans Pro", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.aboutAnticoLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.aboutAnticoLabel.Location = new System.Drawing.Point(120, 116);
+            this.aboutAnticoLabel.Name = "aboutAnticoLabel";
+            this.aboutAnticoLabel.Size = new System.Drawing.Size(772, 471);
+            this.aboutAnticoLabel.TabIndex = 17;
+            this.aboutAnticoLabel.Text = input;
+            this.aboutAnticoLabel.AutoSize = false;
+            this.aboutAnticoLabel.TextAlign = ContentAlignment.MiddleCenter;
+            this.Controls.Add(this.aboutAnticoLabel);
+            // Set up background of the label for the printout of the solutions.
+            this.aboutAnticoLabel.BackColor = System.Drawing.Color.FromArgb(80, System.Drawing.Color.WhiteSmoke);
+
+            // Hide signs for new form, file detection and about antico.
+            this.aboutAnticoSign.Visible = false;
+            this.createNewModelSign.Visible = false;
+            this.isThisMaliciousSign.Visible = false;
+
+            // Add go back sign.
+            // 
+            // goBackSign
+            // 
+            this.goBackSign = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.goBackSign)).BeginInit();
+            this.goBackSign.BackColor = System.Drawing.Color.Transparent;
+            this.goBackSign.Image = global::antico.Properties.Resources.back_white;
+            this.goBackSign.Location = new System.Drawing.Point(858, 21);
+            this.goBackSign.Name = "goBackSign";
+            this.goBackSign.Size = new System.Drawing.Size(33, 31);
+            this.goBackSign.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.goBackSign.TabIndex = 17;
+            this.goBackSign.TabStop = false;
+            this.goBackSign.MouseClick += new System.Windows.Forms.MouseEventHandler(this.GoBack_MouseClick);
+            this.goBackSign.MouseEnter += new System.EventHandler(this.GoBack_MouseEnter);
+            this.goBackSign.MouseLeave += new System.EventHandler(this.GoBack_MouseLeave);
+            this.goBackSign.MouseHover += new System.EventHandler(this.GoBack_MouseHover);
+            ((System.ComponentModel.ISupportInitialize)(this.goBackSign)).EndInit();
+            this.Controls.Add(this.goBackSign);
+
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Load model for detection
+        /// <summary>
+        /// Loads file with specific path and name (file) and saves it in UploadedModel class.
+        /// </summary>
+        /// 
+        /// <param name="file">Name of the file to be loaded into instance of UploadedModel class.</param>
+        private void LoadFile(string file)
+        {
+            // Declare the hashtable reference.
+            Hashtable addresses = null;
+
+            // Open the file containing the data that you want to deserialize.
+            FileStream fs = new FileStream(file, FileMode.Open);
+            try
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+
+                // Deserialize the hashtable from the file and  
+                // assign the reference to the local variable.
+                addresses = (Hashtable)formatter.Deserialize(fs);
+            }
+            catch (SerializationException e)
+            {
+                string m = "Failed to deserialize. Reason: " + e.Message;
+                CustomDialogBox dialog = new CustomDialogBox("Failed", m, global::antico.Properties.Resources.error, MessageBoxButtons.OK);
+                dialog.ShowDialog();
+                throw new Exception("[LoadFile] Failed to deserialize. Reason: " + e.Message);
+            }
+            finally
+            {
+                fs.Close();
+            }
+
+            // New uploaded model.
+            this.detection = new UploadedModel();
+
+            // Load values from file into UploadedModel class.
+            foreach (DictionaryEntry de in addresses)
+            {
+                this.detection.LoadBasic(de.Key.ToString(), de.Value);
+            }
         }
         #endregion
 
-        #endregion
 
         #endregion
 

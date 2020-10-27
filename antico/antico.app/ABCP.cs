@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using antico.abcp;
 using System.Data;
 using LiveCharts.Defaults;
+using System.Collections.Generic;
 
 namespace antico
 {
@@ -158,6 +159,8 @@ namespace antico
 
         #region OPERATIONS
 
+        #region Constructor
+
         #region Static constructor
         /// <summary>
         /// New static random.
@@ -168,7 +171,6 @@ namespace antico
         }
         #endregion
 
-        #region Constructor
         /// <summary>
         /// Constructor with custom (sent) parameters and data.
         /// </summary>
@@ -245,17 +247,17 @@ namespace antico
         }
         #endregion
 
-        #region Artificial bee colony programming 
+        #region BASIC ABCP 
         /// <summary>
-        /// Artificial bee colony programming algorithm with specific train dataset.
-        /// This method is used to find the best model for some data using heuristic abc programming.
-        /// It is considered all variables for class ABCP are set.
+        /// BASIC ARTIFICIAL BEE COLONY PROGRAMINNG ALGORITHM
+        /// This method is used to find the best solution for some data using meta-heuristic abc programming.
+        /// It is considered all variables for class ABCP are previously set.
         /// </summary>
         /// 
         /// <param name="formForCreatingNewModel">Form that called this method - for printouts.</param>
         /// <param name="consoleTextBox">TextBox for printouts.</param>
-        /// <param name="run">Number of run - needed for live chart series selection.</param>
-        public void ABCProgramming(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox, int run, ProgressBar progressBar)
+        /// <param name="dictKey">Dictionary key - representing current run(+1) (or fold index if using folds). </param>
+        public void basicABCP(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox, int dictKey, ProgressBar progressBar)
         {
             // Helper arrays for keeping track of case when Solution (i) is not improved.
             int[] Limits = new int[this.parameters.populationSize];
@@ -270,43 +272,32 @@ namespace antico
             // 3: Memorize the best. 
             // -- DONE IN CONSTRUCTOR --
 
-            #region add to chart
-            // Add to progress form dictionary.
-            this.AddToProgressFormDictionary(formForCreatingNewModel, run, 0);
+            // Add points to chart.
+            AddPointsToChartAtBeginningOfABCP(formForCreatingNewModel, dictKey);
 
-            // Check if nothing is yet shown on progress form.
-            if (!formForCreatingNewModel.progressForm.chart.Visible && !formForCreatingNewModel.progressForm.depthsChart.Visible)
-            {
-                // No chart is shown. Start showing chart of this run with fitness values.
-                AddToNewChart(formForCreatingNewModel, run);
-            }
-            else if (formForCreatingNewModel.progressForm.selectedRun == run)
-            {
-                // Something is already visible. 
-                // Add to the chart if this run.
-                AddPointsToChart(formForCreatingNewModel, run, 0);
-            }
-            #endregion
-
-            // 4: Set the cycle counter(cycle = 0)
+            // 4: Set the cycle counter 
+            // 
             int Iteration = 0;
             int IterationNotImproving = 0;
 
             while (Iteration <= this._parameters.maxNumberOfIterations && IterationNotImproving <= this._parameters.maxNumberOfNotImprovingIterations)
             {
-                // Remeber best fitness from the beggining of the iteration.
+                //
+                // Memorize best fitness from the start of the current iteration.
+                //
                 double OldBestFitness = this._population[this._bestTrainIndex].trainFitness;
 
+                #region app related
                 // Printout to console.
-                string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("\r\n[" + time + "] ABCP STEP " + Iteration.ToString() + "\r\n"); });
+                PrintToConsole(formForCreatingNewModel, consoleTextBox, "ABCP STEP " + Iteration.ToString());
+                #endregion
 
                 #region ----- EMPLOYED BEES PHASE -----
                 // For all employed bees do ...
                 // (number of employed bees are same as population size)
                 for (var e = 0; e < this._parameters.populationSize; e++)
                 {
-                    // Reset TestLimit[e].
+                    // Reset TestLimits[e].
                     TestLimits[e] = 0;
 
                     #region calculate NewSolution using information sharing mechanism
@@ -344,9 +335,6 @@ namespace antico
                     {
                         this._population[e] = NewSolutionEmployed;
 
-                        if (e == bestTrainIndex)
-                            Console.WriteLine("");
-
                         // Solution has become better. Put Limit of that solution to 0.
                         Limits[e] = 0;
 
@@ -357,14 +345,20 @@ namespace antico
                 }
                 #endregion
 
+                #region app related
                 // Printout to console.
-                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") employed bee phase done\r\n"); });
+                PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") employed bee phase done ");
+                #endregion
 
-                // Reset best solutions.
-                this.BestSolutions();
+                //
+                // Update best solution.
+                //
+                BestSolutions();
 
-                // Calculate the probability values ( P_i ) for the solutions.
+
+                //
+                // Calculate the probabilities values ( P_i ) for the solutions.
+                //
                 this._population.CalculateProbabilities(this._bestTrainIndex, this._parameters.alpha);
 
                 #region ----- ONLOOK BEES PHASE -----
@@ -434,8 +428,6 @@ namespace antico
                     {
                         this._population[f] = NewSolutionOnlook;
 
-                        if (f == bestTrainIndex)
-                            Console.WriteLine("");
                         // Solution has become better. Put Limit of that solution to 0.
                         Limits[f] = 0;
 
@@ -455,9 +447,11 @@ namespace antico
 
                 #endregion
 
+                #region app related
                 // Printout to console.
-                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") onlooker bee phase done\r\n"); });
+                PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") onlooker bee phase done ");
+                #endregion
+
 
                 #region ----- SCOUT BEES PHASE -----
                 for (var s = 0; s < this._parameters.populationSize; s++)
@@ -505,8 +499,6 @@ namespace antico
                             if (isDifferent)
                             {
                                 this._population[s] = NewSolutionScout;
-                                if (s == bestTrainIndex)
-                                    Console.WriteLine("");
                                 break;
                             }
 
@@ -519,14 +511,19 @@ namespace antico
                 }
                 #endregion
 
+                #region app related
                 // Printout to console.
-                time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") scout bee phase done\r\n"); });
+                PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") scout bee phase done ");
+                #endregion
 
-                // Reset best solutions.
-                this.BestSolutions();
+                //
+                // Memorize the best solution so far.
+                // 
+                BestSolutions();
 
+                //
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
+                // 
                 if (this._population[this._bestTrainIndex].trainFitness != OldBestFitness)
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
@@ -538,180 +535,756 @@ namespace antico
                     IterationNotImproving++;
                 }
 
+                //
+                // Increase number of done iterations.
+                //
+                Iteration++;
+
+                #region app related
                 // Printout to console.
                 PrintoutToConsoleIterEnd(formForCreatingNewModel, consoleTextBox, Iteration);
 
-                // Increase number of done iterations.
-                Iteration++;
-
-                // Maybe this?
-                // if( BestFitness == 1 ) break;
-
-                #region add to chart
                 // Add to chart.
-                AddToProgressFormDictionary(formForCreatingNewModel, run, Iteration);
-                if (formForCreatingNewModel.progressForm.selectedRun == run)
+                AddPointsToChartInIterationOfABCP(formForCreatingNewModel, dictKey, Iteration);
+
+                // Update progress bar.
+                UpdateProgressBar(formForCreatingNewModel, dictKey, progressBar, Iteration, IterationNotImproving);
+                #endregion
+            }
+        }
+        #endregion
+
+        #region qsABCP
+        /// <summary>
+        /// QUICK SEMANTIC ARTIFICIAL BEE COLONY PROGRAMINNG ALGORITHM.
+        /// This method is used to find the best solution for some data using meta-heuristic abc programming.
+        /// It is considered all variables for class ABCP are set.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called this method - for printouts.</param>
+        /// <param name="consoleTextBox">TextBox for printouts.</param>
+        /// <param name="dictKey">Dictionary key - representing current run(+1) (or fold index if using folds). </param>
+        public void qsABCP(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox, int dictKey, ProgressBar progressBar)
+        {
+            // Helper arrays for keeping track of case when Solution (i) is not improved.
+            int[] Limits = new int[this.parameters.populationSize];
+            int[] TestLimits = new int[this.parameters.populationSize];
+
+            // 1. Produce the initial solutions (x_i) by using ramped half-and-half method, randomly.  
+            // -- DONE IN CONSTRUCTOR --
+
+            // 2: Evaluate the solutions. 
+            // -- DONE IN CONSTRUCTOR --
+
+            // 3: Memorize the best. 
+            // -- DONE IN CONSTRUCTOR --
+
+            // Add points to chart.
+            AddPointsToChartAtBeginningOfABCP(formForCreatingNewModel, dictKey);
+
+            // 4: Set the cycle counter 
+            // 
+            int Iteration = 0;
+            int IterationNotImproving = 0;
+
+            while (Iteration <= this._parameters.maxNumberOfIterations && IterationNotImproving <= this._parameters.maxNumberOfNotImprovingIterations)
+            {
+                //
+                // Memorize best fitness from the start of the current iteration.
+                //
+                double OldBestFitness = this._population[this._bestTrainIndex].trainFitness;
+
+                #region app related
+                // Printout to console.
+                PrintToConsole(formForCreatingNewModel, consoleTextBox, "ABCP STEP " + Iteration.ToString());
+                #endregion
+
+                #region ----- EMPLOYED BEES PHASE -----
+                // For all employed bees do ...
+                // (number of employed bees are same as population size)
+                for (var e = 0; e < this._parameters.populationSize; e++)
                 {
-                    // Something is already visible. 
-                    // Add to the chart if this run.
-                    AddPointsToChart(formForCreatingNewModel, run, Iteration);
+                    // Reset TestLimits[e].
+                    TestLimits[e] = 0;
+
+                    #region calculate NewSolution using information sharing mechanism
+                    // Helper variables.
+                    double OldFitnessEmployed, NewFitnessEmployed;
+
+                    // Save the cost function value of the current solution.
+                    OldFitnessEmployed = this._population[e].trainFitness;
+
+                    // [NEW] - semantic ABCP
+                    // TODO custom parameters 'MAX', 'maxTrial' and 'LBSS'
+                    Chromosome NewSolutionEmployed = SemanticInformationSharingMechanism(this._population[e].Clone(), e, 1000000, 20, 0.001);
+
+                    // Calculate the cost function value of new solution.
+                    NewFitnessEmployed = NewSolutionEmployed.trainFitness;
+                    #endregion
+
+                    #region greedy selection between OldSolution and NewSolution
+                    // Considering the cost values, apply the greedy selection between OldSolution and NewSolution.                     
+
+                    // Update solution if better.
+                    if (NewFitnessEmployed > OldFitnessEmployed)
+                    {
+                        this._population[e] = NewSolutionEmployed;
+
+                        // Solution has become better. Put Limit of that solution to 0.
+                        Limits[e] = 0;
+
+                        // Solution has become better. Put TestLimit of that solution to 1.
+                        TestLimits[e] = 1;
+                    }
+                    #endregion
                 }
                 #endregion
 
-                if (IterationNotImproving > this._parameters.maxNumberOfNotImprovingIterations || Iteration > this._parameters.maxNumberOfIterations)
+                #region app related
+                // Printout to console.
+                PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") employed bee phase done ");
+                #endregion
+
+                //
+                // Update best solution.
+                //
+                BestSolutions();
+
+
+                //
+                // Calculate the probabilities values ( P_i ) for the solutions.
+                //
+                this._population.CalculateProbabilities(this._bestTrainIndex, this._parameters.alpha);
+
+                #region ----- ONLOOK BEES PHASE -----
+                // Number of onlookers.
+                int o = 0;
+                // Food source index <-> Chromosome index.
+                int f = 0;
+
+                // For all onlooker bees do ...
+                // (number of onlookers bees are same as population size)
+                while (o < this._parameters.populationSize)
                 {
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { progressBar.Value = run * this._parameters.maxNumberOfIterations; });
+                    // Select a solution OldSolution depending on P_i. 
+                    // Better solutions have higher probabilities so we will select this solution if it has higher probability.
+                    bool SelectThisSolution = rand.Next(100) < (this._population.probabilities[f] * 100) ? true : false;
+
+                    #region food source not selected by onlooker bee
+                    // It is choosed not to select this solution.
+                    if (!SelectThisSolution)
+                    {
+                        // Update source.
+                        f++;
+
+                        // Check if came to the end.
+                        if (f == this._population.populationSize)
+                            f = 0;
+
+                        continue;
+                    }
+                    #endregion
+
+                    #region food source selected by onlooker bee
+                    // Use onlooker bee for this source.
+                    o++;
+
+                    #region calculate NewSolution using information sharing mechanism
+                    double OldFitnessOnlook, NewFitnessOnlook;
+
+                    // Save the cost function value of the current solution.
+                    OldFitnessOnlook = this._population[f].trainFitness;
+
+                    // [NEW] - quick ABCP
+                    // TODO: custom parameter 'r'
+                    Chromosome BestNeighbourOnlook = SearchNeighbourhood(f, 1);
+
+                    // [NEW] - semantic ABCP
+                    // TODO custom parameters 'MAX', 'maxTrial' and 'LBSS'
+                    Chromosome NewSolutionOnlook = SemanticInformationSharingMechanism(BestNeighbourOnlook, f, 1000000, 20, 0.001);
+
+                    // Calculate the cost function value of new solution.
+                    NewFitnessOnlook = NewSolutionOnlook.trainFitness;
+                    #endregion
+
+                    #region greedy selection between OldSolution and NewSolution
+                    // Considering the cost values, apply the greedy selection between OldSolution and NewSolution. 
+
+                    // Update solution if better.
+                    if (NewFitnessOnlook > OldFitnessOnlook)
+                    {
+                        this._population[f] = NewSolutionOnlook;
+
+                        // Solution has become better. Put Limit of that solution to 0.
+                        Limits[f] = 0;
+
+                        // Solution has become better. Put TestLimit of that solution to 1.
+                        TestLimits[f] = 1;
+                    }
+                    #endregion
+
+                    // Update source.
+                    f++;
+
+                    // Check if came to the end.
+                    if (f == this._population.populationSize)
+                        f = 0;
+                    #endregion
+                }
+
+                #endregion
+
+                #region app related
+                // Printout to console.
+                PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") onlooker bee phase done ");
+                #endregion
+
+
+                #region ----- SCOUT BEES PHASE -----
+                for (var s = 0; s < this._parameters.populationSize; s++)
+                {
+                    // Check if if EBP or OBP improved this solution.
+                    if (TestLimits[s] == 0)
+                    {
+                        // Neither in EBP nor in OBS this solution is not improved.
+                        // Keep track of that in Limits variable.
+                        Limits[s]++;
+                    }
+
+                    // Check if 'limit' number of iterations in a row this solution is not improved.
+                    // TODO: change best after limit?
+                    if (Limits[s] >= this._parameters.limit && s != this._bestTrainIndex)
+                    {
+                        #region generate new solution with difference control
+                        // If that is so, generate new solution using "grow" method.
+                        // And make sure it's different food source than others.
+                        Chromosome NewSolutionScout = new Chromosome();
+
+                        int counter = 0;
+
+                        // While new solution is the same as some of the previous, try making a new one.
+                        while (true)
+                        {
+                            // Variable that makes sure program does not stuck at infinite loop.
+                            counter++;
+
+                            // Generate new solution with grow method.
+                            NewSolutionScout.Generate("grow", this._parameters.initialMaxDepth, this._data.featureNames, this._train, this._test, this._data.mathOperators, this._data.mathOperationsArity);
+
+                            // Check if new solution is different.
+                            bool isDifferent = true;
+                            for (var i = 0; i < this._population.populationSize; i++)
+                            {
+                                if (this._population.chromosomes[i].Equals(NewSolutionScout))
+                                {
+                                    isDifferent = false;
+                                    break;
+                                }
+                            }
+
+                            // End loop if solution is different.
+                            if (isDifferent)
+                            {
+                                this._population[s] = NewSolutionScout;
+                                break;
+                            }
+
+                            // Throw a warning if the program was not able to generate solution different than others 1000 times.
+                            if (counter == 1000)
+                                throw new WarningException("[ABCP - scout phase] Stuck at infinite loop while trying to generate different solution.");
+                        }
+                        #endregion
+                    }
+                }
+                #endregion
+
+                #region app related
+                // Printout to console.
+                PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") scout bee phase done ");
+                #endregion
+
+                //
+                // Memorize the best solution so far.
+                // 
+                BestSolutions();
+
+                //
+                // Check if best solution is updated and change variable IterationNotImproving accordingly.
+                // 
+                if (this._population[this._bestTrainIndex].trainFitness != OldBestFitness)
+                {
+                    // Counter for number of continually iterations that did not improve best solution brought back to zero.
+                    IterationNotImproving = 0;
                 }
                 else
                 {
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { progressBar.Value = progressBar.Value + 1; });
+                    // Increase number of done not improved iterations.
+                    IterationNotImproving++;
+                }
+
+                //
+                // Increase number of done iterations.
+                //
+                Iteration++;
+
+                #region app related
+                // Printout to console.
+                PrintoutToConsoleIterEnd(formForCreatingNewModel, consoleTextBox, Iteration);
+
+                // Add to chart.
+                AddPointsToChartInIterationOfABCP(formForCreatingNewModel, dictKey, Iteration);
+
+                // Update progress bar.
+                UpdateProgressBar(formForCreatingNewModel, dictKey, progressBar, Iteration, IterationNotImproving);
+                #endregion
+            }
+        }
+
+        #region Search neighbourhood
+        /// <summary>
+        /// Method that searchs neighbourhood of specific solution and returns best solution in it.
+        /// </summary>
+        /// 
+        /// <param name="i">Index of the solution in the population for which neighbour search is preformed.</param>
+        /// <param name="radius">Radius of the neighbourhood.</param>
+        /// <returns>Best solution in the neighbourhood.</returns>
+        private Chromosome SearchNeighbourhood(int i, int radius)
+        {
+            //
+            // Calculate distances of the other solutions in the population to x_i.
+            // Calculate mean distance of the other solutions in the population to x_i.
+            //
+
+            #region distances and mean distance
+            // Mean distance of the other solutions in the population to x_i.
+            double mdi = 0;
+
+            // Field of doubles representing distances from solution x_i to every other in population.
+            double[] d = new double[this._population.populationSize];
+
+            // Distance to itself is zero.
+            d[i] = 0;
+
+            // Number of samples.
+            int T = this.train.Rows.Count;
+
+            // Field of doubles representing evaluated x_i values of train data.
+            double[] di = new double[T];
+
+            // Calculate x_i values of train data.
+            for (var t = 0; t < T; t++)
+            {
+                double res = this._population[i].symbolicTree.Evaluate(this.train.Rows[t]);
+
+                if (Double.IsPositiveInfinity(res))
+                {
+                    res = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(res))
+                {
+                    res = Double.MinValue;
+                }
+
+                di[t] = res;
+            }
+
+            // Calculate distance to each solution from current population.
+            for (var j = 0; j < this._population.populationSize; j++)
+            {
+                // Skip if j == i.
+                if (j == i)
+                    continue;
+
+                // Calculate distance between x_i and x_j.
+                for (var t = 0; t < T; t++)
+                {
+                    double res = this._population[j].symbolicTree.Evaluate(this.train.Rows[t]);
+
+                    if (Double.IsPositiveInfinity(res))
+                    {
+                        res = Double.MaxValue;
+                    }
+                    else if (Double.IsNegativeInfinity(res))
+                    {
+                        res = Double.MinValue;
+                    }
+
+                    res = Math.Abs(di[t] - res);
+
+                    if (Double.IsPositiveInfinity(res))
+                    {
+                        res = Double.MaxValue;
+                    }
+                    else if (Double.IsNegativeInfinity(res))
+                    {
+                        res = Double.MinValue;
+                    }
+
+                    d[j] += res;
+
+                    if (Double.IsPositiveInfinity(d[j]))
+                    {
+                        d[j] = Double.MaxValue;
+                    }
+                    else if (Double.IsNegativeInfinity(d[j]))
+                    {
+                        d[j] = Double.MinValue;
+                    }
+                }
+
+                d[j] = (double) ( ((double)d[j]) / ((double)T) );
+
+                if (Double.IsPositiveInfinity(d[j]))
+                {
+                    d[j] = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(d[j]))
+                {
+                    d[j] = Double.MinValue;
+                }
+
+                // Add distance between x_i and x_j to mdi.
+                mdi += d[j];
+
+                if (Double.IsPositiveInfinity(mdi))
+                {
+                    mdi = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(mdi))
+                {
+                    mdi = Double.MinValue;
                 }
             }
+
+            mdi = (double) ( ((double)mdi) / (double)(this._population.populationSize - 1) );
+            #endregion
+
+            //
+            // Find all neighbours of x_i.
+            //
+
+            #region neighbours
+            List<int> neighbourhoodIndices = new List<int>();
+
+            // TODO: Should x_i also be added to list of neighbours of x_i?
+            for (var j = 0; j < this._population.populationSize; j++)
+            {
+                if (d[j] <= radius * mdi)
+                {
+                    // Add neighbour.
+                    neighbourhoodIndices.Add(j);
+                }
+            }
+            #endregion
+
+            //
+            // Find best of all neighbours.
+            //
+
+            #region best neighbour
+            // Index of current best neighbour. 
+            int bestNeighbourIndex = neighbourhoodIndices[0];
+            // Fitness of the best neighbour.
+            double bestNeighbourFitness = this._population[bestNeighbourIndex].trainFitness;
+
+            for (var j = 1; j < neighbourhoodIndices.Count; j++)
+            {
+                if (this._population[neighbourhoodIndices[j]].trainFitness >= bestNeighbourFitness)
+                {
+                    bestNeighbourIndex = neighbourhoodIndices[j];
+                    bestNeighbourFitness = this._population[bestNeighbourIndex].trainFitness;
+                }
+            }
+            #endregion
+
+            // Return best neighbour.
+            return this._population[bestNeighbourIndex].Clone();
         }
         #endregion
 
-        #region Printout to console at the end of the iteration.
+        #region Semantic information sharing mechanism
+        /// 
         /// <summary>
-        /// Printout to console at the end of one iteration of ABCP algorithm.
+        /// In order to improve the performance of the standard ABCP, a higher locality is attempted to be achieved by using a
+        /// semantic based neighborhood searching mechanism (information sharing mechanism), which is used to generate 
+        /// candidate solutions. 
+        /// 
+        /// It is expected that ABCP will have more controlled fluctuations in the employed and onlooker bee phases. 
+        /// Improved structure of the most semantically similar crossover (MSSC) method is used  
         /// </summary>
         /// 
-        /// <param name="formForCreatingNewModel">Form that called ABCP method.</param>
-        /// <param name="consoleTextBox">Console text box to witch printout needs to be added.</param>
-        /// <param name="Iteration">Current iteration of the algorithm.</param>
-        private void PrintoutToConsoleIterEnd(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox, int Iteration)
+        /// <param name="primaryParent">First - primary chromosome (parent) participating in the crossover. </param>
+        /// <param name="primaryParentIndex"> Index of the first - primary chromosome (parent) participating in the crossover.</param>
+        /// <param name="max">MAX parametera.</param>
+        /// <param name="maxTrial">MaxTrial parameter.</param>
+        /// <param name="lbss">Lower bound for semantic sensitivity.</param>
+        /// <returns> New solution. </returns>
+        private Chromosome SemanticInformationSharingMechanism(Chromosome primaryParent, int primaryParentIndex, double max, int maxTrial, double lbss)
         {
-            string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-            formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") DONE.\r\n"); });
+            // Randomly choose second parent.
+            int r;
 
-            if (this._bestTrainIndex == this._bestIndex)
+            // Check that randomly choosen solution is noth current solution.
+            while (true)
             {
-                if (this._bestTestIndex == this._bestIndex)
-                {
-                    // All three are the same.
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train=test) train fitness: " + this._population[this._bestIndex].trainFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train=test) test fitness: " + this._population[this._bestIndex].testFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train=test) train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString() + "\r\n"); });
-                }
-                else
-                {
-                    // BestTest is different.
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (train) train fitness: " + this._population[this._bestIndex].trainFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (train) test fitness: " + this._population[this._bestIndex].testFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (train) train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString() + "\r\n"); });
+                r = rand.Next(this._parameters.populationSize);
+                if (r != primaryParentIndex)
+                    break;
+            }
 
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (test) train fitness: " + this._population[this._bestTestIndex].trainFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (test) test fitness: " + this._population[this._bestTestIndex].testFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=train!=test) (test) train + test fitness: " + ((double)((this._population[this._bestTestIndex].trainFitness + this._population[this._bestTestIndex].testFitness) / 2)).ToString() + "\r\n"); });
+            int count = 0;
+
+            // Choosen crossover point (index of node) of primary parent.
+            int primaryParentCrossoverPoint = -1;
+
+            // Choosen crossover point (node) of secundary parent.
+            SymbolicTreeNode secundaryParentCrossoverNode = new SymbolicTreeNode();
+
+            while (count < maxTrial)
+            {
+                //
+                // Randomly select a node from primaryParent and so, determine the subtree ST_p.
+                // Randomly select a node from secundaryParent and so, determine the sub tree ST_s.
+                //
+
+                Tuple<int, SymbolicTreeNode> subtrees = this._population.ChooseSubtrees(primaryParent, this._population[r].Clone(), this._parameters.probability, this._parameters.maxDepth);
+                SymbolicTreeNode primarySubtree = primaryParent.symbolicTree.FindNodeWithIndex(subtrees.Item1);
+
+
+                //
+                // Calculate distances of the other solutions in the population to x_i.
+                //
+
+                #region distance of subtrees
+                // Distance between primary subtree and secundary subtree.
+                double d = 0;
+
+                // Number of samples.
+                int T = this.train.Rows.Count;
+
+                // Calculate x_i values of train data.
+                for (var t = 0; t < T; t++)
+                {
+                    d += Math.Abs( primarySubtree.Evaluate(this.train.Rows[t]) - subtrees.Item2.Evaluate(this.train.Rows[t]) );
                 }
+
+                d = (double)((double) d / (double) T);
+                #endregion
+
+                if (d < max || d > lbss)
+                {
+                    max = d;
+                    primaryParentCrossoverPoint = subtrees.Item1;
+                    secundaryParentCrossoverNode = subtrees.Item2;
+                }
+
+                count++;
+            }
+
+            // Check if subtrees are choosen. If not, do basic crossover.
+            if (primaryParentCrossoverPoint == -1)
+            {
+                // Do basic crossover.
+                return (Chromosome)this._population.CrossoverWithDifferenceControl(primaryParentIndex, r, this._parameters.maxDepth, this._train, this._test, this._parameters.probability);
+
+            }
+
+            // Subtrees are found. Make child solution out of it.
+
+            // Variable for tracking if we found the crossover point in PlaceNodeAtPoint method.
+            bool found = false;
+
+            // Place subtree of secondary parent in primary parent crossover point to create a child.
+            var ret = this._population.PlaceNodeAtPoint((SymbolicTreeNode)primaryParent.symbolicTree, primaryParentCrossoverPoint, secundaryParentCrossoverNode, ref found);
+
+            #region child setup
+            // Solution created with crossover.
+            Chromosome child = new Chromosome();
+
+            // Update child tree.
+            child.symbolicTree = ret.Item1;
+            // Node indices should be re-calculated.
+            child.symbolicTree.CalculateIndices();
+            // Update number of possible terminals.
+            child.numberOfPossibleTerminals = primaryParent.numberOfPossibleTerminals;
+            // Update depth of child solution.
+            child.depth = child.symbolicTree.DepthOfSymbolicTree();
+            // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
+            child.UpdateAccuracy(this._train, this._test);
+            #endregion
+
+            #region check if child is unique
+            // Check if new solution is different.
+            bool isDifferent = true;
+            for (var s = 0; s < this._population.populationSize; s++)
+            {
+                if (this._population[s].Equals(child))
+                {
+                    isDifferent = false;
+                    break;
+                }
+            }
+
+            // End loop if solution is different.
+            if (isDifferent)
+                return child;
+            else
+            {
+                // Try again.
+                child = SemanticInformationSharingMechanism(primaryParent, primaryParentIndex, max, maxTrial, lbss);
+            }
+            #endregion
+
+            return child;
+        }
+        #endregion
+
+        #endregion
+
+        #region APP RELATED HELPER METHODS FOR ABCP
+
+        #region progress bar
+        /// <summary>
+        /// Helper method for updating progress bar at the end of iteration.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called this method - for printouts.</param>
+        /// <param name="progressBar">Progress bar to be updated.</param>
+        /// <param name="dictKey">Dictionary key - representing current run(+1) (or fold index if using folds). </param>
+        /// <param name="Iteration">Current iteration.</param>
+        /// <param name="IterationNotImproving">Current count of iterations in row that did not improve the best solution.</param>
+        private void UpdateProgressBar(CreateNewModelForm formForCreatingNewModel, int dictKey, ProgressBar progressBar, int Iteration, int IterationNotImproving)
+        {
+            if (IterationNotImproving > this._parameters.maxNumberOfNotImprovingIterations || Iteration > this._parameters.maxNumberOfIterations)
+            {
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { progressBar.Value = dictKey * this._parameters.maxNumberOfIterations; });
             }
             else
             {
-                if (this._bestTestIndex == this._bestIndex)
-                {
-                    // BestTrain is different.
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (test) train fitness: " + this._population[this._bestIndex].trainFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (test) test fitness: " + this._population[this._bestIndex].testFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (test) train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString() + "\r\n"); });
-
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (train) train fitness: " + this._population[this._bestTrainIndex].trainFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (train) test fitness: " + this._population[this._bestTrainIndex].testFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (=test!=train) (train) train + test fitness: " + ((double)((this._population[this._bestTrainIndex].trainFitness + this._population[this._bestTrainIndex].testFitness) / 2)).ToString() + "\r\n"); });
-                }
-                else
-                {
-                    // All are different.
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) () train fitness: " + this._population[this._bestIndex].trainFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) () test fitness: " + this._population[this._bestIndex].testFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) () train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString() + "\r\n"); });
-
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (train) train fitness: " + this._population[this._bestTrainIndex].trainFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (train) test fitness: " + this._population[this._bestTrainIndex].testFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (train) train + test fitness: " + ((double)((this._population[this._bestTrainIndex].trainFitness + this._population[this._bestTrainIndex].testFitness) / 2)).ToString() + "\r\n"); });
-
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (test) train fitness: " + this._population[this._bestTestIndex].trainFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (test) test fitness: " + this._population[this._bestTestIndex].testFitness.ToString() + "\r\n"); });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("[" + time + "] (" + Iteration.ToString() + ") (!=train!=test) (test) train + test fitness: " + ((double)((this._population[this._bestTestIndex].trainFitness + this._population[this._bestTestIndex].testFitness) / 2)).ToString() + "\r\n"); });
-                }
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { progressBar.Value = progressBar.Value + 1; });
             }
         }
         #endregion
 
-        #region Helper method for chart handling.
+        #region chart
+        /// <summary>
+        /// Helper method for adding points to chart in progress form in app at the beggining of ABCP.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called this method - for printouts.</param>
+        /// <param name="dictKey">Dictionary key - representing current run(+1) (or fold index if using folds). </param>
+        private void AddPointsToChartAtBeginningOfABCP(CreateNewModelForm formForCreatingNewModel, int dictKey)
+        {
+            // Add to progress form dictionary.
+            this.AddToProgressFormDictionary(formForCreatingNewModel, dictKey);
+
+            // Check if nothing is yet shown on progress form.
+            if (!formForCreatingNewModel.progressForm.chart.Visible && !formForCreatingNewModel.progressForm.depthsChart.Visible)
+            {
+                // No chart is shown. Start showing chart of this run with fitness values.
+                AddToNewChart(formForCreatingNewModel, dictKey);
+            }
+            else if (formForCreatingNewModel.progressForm.selectedRun == dictKey)
+            {
+                // Something is already visible. 
+                // Add to the chart if this run.
+                AddPointsToChart(formForCreatingNewModel, dictKey, 0);
+            }
+        }
+
+        /// <summary>
+        /// Helper method for adding points to chart in progress form in app at the end of current iteration of ABCP.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called this method - for printouts.</param>
+        /// <param name="dictKey">Dictionary key - representing current run(+1) (or fold index if using folds). </param>
+        /// <param name="Iteration">Current iteration.</param>
+        private void AddPointsToChartInIterationOfABCP(CreateNewModelForm formForCreatingNewModel, int dictKey, int Iteration)
+        {
+            // Add to chart.
+            AddToProgressFormDictionary(formForCreatingNewModel, dictKey);
+            if (formForCreatingNewModel.progressForm.selectedRun == dictKey)
+            {
+                // Something is already visible. 
+                // Add to the chart if this run.
+                AddPointsToChart(formForCreatingNewModel, dictKey, Iteration);
+            }
+        }
 
         /// <summary>
         /// This method is called when points needs to be added to chart that is currently showing on progress form.
         /// </summary>
         /// 
         /// <param name="formForCreatingNewModel">Form that called ABCP.</param>
-        /// <param name="run">Current run (+1) of the search for best solution.</param>
+        /// <param name="dictKey">Dictionary key - representing current run (+1) (or fold index if using folds). </param>
         /// <param name="Iteration">Iteration from which this method is called.</param>
-        private static void AddPointsToChart(CreateNewModelForm formForCreatingNewModel, int run, int Iteration)
+        private static void AddPointsToChart(CreateNewModelForm formForCreatingNewModel, int dictKey, int Iteration)
         {
             switch (formForCreatingNewModel.progressForm.typeOfData)
             {
                 case "fitness":
                     // Add new points to train and test series.
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { 
-                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fitnessPoints[run].Item1[Iteration])); 
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item1[Iteration]));
                     });
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { 
-                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fitnessPoints[run].Item2[Iteration])); 
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item2[Iteration]));
                     });
                     break;
                 case "depths":
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { 
-                        formForCreatingNewModel.progressForm.depthsChart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.depthPoints[run][Iteration])); 
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                        formForCreatingNewModel.progressForm.depthsChart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.depthPoints[dictKey][Iteration]));
                     });
                     break;
                 case "TP":
                     // Add new point to train and test series.
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tpPoints[run].Item1[Iteration]));
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tpPoints[dictKey].Item1[Iteration]));
                     });
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tpPoints[run].Item2[Iteration]));
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tpPoints[dictKey].Item2[Iteration]));
                     });
                     break;
                 case "TN":
                     // Add new point to train and test series.
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tnPoints[run].Item1[Iteration]));
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tnPoints[dictKey].Item1[Iteration]));
                     });
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tnPoints[run].Item2[Iteration]));
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.tnPoints[dictKey].Item2[Iteration]));
                     });
                     break;
                 case "FN":
                     // Add new point to train and test series.
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fnPoints[run].Item1[Iteration]));
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fnPoints[dictKey].Item1[Iteration]));
                     });
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fnPoints[run].Item2[Iteration]));
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fnPoints[dictKey].Item2[Iteration]));
                     });
                     break;
                 case "FP":
                     // Add new point to train and test series.
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fpPoints[run].Item1[Iteration]));
+                        formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fpPoints[dictKey].Item1[Iteration]));
                     });
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fpPoints[run].Item2[Iteration]));
+                        formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.fpPoints[dictKey].Item2[Iteration]));
                     });
                     break;
                 case "accuracy":
                     // Add new point to train and test series.
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.accuracyChart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item1[Iteration]));
+                        formForCreatingNewModel.progressForm.accuracyChart.Series[0].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item1[Iteration]));
                     });
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.accuracyChart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item2[Iteration]));
+                        formForCreatingNewModel.progressForm.accuracyChart.Series[1].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item2[Iteration]));
                     });
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.accuracyChart.Series[2].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item3[Iteration]));
+                        formForCreatingNewModel.progressForm.accuracyChart.Series[2].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item3[Iteration]));
                     });
                     formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                        formForCreatingNewModel.progressForm.accuracyChart.Series[3].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item4[Iteration]));
+                        formForCreatingNewModel.progressForm.accuracyChart.Series[3].Values.Add(new ObservablePoint(Iteration, formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item4[Iteration]));
                     });
                     break;
                 default:
@@ -728,15 +1301,19 @@ namespace antico
         /// </summary>
         /// 
         /// <param name="formForCreatingNewModel">Form that called ABCP.</param>
-        /// <param name="run">Current run of the search for best solution.</param>
-        private static void AddToNewChart(CreateNewModelForm formForCreatingNewModel, int run)
+        /// <param name="dictKey">Dictionary key - representing current run (+1) (or fold index if using folds). </param>
+        private void AddToNewChart(CreateNewModelForm formForCreatingNewModel, int dictKey)
         {
             // No chart is shown. Start showing chart of this run with fitness values.
-            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.selectedRun = run; });
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.selectedRun = dictKey; });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.typeOfData = "fitness"; });
 
             // Add selected run and type to the menu.
-            formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.runToolStripMenuItem.Text = "Run: " + run ; });
+            if (this.data.numberOfFolds == 0)
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.runToolStripMenuItem.Text = "Run: " + dictKey; });
+            else
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.runToolStripMenuItem.Text = "Fold: " + dictKey; });
+
             formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.dataForChartToolStripMenuItem.Text = "Data for chart: fitness"; });
 
             // Clear points from chart.
@@ -747,12 +1324,12 @@ namespace antico
             formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Visible = true; });
 
             // Add new points to train and test series.
-            for (var p = 0; p < formForCreatingNewModel.progressForm.fitnessPoints[run].Item1.Count; p++)
+            for (var p = 0; p < formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item1.Count; p++)
             {
                 // Add point to the chart from selected run.
-                formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(p, formForCreatingNewModel.progressForm.fitnessPoints[run].Item1[p])); });
-                if (p < formForCreatingNewModel.progressForm.fitnessPoints[run].Item2.Count)
-                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(p, formForCreatingNewModel.progressForm.fitnessPoints[run].Item2[p])); });
+                formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Series[0].Values.Add(new ObservablePoint(p, formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item1[p])); });
+                if (p < formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item2.Count)
+                    formForCreatingNewModel.Invoke((MethodInvoker)delegate { formForCreatingNewModel.progressForm.chart.Series[1].Values.Add(new ObservablePoint(p, formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item2[p])); });
             }
         }
 
@@ -761,71 +1338,151 @@ namespace antico
         /// </summary>
         /// 
         /// <param name="formForCreatingNewModel">Form that called ABCP.</param>
-        /// <param name="run">Current run of the search for best solution.</param>
-        /// <param name="Iteration">Iteration of ABCP algorithm.</param>
-        private void AddToProgressFormDictionary(CreateNewModelForm formForCreatingNewModel, int run, int Iteration)
+        /// <param name="dictKey">Dictionary key - representing current run (+1) (or fold index if using folds). </param>
+        private void AddToProgressFormDictionary(CreateNewModelForm formForCreatingNewModel, int dictKey)
         {
             // Add points to dictionaries.
 
             // fitness
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fitnessPoints[run].Item1.Add(this._population[this._bestTrainIndex].trainFitness);
+                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].trainFitness);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fitnessPoints[run].Item2.Add(this._population[this._bestTrainIndex].testFitness);
+                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].testFitness);
             });
 
             // depth
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.depthPoints[run].Add(this._population[this._bestIndex].depth);
+                formForCreatingNewModel.progressForm.depthPoints[dictKey].Add(this._population[this._bestIndex].depth);
             });
 
             // TP
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tpPoints[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tpPoints[run].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["TP"]);
             });
 
             // TN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tnPoints[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tnPoints[run].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["TN"]);
             });
 
             // FP
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fpPoints[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
+                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
             });
-            formForCreatingNewModel.Invoke((MethodInvoker)delegate { 
-                formForCreatingNewModel.progressForm.fpPoints[run].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["FP"]);
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate {
+                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["FP"]);
             });
 
             // FN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fnPoints[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fnPoints[run].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["FN"]);
             });
 
             // TP + TN + FP + FN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item2.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item2.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item3.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item3.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[run].Item4.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item4.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
             });
         }
+        #endregion
+
+        #region console
+        /// <summary>
+        /// Helper method for printing to console in app.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called this method - for printouts.</param>
+        /// <param name="consoleTextBox">TextBox for printouts.</param>
+        /// <param name="input"> String to be printed.</param>
+        private void PrintToConsole(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox, string input)
+        {
+            string time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
+            formForCreatingNewModel.Invoke((MethodInvoker)delegate { consoleTextBox.AppendText("\r\n[" + time + "] " + input + "\r\n"); });
+        }
+
+        #region Printout to console at the end of the iteration.
+        /// <summary>
+        /// Printout to console at the end of one iteration of ABCP algorithm.
+        /// </summary>
+        /// 
+        /// <param name="formForCreatingNewModel">Form that called ABCP method.</param>
+        /// <param name="consoleTextBox">Console text box to witch printout needs to be added.</param>
+        /// <param name="Iteration">Current iteration of the algorithm.</param>
+        private void PrintoutToConsoleIterEnd(CreateNewModelForm formForCreatingNewModel, TextBox consoleTextBox, int Iteration)
+        {
+            PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") DONE.");
+
+            if (this._bestTrainIndex == this._bestIndex)
+            {
+                if (this._bestTestIndex == this._bestIndex)
+                {
+                    // All three are the same.
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train=test) train fitness: " + this._population[this._bestIndex].trainFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train=test) test fitness: " + this._population[this._bestIndex].testFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train=test) train + test fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString());
+                }
+                else
+                {
+                    // BestTest is different.
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train!=test)  train fitness: " + this._population[this._bestIndex].trainFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train!=test) train fitness: " + this._population[this._bestIndex].testFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train!=test) train fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString());
+
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train!=test) (test) train fitness: " + this._population[this._bestTestIndex].trainFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train!=test) (test) train fitness: " + this._population[this._bestTestIndex].testFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=train!=test) (test) train fitness: " + ((double)((this._population[this._bestTestIndex].trainFitness + this._population[this._bestTestIndex].testFitness) / 2)).ToString());
+                }
+            }
+            else
+            {
+                if (this._bestTestIndex == this._bestIndex)
+                {
+                    // BestTrain is different.
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=test!=train) (test) train fitness: " + this._population[this._bestIndex].trainFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=test!=train) (test) train fitness: " + this._population[this._bestIndex].testFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=test!=train) (test) train fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString());
+
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=test!=train) (train) train fitness: " + this._population[this._bestTrainIndex].trainFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=test!=train) (train) train fitness: " + this._population[this._bestTrainIndex].testFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (=test!=train) (train) train fitness: " + ((double)((this._population[this._bestTrainIndex].trainFitness + this._population[this._bestTrainIndex].testFitness) / 2)).ToString());
+                }
+                else
+                {
+                    // All are different.
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (best) train fitness: " + this._population[this._bestIndex].trainFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (best) train fitness: " + this._population[this._bestIndex].testFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (best) train fitness: " + ((double)((this._population[this._bestIndex].trainFitness + this._population[this._bestIndex].testFitness) / 2)).ToString());
+
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (train) train fitness: " + this._population[this._bestTrainIndex].trainFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (train) train fitness: " + this._population[this._bestTrainIndex].testFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (train) train fitness: " + ((double)((this._population[this._bestTrainIndex].trainFitness + this._population[this._bestTrainIndex].testFitness) / 2)).ToString());
+
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (test) train fitness: " + this._population[this._bestTestIndex].trainFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (test) train fitness: " + this._population[this._bestTestIndex].testFitness);
+                    PrintToConsole(formForCreatingNewModel, consoleTextBox, "(" + Iteration.ToString() + ") (!=train!=test) (test) train fitness: " + ((double)((this._population[this._bestTestIndex].trainFitness + this._population[this._bestTestIndex].testFitness) / 2)).ToString());
+                }
+            }
+        }
+        #endregion
+        #endregion
 
         #endregion
 

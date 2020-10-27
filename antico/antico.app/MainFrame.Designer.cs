@@ -45,6 +45,7 @@ namespace antico
             this.isThisMaliciousSign = new System.Windows.Forms.PictureBox();
             this.aboutAnticoSign = new System.Windows.Forms.PictureBox();
             this.minimizeSign = new System.Windows.Forms.PictureBox();
+            this.chooseFileToDetermineIfMaliciousDialog = new System.Windows.Forms.OpenFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.exitPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.createNewModelSign)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.isThisMaliciousSign)).BeginInit();
@@ -139,6 +140,10 @@ namespace antico
             this.minimizeSign.MouseLeave += new System.EventHandler(this.MinimizeSign_MouseLeave);
             this.minimizeSign.MouseHover += new System.EventHandler(this.MinimizeSign_MouseHover);
             // 
+            // chooseFileToDetermineIfMaliciousDialog
+            // 
+            this.chooseFileToDetermineIfMaliciousDialog.FileName = "chooseFileToDetermineIfMaliciousDialog";
+            // 
             // MainFrame
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -178,6 +183,9 @@ namespace antico
         private System.Windows.Forms.PictureBox isThisMaliciousSign;
         private System.Windows.Forms.PictureBox aboutAnticoSign;
         private System.Windows.Forms.PictureBox minimizeSign;
+        private System.Windows.Forms.Label aboutAnticoLabel;
+        private System.Windows.Forms.PictureBox goBackSign;
+        private System.Windows.Forms.OpenFileDialog chooseFileToDetermineIfMaliciousDialog;
     }
 }
 
