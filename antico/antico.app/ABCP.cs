@@ -117,6 +117,16 @@ namespace antico
             get { return _bestTestIndex; }
             set { _bestTestIndex = value; }
         }
+
+        // Variable that represents current best index of solution depending on type of data (folds or no folds).
+        private int _bestIndexToUse;
+
+        // Property for the _bestIndexToUse variable.
+        public int bestIndexToUse
+        {
+            get { return _bestIndexToUse; }
+            set { _bestIndexToUse = value; }
+        }
         #endregion
 
         #region current train and test data
@@ -244,6 +254,18 @@ namespace antico
             this._bestIndex = bestSolutionIndex;
             this._bestTrainIndex = bestTrainSolutionIndex;
             this._bestTestIndex = bestTestSolutionIndex;
+
+            // Depending on number of folds, look at different best solutions.
+            #region choose best index to use
+            if (this._data.numberOfFolds > 1)
+            {
+                this.bestIndexToUse = this._bestIndex;
+            }
+            else
+            {
+                this.bestIndexToUse = this._bestTrainIndex;
+            }
+            #endregion
         }
         #endregion
 
@@ -285,7 +307,7 @@ namespace antico
                 //
                 // Memorize best fitness from the start of the current iteration.
                 //
-                double OldBestFitness = this._population[this._bestTrainIndex].trainFitness;
+                double OldBestFitness = this._population[this.bestIndexToUse].trainFitness;
 
                 #region app related
                 // Printout to console.
@@ -355,11 +377,10 @@ namespace antico
                 //
                 BestSolutions();
 
-
                 //
                 // Calculate the probabilities values ( P_i ) for the solutions.
                 //
-                this._population.CalculateProbabilities(this._bestTrainIndex, this._parameters.alpha);
+                this._population.CalculateProbabilities(this.bestIndexToUse, this._parameters.alpha);
 
                 #region ----- ONLOOK BEES PHASE -----
                 // Number of onlookers.
@@ -466,7 +487,7 @@ namespace antico
 
                     // Check if 'limit' number of iterations in a row this solution is not improved.
                     // TODO: change best after limit?
-                    if (Limits[s] >= this._parameters.limit && s != this._bestTrainIndex)
+                    if (Limits[s] >= this._parameters.limit && s != this.bestIndexToUse)
                     {
                         #region generate new solution with difference control
                         // If that is so, generate new solution using "grow" method.
@@ -524,7 +545,7 @@ namespace antico
                 //
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
                 // 
-                if (this._population[this._bestTrainIndex].trainFitness != OldBestFitness)
+                if (this._population[this.bestIndexToUse].trainFitness != OldBestFitness)
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
                     IterationNotImproving = 0;
@@ -592,7 +613,7 @@ namespace antico
                 //
                 // Memorize best fitness from the start of the current iteration.
                 //
-                double OldBestFitness = this._population[this._bestTrainIndex].trainFitness;
+                double OldBestFitness = this._population[bestIndexToUse].trainFitness;
 
                 #region app related
                 // Printout to console.
@@ -616,7 +637,7 @@ namespace antico
 
                     // [NEW] - semantic ABCP
                     // TODO custom parameters 'MAX', 'maxTrial' and 'LBSS'
-                    Chromosome NewSolutionEmployed = SemanticInformationSharingMechanism(this._population[e].Clone(), e, 1000000, 20, 0.001);
+                    Chromosome NewSolutionEmployed = SemanticInformationSharingMechanism(this._population[e].Clone(), e, 1000000, 10, 0.01);
 
                     // Calculate the cost function value of new solution.
                     NewFitnessEmployed = NewSolutionEmployed.trainFitness;
@@ -650,11 +671,11 @@ namespace antico
                 //
                 BestSolutions();
 
-
                 //
                 // Calculate the probabilities values ( P_i ) for the solutions.
                 //
-                this._population.CalculateProbabilities(this._bestTrainIndex, this._parameters.alpha);
+                this._population.CalculateProbabilities(this.bestIndexToUse, this._parameters.alpha);
+
 
                 #region ----- ONLOOK BEES PHASE -----
                 // Number of onlookers.
@@ -697,11 +718,16 @@ namespace antico
 
                     // [NEW] - quick ABCP
                     // TODO: custom parameter 'r'
-                    Chromosome BestNeighbourOnlook = SearchNeighbourhood(f, 1);
+
+                    // Update neighbourhood.
+                    this._population.neighbors[f] = new List<int>();
+                    this._population.SearchNeighbourhood(f, 1, train);
+
+                    Chromosome BestNeighbourOnlook = this._population[this._population.bestNeighbors[f]].Clone();
 
                     // [NEW] - semantic ABCP
                     // TODO custom parameters 'MAX', 'maxTrial' and 'LBSS'
-                    Chromosome NewSolutionOnlook = SemanticInformationSharingMechanism(BestNeighbourOnlook, f, 1000000, 20, 0.001);
+                    Chromosome NewSolutionOnlook = SemanticInformationSharingMechanism(BestNeighbourOnlook, f, 1000000, 10, 0.01);
 
                     // Calculate the cost function value of new solution.
                     NewFitnessOnlook = NewSolutionOnlook.trainFitness;
@@ -753,7 +779,7 @@ namespace antico
 
                     // Check if 'limit' number of iterations in a row this solution is not improved.
                     // TODO: change best after limit?
-                    if (Limits[s] >= this._parameters.limit && s != this._bestTrainIndex)
+                    if (Limits[s] >= this._parameters.limit && s != this.bestIndexToUse)
                     {
                         #region generate new solution with difference control
                         // If that is so, generate new solution using "grow" method.
@@ -811,7 +837,7 @@ namespace antico
                 //
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
                 // 
-                if (this._population[this._bestTrainIndex].trainFitness != OldBestFitness)
+                if (this._population[this.bestIndexToUse].trainFitness != OldBestFitness)
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
                     IterationNotImproving = 0;
@@ -840,168 +866,6 @@ namespace antico
             }
         }
 
-        #region Search neighbourhood
-        /// <summary>
-        /// Method that searchs neighbourhood of specific solution and returns best solution in it.
-        /// </summary>
-        /// 
-        /// <param name="i">Index of the solution in the population for which neighbour search is preformed.</param>
-        /// <param name="radius">Radius of the neighbourhood.</param>
-        /// <returns>Best solution in the neighbourhood.</returns>
-        private Chromosome SearchNeighbourhood(int i, int radius)
-        {
-            //
-            // Calculate distances of the other solutions in the population to x_i.
-            // Calculate mean distance of the other solutions in the population to x_i.
-            //
-
-            #region distances and mean distance
-            // Mean distance of the other solutions in the population to x_i.
-            double mdi = 0;
-
-            // Field of doubles representing distances from solution x_i to every other in population.
-            double[] d = new double[this._population.populationSize];
-
-            // Distance to itself is zero.
-            d[i] = 0;
-
-            // Number of samples.
-            int T = this.train.Rows.Count;
-
-            // Field of doubles representing evaluated x_i values of train data.
-            double[] di = new double[T];
-
-            // Calculate x_i values of train data.
-            for (var t = 0; t < T; t++)
-            {
-                double res = this._population[i].symbolicTree.Evaluate(this.train.Rows[t]);
-
-                if (Double.IsPositiveInfinity(res))
-                {
-                    res = Double.MaxValue;
-                }
-                else if (Double.IsNegativeInfinity(res))
-                {
-                    res = Double.MinValue;
-                }
-
-                di[t] = res;
-            }
-
-            // Calculate distance to each solution from current population.
-            for (var j = 0; j < this._population.populationSize; j++)
-            {
-                // Skip if j == i.
-                if (j == i)
-                    continue;
-
-                // Calculate distance between x_i and x_j.
-                for (var t = 0; t < T; t++)
-                {
-                    double res = this._population[j].symbolicTree.Evaluate(this.train.Rows[t]);
-
-                    if (Double.IsPositiveInfinity(res))
-                    {
-                        res = Double.MaxValue;
-                    }
-                    else if (Double.IsNegativeInfinity(res))
-                    {
-                        res = Double.MinValue;
-                    }
-
-                    res = Math.Abs(di[t] - res);
-
-                    if (Double.IsPositiveInfinity(res))
-                    {
-                        res = Double.MaxValue;
-                    }
-                    else if (Double.IsNegativeInfinity(res))
-                    {
-                        res = Double.MinValue;
-                    }
-
-                    d[j] += res;
-
-                    if (Double.IsPositiveInfinity(d[j]))
-                    {
-                        d[j] = Double.MaxValue;
-                    }
-                    else if (Double.IsNegativeInfinity(d[j]))
-                    {
-                        d[j] = Double.MinValue;
-                    }
-                }
-
-                d[j] = (double) ( ((double)d[j]) / ((double)T) );
-
-                if (Double.IsPositiveInfinity(d[j]))
-                {
-                    d[j] = Double.MaxValue;
-                }
-                else if (Double.IsNegativeInfinity(d[j]))
-                {
-                    d[j] = Double.MinValue;
-                }
-
-                // Add distance between x_i and x_j to mdi.
-                mdi += d[j];
-
-                if (Double.IsPositiveInfinity(mdi))
-                {
-                    mdi = Double.MaxValue;
-                }
-                else if (Double.IsNegativeInfinity(mdi))
-                {
-                    mdi = Double.MinValue;
-                }
-            }
-
-            mdi = (double) ( ((double)mdi) / (double)(this._population.populationSize - 1) );
-            #endregion
-
-            //
-            // Find all neighbours of x_i.
-            //
-
-            #region neighbours
-            List<int> neighbourhoodIndices = new List<int>();
-
-            // TODO: Should x_i also be added to list of neighbours of x_i?
-            for (var j = 0; j < this._population.populationSize; j++)
-            {
-                if (d[j] <= radius * mdi)
-                {
-                    // Add neighbour.
-                    neighbourhoodIndices.Add(j);
-                }
-            }
-            #endregion
-
-            //
-            // Find best of all neighbours.
-            //
-
-            #region best neighbour
-            // Index of current best neighbour. 
-            int bestNeighbourIndex = neighbourhoodIndices[0];
-            // Fitness of the best neighbour.
-            double bestNeighbourFitness = this._population[bestNeighbourIndex].trainFitness;
-
-            for (var j = 1; j < neighbourhoodIndices.Count; j++)
-            {
-                if (this._population[neighbourhoodIndices[j]].trainFitness >= bestNeighbourFitness)
-                {
-                    bestNeighbourIndex = neighbourhoodIndices[j];
-                    bestNeighbourFitness = this._population[bestNeighbourIndex].trainFitness;
-                }
-            }
-            #endregion
-
-            // Return best neighbour.
-            return this._population[bestNeighbourIndex].Clone();
-        }
-        #endregion
-
         #region Semantic information sharing mechanism
         /// 
         /// <summary>
@@ -1024,7 +888,7 @@ namespace antico
             // Randomly choose second parent.
             int r;
 
-            // Check that randomly choosen solution is noth current solution.
+            // Check that randomly choosen solution is not current solution.
             while (true)
             {
                 r = rand.Next(this._parameters.populationSize);
@@ -1066,12 +930,23 @@ namespace antico
                 for (var t = 0; t < T; t++)
                 {
                     d += Math.Abs( primarySubtree.Evaluate(this.train.Rows[t]) - subtrees.Item2.Evaluate(this.train.Rows[t]) );
+
+                    #region handling infinity
+                    if (Double.IsPositiveInfinity(d))
+                    {
+                        d = 999999;
+                    }
+                    else if (Double.IsNegativeInfinity(d))
+                    {
+                        d = -999999;
+                    }
+                    #endregion
                 }
 
                 d = (double)((double) d / (double) T);
                 #endregion
 
-                if (d < max || d > lbss)
+                if (d < max && d > lbss)
                 {
                     max = d;
                     primaryParentCrossoverPoint = subtrees.Item1;
@@ -1130,12 +1005,10 @@ namespace antico
                 return child;
             else
             {
-                // Try again.
-                child = SemanticInformationSharingMechanism(primaryParent, primaryParentIndex, max, maxTrial, lbss);
+                // Do basic crossover.
+                return (Chromosome)this._population.CrossoverWithDifferenceControl(primaryParentIndex, r, this._parameters.maxDepth, this._train, this._test, this._parameters.probability);
             }
             #endregion
-
-            return child;
         }
         #endregion
 
@@ -1345,61 +1218,61 @@ namespace antico
 
             // fitness
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].trainFitness);
+                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].trainFitness);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].testFitness);
+                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].testFitness);
             });
 
             // depth
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.depthPoints[dictKey].Add(this._population[this._bestIndex].depth);
+                formForCreatingNewModel.progressForm.depthPoints[dictKey].Add(this._population[this.bestIndexToUse].depth);
             });
 
             // TP
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["TP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].Test_TP_TN_FP_FN["TP"]);
             });
 
             // TN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["TN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].Test_TP_TN_FP_FN["TN"]);
             });
 
             // FP
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
+                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["FP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["FP"]);
+                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].Test_TP_TN_FP_FN["FP"]);
             });
 
             // FN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["FN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item2.Add(this._population[this._bestTrainIndex].Test_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].Test_TP_TN_FP_FN["FN"]);
             });
 
             // TP + TN + FP + FN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item1.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["TP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item2.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item2.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["TN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item3.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item3.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["FP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item4.Add(this._population[this._bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item4.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["FN"]);
             });
         }
         #endregion
@@ -1482,6 +1355,7 @@ namespace antico
             }
         }
         #endregion
+
         #endregion
 
         #endregion

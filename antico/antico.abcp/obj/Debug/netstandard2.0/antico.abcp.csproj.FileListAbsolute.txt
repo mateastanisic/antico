@@ -10,3 +10,15 @@ C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIP
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.csproj.CopyComplete
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.dll
 C:\Users\Matea\OneDrive - Prirodoslovno-matematički fakultet\Dokumenti\fax\[DIPLOMSKI RAD]\[CODE]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.pdb
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\bin\Debug\netstandard2.0\antico.abcp.deps.json
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\bin\Debug\netstandard2.0\antico.abcp.dll
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\bin\Debug\netstandard2.0\antico.abcp.pdb
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\bin\Debug\netstandard2.0\antico.data.dll
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\bin\Debug\netstandard2.0\antico.data.pdb
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.csprojAssemblyReference.cache
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.csproj.CoreCompileInputs.cache
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.AssemblyInfoInputs.cache
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.AssemblyInfo.cs
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.csproj.CopyComplete
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.dll
+D:\[DIPLOMSKI]\antico\antico\antico.abcp\obj\Debug\netstandard2.0\antico.abcp.pdb

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "VRYEntPkR8YebXFzb/tr6Cm87feTkqtQTig3MHuCmttuBniG6IteC0fRuao2Dzt5TejF4CCoOsffZI9aimmALQ==",
+  "dgSpecHash": "RnAc/k4mQM+jHPMYaapllK+34h87pkyIUPs7grAMfojB5VIgkkQOwVZGo2ets4F58LIT/zWZ+Eod41ty/aU74g==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.abcp\\antico.abcp.csproj",
+  "projectFilePath": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.abcp\\antico.abcp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Matea\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.0\\microsoft.bcl.asyncinterfaces.1.1.0.nupkg.sha512",
     "C:\\Users\\Matea\\.nuget\\packages\\microsoft.csharp\\4.3.0\\microsoft.csharp.4.3.0.nupkg.sha512",

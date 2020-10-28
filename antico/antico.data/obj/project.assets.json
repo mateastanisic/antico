@@ -3825,11 +3825,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\antico.data.csproj",
+      "projectUniqueName": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\antico.data.csproj",
       "projectName": "antico.data",
-      "projectPath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\antico.data.csproj",
+      "projectPath": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\antico.data.csproj",
       "packagesPath": "C:\\Users\\Matea\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\obj\\",
+      "outputPath": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\"

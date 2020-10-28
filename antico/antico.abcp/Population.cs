@@ -93,6 +93,53 @@ namespace antico.abcp
         }
         #endregion
 
+        #region solution neighbors
+        // List of neighbors of all solutions (chromosomes).
+        private List<List<int>> _neighbors;
+
+        // Property for the _neighbors variable.
+        public List<List<int>> neighbors
+        {
+            get { return _neighbors; }
+            set
+            {
+                // Allocate memory for the neighbors of chromosomes.
+                _neighbors = new List<List<int>>();
+
+                // Deep copy all (indices of) neighbors.
+                for (var i = 0; i < value.Count; i++)
+                {
+                    _neighbors.Add(new List<int>());
+                    
+                    for (var j = 0; j < value[i].Count; j++)
+                    {
+                        _neighbors[i].Add(value[i][j]);
+                    }
+                }
+            }
+        }
+
+        // List of (indices of best) neighbors of all solutions (chromosomes).
+        private List<int> _best_neighbors;
+
+        // Property for the _best_neighbors variable.
+        public List<int> bestNeighbors
+        {
+            get { return _best_neighbors; }
+            set
+            {
+                // Allocate memory for the best neighbors of chromosomes.
+                _best_neighbors = new List<int>();
+
+                // Deep copy all (indices of) best neighbors.
+                for (var i = 0; i < value.Count; i++)
+                {
+                    _best_neighbors.Add(value[i]);
+                }
+            }
+        }
+        #endregion
+
         #endregion
 
         #region OPERATIONS
@@ -159,6 +206,18 @@ namespace antico.abcp
             // Probabilities are calculated in ABCP algorithm.
             // Allocate memory.
             this._probabilities = new double[_populationSize];
+
+            // Allocate.
+            this._neighbors = new List<List<int>>();
+            this._best_neighbors = new List<int>();
+
+            // Allocate.
+            for (var s = 0; s < this._populationSize; s++)
+            {
+                // Allocate list of neighbors for solution 'i'.
+                this._neighbors.Add(new List<int>());
+                this._best_neighbors.Add(-1);
+            }
         }
         #endregion
 
@@ -853,6 +912,188 @@ namespace antico.abcp
                 fit[i] = (double)(1 + this._chromosomes[i].trainFitness) / (double)2;
                 this._probabilities[i] = (double)(1 - alpha) + (double)( (alpha * fit[i]) / fit[bestSolutionIndex] );
             }
+        }
+        #endregion
+
+        #region Search neighbourhood
+        /// <summary>
+        /// Method that searchs neighbourhood of specific solution and setting the best solution of them.
+        /// </summary>
+        /// 
+        /// <param name="i">Index of the solution in the population for which neighbour search is preformed.</param>
+        /// <param name="radius">Radius of the neighbourhood.</param>
+        /// <param name="train">Train set to be used in this model.</param>
+        public void SearchNeighbourhood(int i, int radius, DataTable train)
+        {
+            //
+            // Calculate distances of the other solutions in the population to x_i.
+            // Calculate mean distance of the other solutions in the population to x_i.
+            //
+
+            #region distances and mean distance
+            // Mean distance of the other solutions in the population to x_i.
+            double mdi = 0;
+
+            // Field of doubles representing distances from solution x_i to every other in population.
+            double[] d = new double[this._populationSize];
+
+            // Distance to itself is zero.
+            d[i] = 0;
+
+            // Number of samples.
+            int T = train.Rows.Count;
+
+            // Field of doubles representing evaluated x_i values of train data.
+            double[] di = new double[T];
+
+            // Calculate x_i values of train data.
+            for (var t = 0; t < T; t++)
+            {
+                double res = this._chromosomes[i].symbolicTree.Evaluate(train.Rows[t]);
+
+                #region handling infinity
+                if (Double.IsPositiveInfinity(res))
+                {
+                    res = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(res))
+                {
+                    res = Double.MinValue;
+                }
+                #endregion
+
+                di[t] = res;
+            }
+
+            // Calculate distance to each solution from current population.
+            for (var j = 0; j < this._populationSize; j++)
+            {
+                // Skip if j == i.
+                if (j == i)
+                    continue;
+
+                // Calculate distance between x_i and x_j.
+                for (var t = 0; t < T; t++)
+                {
+                    double res = this._chromosomes[j].symbolicTree.Evaluate(train.Rows[t]);
+
+                    #region handling infinity
+                    if (Double.IsPositiveInfinity(res))
+                    {
+                        res = Double.MaxValue;
+                    }
+                    else if (Double.IsNegativeInfinity(res))
+                    {
+                        res = Double.MinValue;
+                    }
+                    #endregion
+
+                    res = Math.Abs(di[t] - res);
+
+                    #region handling infinity
+                    if (Double.IsPositiveInfinity(res))
+                    {
+                        res = Double.MaxValue;
+                    }
+                    else if (Double.IsNegativeInfinity(res))
+                    {
+                        res = Double.MinValue;
+                    }
+                    #endregion
+
+                    d[j] += res;
+
+                    #region handling infinity
+                    if (Double.IsPositiveInfinity(d[j]))
+                    {
+                        d[j] = Double.MaxValue;
+                    }
+                    else if (Double.IsNegativeInfinity(d[j]))
+                    {
+                        d[j] = Double.MinValue;
+                    }
+                    #endregion
+                }
+
+                d[j] = (double)(((double)d[j]) / ((double)T));
+
+                #region handling infinity
+                if (Double.IsPositiveInfinity(d[j]))
+                {
+                    d[j] = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(d[j]))
+                {
+                    d[j] = Double.MinValue;
+                }
+                #endregion
+
+                // Add distance between x_i and x_j to mdi.
+                mdi += d[j];
+
+                #region handling infinity
+                if (Double.IsPositiveInfinity(mdi))
+                {
+                    mdi = Double.MaxValue;
+                }
+                else if (Double.IsNegativeInfinity(mdi))
+                {
+                    mdi = Double.MinValue;
+                }
+                #endregion
+            }
+
+            mdi = (double)(((double)mdi) / (double)(this._populationSize - 1));
+            #endregion
+
+            //
+            // Find all neighbours of x_i.
+            //
+
+            #region neighbours
+            // TODO: Should x_i also be added to list of neighbours of x_i?
+            for (var j = 0; j < this._populationSize; j++)
+            {
+                // Skip if j == i.
+                if (j == i)
+                    continue;
+
+                if (d[j] <= radius * mdi)
+                {
+                    // Add neighbour.
+                    this._neighbors[i].Add(j);
+                }
+            }
+
+            // If solution has no neighbours, add itself to neighborhood list.
+            if (this._neighbors[i].Count == 0)
+            {
+                this._neighbors[i].Add(i);
+            }
+            #endregion
+
+            //
+            // Find best of all neighbours.
+            //
+
+            #region best neighbour
+            // Index of current best neighbour. 
+            int bestNeighbourIndex = this._neighbors[i][0];
+            // Fitness of the best neighbour.
+            double bestNeighbourFitness = this._chromosomes[bestNeighbourIndex].trainFitness;
+
+            for (var j = 1; j < this._neighbors[i].Count; j++)
+            {
+                if (this._chromosomes[this._neighbors[i][j]].trainFitness >= bestNeighbourFitness)
+                {
+                    bestNeighbourIndex = this._neighbors[i][j];
+                    bestNeighbourFitness = this._chromosomes[bestNeighbourIndex].trainFitness;
+                }
+            }
+            #endregion
+
+            // Set best neighbour.
+            this._best_neighbors[i] = bestNeighbourIndex;
         }
         #endregion
 

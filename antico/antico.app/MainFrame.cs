@@ -22,6 +22,7 @@ using System.Runtime.Serialization;
 using System.Data;
 using System.Net;
 using Microsoft.WindowsAPICodePack.Shell;
+using System.Text.RegularExpressions;
 
 namespace antico
 {
@@ -365,7 +366,7 @@ namespace antico
         private void IsThisMaliciousSign_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
-            tt.SetToolTip(this.isThisMaliciousSign, "check is your file malicious \nNOT YET IMPLEMENTED");
+            tt.SetToolTip(this.isThisMaliciousSign, "check is your file malicious");
         }
         #endregion
 
@@ -379,7 +380,7 @@ namespace antico
         private void AboutAnticoSign_MouseHover(object sender, EventArgs e)
         {
             ToolTip tt = new ToolTip();
-            tt.SetToolTip(this.aboutAnticoSign, "about antico \nNOT YET IMPLEMENTED");
+            tt.SetToolTip(this.aboutAnticoSign, "about antico");
         }
         #endregion
 
@@ -466,11 +467,33 @@ namespace antico
         {
             // TODO: only for clamp database.
 
+            // Get path to \Downloads folder.
+            string downloadsPath = KnownFolders.Downloads.Path;
+
             DialogResult result = this.chooseFileToDetermineIfMaliciousDialog.ShowDialog(); // Show the dialog.
             if (result == DialogResult.OK) // Test result.
             {
                 string file = this.chooseFileToDetermineIfMaliciousDialog.FileName;
-                string outputFile = "";
+                string script = "../../../../[PYTHON]/extractFeatures.py";
+
+                #region handle non-english charachters in path
+                if (!File.Exists(downloadsPath + @"\\" + Path.GetFileName(script)))
+                {
+                    // Move script to \Downloads.
+                    File.Copy(Path.GetFullPath(script).Replace("/", @"\\"), downloadsPath + @"\\" + Path.GetFileName(script));
+                }
+
+                // Move file to \Downloads.
+                File.Copy(file, downloadsPath + @"\\" + Path.GetFileName(file));
+
+                var targetDirPath = new DirectoryInfo(downloadsPath + @"\\Python");
+                var sourceDirPath = new DirectoryInfo(Path.GetFullPath("../../../../[PYTHON]/Python/"));
+
+                CopyAll(targetDirPath, sourceDirPath);
+
+                script = downloadsPath + @"\\" + Path.GetFileName(script);
+                string outputFile = (downloadsPath + @"\" + Path.GetFileName(file) + rand.Next(10000).ToString() + "_clamp_features.csv").ToString();
+                #endregion
 
                 #region extract features with python script
                 try
@@ -481,11 +504,7 @@ namespace antico
                     psi.FileName = Path.GetFullPath(@"../../../../[PYTHON]/Python/python.exe").ToString();
 
                     // Provide script and arguments.
-                    //var script = "r'" + Path.GetFullPath(@"../../../../[PYTHON]/extractFeatures.py").ToString() + "'";
-                    //outputFile = "r'" + Path.GetFullPath(@"../../../../[PYTHON]/ExtractedFeatures/" + Path.GetFileName(file) + rand.Next(10000).ToString() + "_clamp_features.csv").ToString() + "'";
-                    var script = "../../../../[PYTHON]/extractFeatures.py";
-                    outputFile = ("../../../../[PYTHON]/ExtractedFeatures/" + Path.GetFileName(file) + rand.Next(10000).ToString() + "_clamp_features.csv").ToString();
-                    psi.Arguments = string.Format("{0} {1} {2}", script, file, outputFile);
+                    psi.Arguments = string.Format("{0} {1} {2}", script, downloadsPath + @"\\" + Path.GetFileName(file), outputFile);
 
                     // Process configuration.
                     psi.UseShellExecute = false;
@@ -532,15 +551,12 @@ namespace antico
 
                 //  Get list of YARA rules.
                 List<string> rulesFile = new List<string>();
-                // Get path to downloads folder.
-                string downloadsPath = KnownFolders.Downloads.Path;
-                downloadsPath = downloadsPath + @"\peid.yara";
 
                 // Download rules (peid.yara) to users computer since YaraSharp can't read non-english charachters in file path.
                 WebClient Client = new WebClient();
-                Client.DownloadFile(new Uri("https://raw.githubusercontent.com/urwithajit9/ClaMP/master/scripts/peid.yara"), downloadsPath);
+                Client.DownloadFile(new Uri("https://raw.githubusercontent.com/urwithajit9/ClaMP/master/scripts/peid.yara"), downloadsPath + @"\peid.yara");
 
-                rulesFile.Add(Path.GetFullPath(downloadsPath).ToString());
+                rulesFile.Add(Path.GetFullPath(downloadsPath + @"\peid.yara").ToString());
 
                 //  Context is where yara is initialized.
                 //  From yr_initialize() to yr_finalize().
@@ -640,8 +656,64 @@ namespace antico
                     dialog.ShowDialog();
                 }
                 #endregion
+
+                #region handle non-english charachters in path
+                // Delete and move files at the end.
+                if (File.Exists(downloadsPath + @"\\" + Path.GetFileName(script)))
+                {
+                    // Delete script from \Downloads directory.
+                    File.Delete(downloadsPath + @"\\" + Path.GetFileName(script));
+                }
+                if (File.Exists(outputFile))
+                {
+                    // Move file to its true destination.
+                    File.Move(outputFile, @"..\\..\\..\\..\\[PYTHON]\\ExtractedFeatures\\" + Path.GetFileName(outputFile));
+                }
+                if (File.Exists(downloadsPath + @"\\" + Path.GetFileName(file)))
+                {
+                    File.Delete(downloadsPath + @"\\" + Path.GetFileName(file));
+                }
+                if (Directory.Exists(downloadsPath + @"\\Python"))
+                {
+                    Directory.Delete(downloadsPath + @"\\Python", true);
+                }
+                #endregion
+
+                // Delete downloaded peid.yara file.
+                if (File.Exists(downloadsPath + @"\peid.yara"))
+                {
+                    File.Delete(downloadsPath + @"\peid.yara");
+                }
             }
         }
+
+        #region directory copy
+        /// <summary>
+        /// Helper method for copying whole directory.
+        /// </summary>
+        /// 
+        /// <param name="targetDirPath">Path to target directory.</param>
+        /// <param name="sourceDirPath">Path to source directory.</param>
+        private static void CopyAll(DirectoryInfo targetDirPath, DirectoryInfo sourceDirPath)
+        {
+
+            Directory.CreateDirectory(targetDirPath.FullName);
+
+            // Copy each file into the new directory.
+            foreach (FileInfo fi in sourceDirPath.GetFiles())
+            {
+                fi.CopyTo(Path.Combine(targetDirPath.FullName, fi.Name), true);
+            }
+
+            // Copy each subdirectory using recursion.
+            foreach (DirectoryInfo diSourceSubDir in sourceDirPath.GetDirectories())
+            {
+                DirectoryInfo nextTargetSubDir = targetDirPath.CreateSubdirectory(diSourceSubDir.Name);
+                CopyAll(nextTargetSubDir, diSourceSubDir);
+            }
+        }
+        #endregion
+
         #endregion
 
         #region about antico 
@@ -760,7 +832,6 @@ namespace antico
             }
         }
         #endregion
-
 
         #endregion
 
