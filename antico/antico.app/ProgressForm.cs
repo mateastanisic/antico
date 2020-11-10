@@ -40,6 +40,11 @@ namespace antico
     {
         #region ATTRIBUTES
 
+        #region Should form exist?
+        // Variable for keeping track if form should exist.
+        public bool shouldExist;
+        #endregion
+
         #region Variables for moving the form.
         // Variables needed for allowing user to move app window on screen.
         private bool dragging = false;
@@ -111,6 +116,7 @@ namespace antico
         public ProgressForm()
         {
             InitializeComponent();
+            this.shouldExist = true;
         }
 
         /// <summary>
@@ -121,6 +127,7 @@ namespace antico
         public ProgressForm(Point location)
         {
             InitializeComponent();
+            this.shouldExist = true;
 
             // Initialize dictionary of points.
             fitnessPoints = new Dictionary<int, Tuple<List<double>, List<double>>>();
@@ -1039,7 +1046,7 @@ namespace antico
         }
         #endregion
 
-        #region Change text of runToolStripMenuItem
+        #region Change text of runToolStripMenuItem.
         /// <summary>
         /// Changes text of runToolStripMenuItem.
         /// </summary>
@@ -1048,6 +1055,22 @@ namespace antico
         public void ToolRoolStrip_ChangeText(string text)
         {
             this.runToolStripMenuItem.Text = text;
+        }
+        #endregion
+
+        #region Cancle closing the form.
+        /// <summary>
+        /// Cancle closing the form when form should exist.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ProgressForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (this.shouldExist)
+            {
+                this.Hide();
+                e.Cancel = true;
+            }
         }
         #endregion
 

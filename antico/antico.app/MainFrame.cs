@@ -22,7 +22,6 @@ using System.Runtime.Serialization;
 using System.Data;
 using System.Net;
 using Microsoft.WindowsAPICodePack.Shell;
-using System.Text.RegularExpressions;
 
 namespace antico
 {

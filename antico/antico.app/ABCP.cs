@@ -117,19 +117,9 @@ namespace antico
             get { return _bestTestIndex; }
             set { _bestTestIndex = value; }
         }
-
-        // Variable that represents current best index of solution depending on type of data (folds or no folds).
-        private int _bestIndexToUse;
-
-        // Property for the _bestIndexToUse variable.
-        public int bestIndexToUse
-        {
-            get { return _bestIndexToUse; }
-            set { _bestIndexToUse = value; }
-        }
         #endregion
 
-        #region current train and test data
+        #region Current train and test data
 
         #region train data
         // DataTable variable containing train features that are currently used.
@@ -254,18 +244,6 @@ namespace antico
             this._bestIndex = bestSolutionIndex;
             this._bestTrainIndex = bestTrainSolutionIndex;
             this._bestTestIndex = bestTestSolutionIndex;
-
-            // Depending on number of folds, look at different best solutions.
-            #region choose best index to use
-            if (this._data.numberOfFolds > 1)
-            {
-                this.bestIndexToUse = this._bestIndex;
-            }
-            else
-            {
-                this.bestIndexToUse = this._bestTrainIndex;
-            }
-            #endregion
         }
         #endregion
 
@@ -307,7 +285,7 @@ namespace antico
                 //
                 // Memorize best fitness from the start of the current iteration.
                 //
-                double OldBestFitness = this._population[this.bestIndexToUse].trainFitness;
+                double OldBestFitness = this._population[this.bestTrainIndex].trainFitness;
 
                 #region app related
                 // Printout to console.
@@ -380,7 +358,7 @@ namespace antico
                 //
                 // Calculate the probabilities values ( P_i ) for the solutions.
                 //
-                this._population.CalculateProbabilities(this.bestIndexToUse, this._parameters.alpha);
+                this._population.CalculateProbabilities(this.bestTrainIndex, this._parameters.alpha);
 
                 #region ----- ONLOOK BEES PHASE -----
                 // Number of onlookers.
@@ -487,7 +465,7 @@ namespace antico
 
                     // Check if 'limit' number of iterations in a row this solution is not improved.
                     // TODO: change best after limit?
-                    if (Limits[s] >= this._parameters.limit && s != this.bestIndexToUse)
+                    if (Limits[s] >= this._parameters.limit && s != this.bestTrainIndex)
                     {
                         #region generate new solution with difference control
                         // If that is so, generate new solution using "grow" method.
@@ -545,7 +523,7 @@ namespace antico
                 //
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
                 // 
-                if (this._population[this.bestIndexToUse].trainFitness != OldBestFitness)
+                if (this._population[this.bestTrainIndex].trainFitness != OldBestFitness)
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
                     IterationNotImproving = 0;
@@ -613,7 +591,7 @@ namespace antico
                 //
                 // Memorize best fitness from the start of the current iteration.
                 //
-                double OldBestFitness = this._population[bestIndexToUse].trainFitness;
+                double OldBestFitness = this._population[this.bestTrainIndex].trainFitness;
 
                 #region app related
                 // Printout to console.
@@ -674,7 +652,7 @@ namespace antico
                 //
                 // Calculate the probabilities values ( P_i ) for the solutions.
                 //
-                this._population.CalculateProbabilities(this.bestIndexToUse, this._parameters.alpha);
+                this._population.CalculateProbabilities(this.bestTrainIndex, this._parameters.alpha);
 
 
                 #region ----- ONLOOK BEES PHASE -----
@@ -779,7 +757,7 @@ namespace antico
 
                     // Check if 'limit' number of iterations in a row this solution is not improved.
                     // TODO: change best after limit?
-                    if (Limits[s] >= this._parameters.limit && s != this.bestIndexToUse)
+                    if (Limits[s] >= this._parameters.limit && s != this.bestTrainIndex)
                     {
                         #region generate new solution with difference control
                         // If that is so, generate new solution using "grow" method.
@@ -837,7 +815,7 @@ namespace antico
                 //
                 // Check if best solution is updated and change variable IterationNotImproving accordingly.
                 // 
-                if (this._population[this.bestIndexToUse].trainFitness != OldBestFitness)
+                if (this._population[this.bestTrainIndex].trainFitness != OldBestFitness)
                 {
                     // Counter for number of continually iterations that did not improve best solution brought back to zero.
                     IterationNotImproving = 0;
@@ -1218,61 +1196,61 @@ namespace antico
 
             // fitness
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].trainFitness);
+                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item1.Add(this._population[this.bestTrainIndex].trainFitness);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].testFitness);
+                formForCreatingNewModel.progressForm.fitnessPoints[dictKey].Item2.Add(this._population[this.bestTrainIndex].testFitness);
             });
 
             // depth
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.depthPoints[dictKey].Add(this._population[this.bestIndexToUse].depth);
+                formForCreatingNewModel.progressForm.depthPoints[dictKey].Add(this._population[this.bestTrainIndex].depth);
             });
 
             // TP
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item1.Add(this._population[this.bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].Test_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.tpPoints[dictKey].Item2.Add(this._population[this.bestTrainIndex].Test_TP_TN_FP_FN["TP"]);
             });
 
             // TN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item1.Add(this._population[this.bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].Test_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.tnPoints[dictKey].Item2.Add(this._population[this.bestTrainIndex].Test_TP_TN_FP_FN["TN"]);
             });
 
             // FP
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["FP"]);
+                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item1.Add(this._population[this.bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].Test_TP_TN_FP_FN["FP"]);
+                formForCreatingNewModel.progressForm.fpPoints[dictKey].Item2.Add(this._population[this.bestTrainIndex].Test_TP_TN_FP_FN["FP"]);
             });
 
             // FN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item1.Add(this._population[this.bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item2.Add(this._population[this.bestIndexToUse].Test_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.fnPoints[dictKey].Item2.Add(this._population[this.bestTrainIndex].Test_TP_TN_FP_FN["FN"]);
             });
 
             // TP + TN + FP + FN
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item1.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["TP"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item1.Add(this._population[this.bestTrainIndex].Train_TP_TN_FP_FN["TP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item2.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["TN"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item2.Add(this._population[this.bestTrainIndex].Train_TP_TN_FP_FN["TN"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item3.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["FP"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item3.Add(this._population[this.bestTrainIndex].Train_TP_TN_FP_FN["FP"]);
             });
             formForCreatingNewModel.Invoke((MethodInvoker)delegate {
-                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item4.Add(this._population[this.bestIndexToUse].Train_TP_TN_FP_FN["FN"]);
+                formForCreatingNewModel.progressForm.accuracyPointsTrain[dictKey].Item4.Add(this._population[this.bestTrainIndex].Train_TP_TN_FP_FN["FN"]);
             });
         }
         #endregion

@@ -83,7 +83,7 @@
             this.PanelForMoving.Dock = System.Windows.Forms.DockStyle.Top;
             this.PanelForMoving.Location = new System.Drawing.Point(0, 0);
             this.PanelForMoving.Name = "PanelForMoving";
-            this.PanelForMoving.Size = new System.Drawing.Size(1012, 44);
+            this.PanelForMoving.Size = new System.Drawing.Size(1012, 37);
             this.PanelForMoving.TabIndex = 23;
             this.PanelForMoving.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PanelForMoving_MouseDown);
             this.PanelForMoving.MouseEnter += new System.EventHandler(this.PanelForMoving_MouseEnter);
@@ -107,6 +107,7 @@
             this.Opacity = 0.95D;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "ProgressForm";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ProgressForm_FormClosing);
             this.SizeChanged += new System.EventHandler(this.ProgressForm_SizeChanged);
             ((System.ComponentModel.ISupportInitialize)(this.exitSign)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.minimizeSign)).EndInit();

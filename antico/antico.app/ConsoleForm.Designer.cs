@@ -58,7 +58,7 @@
             this.heuristicPrintoutTextBox.BackColor = System.Drawing.SystemColors.WindowText;
             this.heuristicPrintoutTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.heuristicPrintoutTextBox.Dock = System.Windows.Forms.DockStyle.Top;
-            this.heuristicPrintoutTextBox.Font = new System.Drawing.Font("Source Sans Pro", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.heuristicPrintoutTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.heuristicPrintoutTextBox.ForeColor = System.Drawing.SystemColors.Control;
             this.heuristicPrintoutTextBox.Location = new System.Drawing.Point(0, 0);
             this.heuristicPrintoutTextBox.Margin = new System.Windows.Forms.Padding(5);
@@ -92,10 +92,10 @@
             // titleLabel
             // 
             this.titleLabel.AutoSize = true;
-            this.titleLabel.Font = new System.Drawing.Font("Source Sans Pro Semibold", 9.749999F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.titleLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.749999F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.titleLabel.Location = new System.Drawing.Point(29, 4);
             this.titleLabel.Name = "titleLabel";
-            this.titleLabel.Size = new System.Drawing.Size(53, 17);
+            this.titleLabel.Size = new System.Drawing.Size(65, 16);
             this.titleLabel.TabIndex = 18;
             this.titleLabel.Text = "Console";
             // 
@@ -154,6 +154,7 @@
             this.Opacity = 0.9D;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "ConsoleForm";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ConsoleForm_FormClosing);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ConsoleForm_KeyUp);
             this.printoutPanel.ResumeLayout(false);
             this.printoutPanel.PerformLayout();

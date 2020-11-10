@@ -21,9 +21,6 @@ using System.IO;
 using System.Collections;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
-using LiveCharts.Wpf;
-using LiveCharts;
-using LiveCharts.Defaults;
 
 namespace antico
 {
@@ -764,6 +761,10 @@ namespace antico
                 this.myThread.Abort();
             }
 
+            // ProgressForm and ConsoleForm also should not exist.
+            this.progressForm.shouldExist = false;
+            this.consoleForm.shouldExist = false;
+
             // Exit.
             Application.Exit();
         }
@@ -813,9 +814,11 @@ namespace antico
             }
 
             // Close the console form.
+            this.consoleForm.shouldExist = false;
             this.consoleForm.Close();
 
             // Close the progress form.
+            this.progressForm.shouldExist = false;
             this.progressForm.Close();
 
             // Close the form.
@@ -1722,6 +1725,8 @@ namespace antico
 
             // Printout on label.
             string input = "\r\n BEST MODEL: \r\n SymbolicTree:  " + this.bestModelInForm.symbolicTree.ToStringInorder();
+            if (this.formData.numberOfFolds != 0)
+                input += "\r\n real (average) fold fitness: " + this.bestModelInForm.realFoldAccuraccy.ToString();
             input += "\r\n train fitness:  " + this.bestModelInForm.trainFitness.ToString();
             input += "\r\n test fitness:  " + this.bestModelInForm.testFitness.ToString();
             input += "\r\n (train+test) fitness:  " + ((double)(this.bestModelInForm.trainFitness + this.bestModelInForm.testFitness) / 2).ToString() + "\r\n\r\n";
@@ -1743,11 +1748,12 @@ namespace antico
 
                 // Best train + test.
                 if (this.formData.numberOfFolds == 0)
-                    input = "\r\n BEST SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBest].symbolicTree.ToStringInorder();
+                    input = "\r\n BEST (TRAIN+TEST) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBest].symbolicTree.ToStringInorder();
                 else
                 {
-                    input = "\r\n BEST SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n";
-                    input += " FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                    input = "\r\n BEST (TRAIN+TEST) SOLUTION IN RUN:" + (run + 1).ToString();
+                    input += "\r\n FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                    input += "\r\n real (average) fold fitness: " + this.allModelsInForm[run].population[indBest].realFoldAccuraccy.ToString();
                     input += "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBest].symbolicTree.ToStringInorder();
                 }
 
@@ -1767,8 +1773,9 @@ namespace antico
                         input += "\r\n BEST(TRAIN) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTrain].symbolicTree.ToStringInorder();
                     else
                     {
-                        input += "\r\n BEST (TRAIN) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n";
-                        input += " FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                        input += "\r\n BEST (TRAIN) SOLUTION IN RUN:" + (run + 1).ToString();
+                        input += "\r\n FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                        input += "\r\n real (average) fold fitness: " + this.allModelsInForm[run].population[indBestTrain].realFoldAccuraccy.ToString();
                         input += "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTrain].symbolicTree.ToStringInorder();
                     }
 
@@ -1789,8 +1796,9 @@ namespace antico
                         input += "\r\n BEST(TEST) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTest].symbolicTree.ToStringInorder();
                     else
                     {
-                        input += "\r\n BEST (TEST) SOLUTION IN RUN:" + (run + 1).ToString() + "\r\n";
-                        input += " FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                        input += "\r\n BEST (TEST) SOLUTION IN RUN:" + (run + 1).ToString();
+                        input += "\r\n FOLD: " + (choosenFold[run] + 1).ToString() + "  (Number in solution progress window: " + (run * this.formData.numberOfFolds + 1 + choosenFold[run]).ToString() + ")";
+                        input += "\r\n real (average) fold fitness: " + this.allModelsInForm[run].population[indBestTest].realFoldAccuraccy.ToString();
                         input += "\r\n SymbolicTree:  " + this.allModelsInForm[run].population[indBestTest].symbolicTree.ToStringInorder();
                     }
 
@@ -2156,7 +2164,7 @@ namespace antico
                 this.allModelsInForm.Add(new ABCP(this.formParameters, this.formData, this.formData.trainFeatures, this.formData.testFeatures, this, this.consoleForm.printoutTextBox));
 
                 // Search for best model.
-                this.allModelsInForm[run].qsABCP(this, this.consoleForm.printoutTextBox, run + 1, this.progressBar);
+                this.allModelsInForm[run].basicABCP(this, this.consoleForm.printoutTextBox, run + 1, this.progressBar);
             }
             else
             {
@@ -2214,75 +2222,13 @@ namespace antico
 
                     #region find best in this fold and update best in all folds if better
                     // Best indices of the solutions in the model.
-                    int indBest = allFoldModelsInThisRun[f].bestIndex;
                     int indBestTrain = allFoldModelsInThisRun[f].bestTrainIndex;
-                    int indBestTest = allFoldModelsInThisRun[f].bestTestIndex;
-
-                    #region calc real train and test fitness and TN/TP/FN/FP values
-                    // (REAL) Train fitness values. (of whole train dataset - in "normal" models (models with 0 folds) this is equivalent of trainFitness)
-                    var realTrainACCBestSolution = allFoldModelsInThisRun[f].population[indBest].CalculateTNTPFNFP(this.formData.trainFeatures);
-                    double realTrainFitnessBestSolution = (realTrainACCBestSolution["TP"] + realTrainACCBestSolution["TN"]) / (double)(this.formData.trainFeatures.Rows.Count);
-
-                    var realTrainACCBestTrainSolution = allFoldModelsInThisRun[f].population[indBestTrain].CalculateTNTPFNFP(this.formData.trainFeatures);
-                    double realTrainFitnessBestTrainSolution = (realTrainACCBestTrainSolution["TP"] + realTrainACCBestTrainSolution["TN"]) / (double)(this.formData.trainFeatures.Rows.Count);
-
-                    var realTrainACCBestTestSolution = allFoldModelsInThisRun[f].population[indBestTest].CalculateTNTPFNFP(this.formData.trainFeatures);
-                    double realTrainFitnessBestTestSolution = (realTrainACCBestTestSolution["TP"] + realTrainACCBestTestSolution["TN"]) / (double)(this.formData.trainFeatures.Rows.Count);
-
-                    // (REAL) Test fitness values.
-                    var realTestACCBestSolution = allFoldModelsInThisRun[f].population[indBest].CalculateTNTPFNFP(this.formData.testFeatures);
-                    double realTestFitnessBestSolution = (realTestACCBestSolution["TP"] + realTestACCBestSolution["TN"]) / (double)(this.formData.trainFeatures.Rows.Count);
-
-                    var realTestACCBestTrainSolution = allFoldModelsInThisRun[f].population[indBestTrain].CalculateTNTPFNFP(this.formData.testFeatures);
-                    double realTestFitnessBestTrainSolution = (realTestACCBestTrainSolution["TP"] + realTestACCBestTrainSolution["TN"]) / (double)(this.formData.trainFeatures.Rows.Count);
-
-                    var realTestACCBestTestSolution = allFoldModelsInThisRun[f].population[indBestTest].CalculateTNTPFNFP(this.formData.testFeatures);
-                    double realTestFitnessBestTestSolution = (realTestACCBestTestSolution["TP"] + realTestACCBestTestSolution["TN"]) / (double)(this.formData.trainFeatures.Rows.Count);
-                    #endregion
 
                     // If it's first fold, there is no bestInFolds yet.
                     if (f == 0)
                     {
-                        // Assume 'best' has highest fitness on train dataset.
-                        double highest = realTrainFitnessBestSolution + realTestFitnessBestSolution;
-
-                        // Update best in folds.
-                        bestInFolds = (Chromosome)allFoldModelsInThisRun[f].population[indBest].Clone();
-                        // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-                        bestInFolds.trainFitness = realTrainFitnessBestSolution;
-                        bestInFolds.testFitness = realTestFitnessBestSolution;
-                        bestInFolds.Train_TP_TN_FP_FN = realTrainACCBestSolution;
-                        bestInFolds.Test_TP_TN_FP_FN = realTestACCBestSolution;
-
-                        // Check if 'bestTrain' is better.
-                        if (realTrainFitnessBestTrainSolution + realTestFitnessBestTrainSolution > highest)
-                        {
-                            // Update highest.
-                            highest = realTrainFitnessBestTrainSolution + realTestFitnessBestTrainSolution;
-
-                            // Update best in folds.
-                            bestInFolds = (Chromosome)allFoldModelsInThisRun[f].population[indBestTrain].Clone();
-                            // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-                            bestInFolds.trainFitness = realTrainFitnessBestTrainSolution;
-                            bestInFolds.testFitness = realTestFitnessBestTrainSolution;
-                            bestInFolds.Train_TP_TN_FP_FN = realTrainACCBestTrainSolution;
-                            bestInFolds.Test_TP_TN_FP_FN = realTestACCBestTrainSolution;
-                        }
-
-                        // Check if 'bestTest' is better.
-                        if (realTrainFitnessBestTestSolution + realTestFitnessBestTestSolution > highest)
-                        {
-                            // Update highest.
-                            highest = realTrainFitnessBestTestSolution + realTestFitnessBestTestSolution;
-
-                            // Update best in folds.
-                            bestInFolds = (Chromosome)allFoldModelsInThisRun[f].population[indBestTest].Clone();
-                            // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-                            bestInFolds.trainFitness = realTrainFitnessBestTestSolution;
-                            bestInFolds.testFitness = realTestFitnessBestTestSolution;
-                            bestInFolds.Train_TP_TN_FP_FN = realTrainACCBestTestSolution;
-                            bestInFolds.Test_TP_TN_FP_FN = realTestACCBestTestSolution;
-                        }
+                        // Set best in folds.
+                        bestInFolds = (Chromosome)allFoldModelsInThisRun[f].population[indBestTrain].Clone();
 
                         // Printout for the console.
                         time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
@@ -2293,50 +2239,11 @@ namespace antico
                     }
                     else
                     {
-                        // Assume 'best' has highest fitness on train dataset.
-                        double highest = realTrainFitnessBestSolution + realTestFitnessBestSolution;
-                        Chromosome bestInThisFold = (Chromosome)allFoldModelsInThisRun[f].population[indBest].Clone();
-                        // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-                        bestInThisFold.trainFitness = realTrainFitnessBestSolution;
-                        bestInThisFold.testFitness = realTestFitnessBestSolution;
-                        bestInThisFold.Train_TP_TN_FP_FN = realTrainACCBestSolution;
-                        bestInThisFold.Test_TP_TN_FP_FN = realTestACCBestSolution;
-
-                        // Check if 'bestTrain' is better.
-                        if (realTrainFitnessBestTrainSolution + realTestFitnessBestTrainSolution > highest)
-                        {
-                            // Update highest.
-                            highest = realTrainFitnessBestTrainSolution + realTestFitnessBestTrainSolution;
-
-                            // Update best in this fold.
-                            bestInThisFold = (Chromosome)allFoldModelsInThisRun[f].population[indBestTrain].Clone();
-                            // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-                            bestInThisFold.trainFitness = realTrainFitnessBestTrainSolution;
-                            bestInThisFold.testFitness = realTestFitnessBestTrainSolution;
-                            bestInThisFold.Train_TP_TN_FP_FN = realTrainACCBestTrainSolution;
-                            bestInThisFold.Test_TP_TN_FP_FN = realTestACCBestTrainSolution;
-                        }
-
-                        // Check if 'bestTest' is better.
-                        if (realTrainFitnessBestTestSolution + realTestFitnessBestTestSolution > highest)
-                        {
-                            // Update highest.
-                            highest = realTrainFitnessBestTestSolution + realTestFitnessBestTestSolution;
-
-                            // Update best in this fold.
-                            bestInThisFold = (Chromosome)allFoldModelsInThisRun[f].population[indBestTest].Clone();
-                            // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-                            bestInThisFold.trainFitness = realTrainFitnessBestTestSolution;
-                            bestInThisFold.testFitness = realTestFitnessBestTestSolution;
-                            bestInThisFold.Train_TP_TN_FP_FN = realTrainACCBestTestSolution;
-                            bestInThisFold.Test_TP_TN_FP_FN = realTestACCBestTestSolution;
-                        }
-
-                        // Now check if highest fitness in this fold is better than overall fitness in all folds.
-                        if (highest > (bestInFolds.trainFitness + bestInFolds.testFitness))
+                        // Update best in folds if best in this fold is better.
+                        if (allFoldModelsInThisRun[f].population[indBestTrain].trainFitness > bestInFolds.trainFitness)
                         {
                             // Update best solution in folds.
-                            bestInFolds = bestInThisFold;
+                            bestInFolds = (Chromosome)allFoldModelsInThisRun[f].population[indBestTrain].Clone();
 
                             // Update index of best fold.
                             bestFoldIndex = f;
@@ -2344,10 +2251,10 @@ namespace antico
 
                         // Printout for the console.
                         time = Microsoft.VisualBasic.DateAndTime.Now.ToString("MM/dd/yyyy HH:mm");
-                        input = "[" + time + "] {" + f.ToString() + "} BEST: \r\n SymbolicTree:  " + bestInThisFold.symbolicTree.ToStringInorder();
-                        input += "\r\n train fitness:  " + bestInThisFold.trainFitness.ToString();
-                        input += "\r\n test fitness:  " + bestInThisFold.testFitness.ToString();
-                        input += "\r\n (train+test) fitness:  " + ((double)(bestInThisFold.trainFitness + bestInThisFold.testFitness) / 2).ToString();
+                        input = "[" + time + "] {" + f.ToString() + "} BEST: \r\n SymbolicTree:  " + allFoldModelsInThisRun[f].population[indBestTrain].symbolicTree.ToStringInorder();
+                        input += "\r\n train fitness:  " + allFoldModelsInThisRun[f].population[indBestTrain].trainFitness.ToString();
+                        input += "\r\n test fitness:  " + allFoldModelsInThisRun[f].population[indBestTrain].testFitness.ToString();
+                        input += "\r\n (train+test) fitness:  " + ((double)(allFoldModelsInThisRun[f].population[indBestTrain].trainFitness + allFoldModelsInThisRun[f].population[indBestTrain].testFitness) / 2).ToString();
                     }
                     #endregion
 
@@ -2365,18 +2272,30 @@ namespace antico
                 inputDone += "\r\n (train+test) fitness:  " + ((double)(bestInFolds.trainFitness + bestInFolds.testFitness) / 2).ToString() + "\r\n\r\n";
                 this.consoleForm.Invoke((MethodInvoker)delegate { this.consoleForm.printoutTextBox.AppendText(inputDone); });
 
-                #region update trainFitness and testFitness of all chromosomes in choosen model
-                // Update trainFitness and testFitness in population in choosen model before adding it in allModelsInForm.
+                #region update folds accuracy
 
-                // Whole population.
-                for (var s = 0; s < allFoldModelsInThisRun[bestFoldIndex].population.populationSize; s++)
+                // First, calculate (real) fold accuracy.
+                double sum_of_fitness = 0;
+                for (var f = 0; f < this.formData.numberOfFolds; f++)
                 {
-                    allFoldModelsInThisRun[bestFoldIndex].population[s].trainFitness = (double)(((double)(allFoldModelsInThisRun[bestFoldIndex].population[s].trainFitness + allFoldModelsInThisRun[bestFoldIndex].population[s].testFitness)) / 2);
-                    allFoldModelsInThisRun[bestFoldIndex].population[s].testFitness = allFoldModelsInThisRun[bestFoldIndex].population[s].CalculateFitness(this.formData.testFeatures);
-                }
+                    int indBestTrain = allFoldModelsInThisRun[f].bestTrainIndex;
 
-                allFoldModelsInThisRun[bestFoldIndex].train = this.formData.trainFeatures;
-                allFoldModelsInThisRun[bestFoldIndex].test = this.formData.testFeatures;
+                    sum_of_fitness += allFoldModelsInThisRun[f].population[indBestTrain].trainFitness;
+                }
+                sum_of_fitness = (double)(sum_of_fitness / (double)this.formData.numberOfFolds);
+
+                // Set up that accuracy value.
+                for (var f = 0; f < this.formData.numberOfFolds; f++)
+                {
+                    int indBest = allFoldModelsInThisRun[f].bestIndex;
+                    int indBestTrain = allFoldModelsInThisRun[f].bestTrainIndex;
+                    int indBestTest = allFoldModelsInThisRun[f].bestTestIndex;
+
+                    // Only these updates are needed.
+                    allFoldModelsInThisRun[f].population[indBest].realFoldAccuraccy = sum_of_fitness;
+                    allFoldModelsInThisRun[f].population[indBestTrain].realFoldAccuraccy = sum_of_fitness;
+                    allFoldModelsInThisRun[f].population[indBestTest].realFoldAccuraccy = sum_of_fitness;
+                }
                 #endregion
 
                 // Add best model to allModelsInForm variable.
@@ -2384,8 +2303,9 @@ namespace antico
 
                 retVal = bestFoldIndex;
             }
+
             #region update best solution in form if this run improved it
-            int iBest = this.allModelsInForm[run].bestIndex;
+            int iBest = this.allModelsInForm[run].bestTrainIndex;
 
             // Update best solution in this search.
             if (this.bestModelInForm == null)
@@ -2393,7 +2313,7 @@ namespace antico
                 this.bestModelInForm = new Chromosome();
                 this.bestModelInForm = (Chromosome)this.allModelsInForm[run].population[iBest].Clone();
             }
-            else if (this.bestModelInForm.trainFitness + this.bestModelInForm.testFitness < this.allModelsInForm[run].population[iBest].trainFitness + this.allModelsInForm[run].population[iBest].testFitness)
+            else if (this.bestModelInForm.trainFitness < this.allModelsInForm[run].population[iBest].trainFitness)
             {
                 this.bestModelInForm = (Chromosome)this.allModelsInForm[run].population[iBest].Clone();
             }

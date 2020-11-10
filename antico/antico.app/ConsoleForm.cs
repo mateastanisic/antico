@@ -29,6 +29,11 @@ namespace antico
     {
         #region ATTRIBUTES
 
+        #region Should form exist?
+        // Variable for keeping track if form should exist.
+        public bool shouldExist;
+        #endregion
+
         #region Printout text box.
         // Variable for printing out the current status of search.
         public TextBox printoutTextBox;
@@ -52,6 +57,7 @@ namespace antico
         public ConsoleForm()
         {
             this.InitializeComponent();
+            this.shouldExist = true;
             this.printoutTextBox = new TextBox();
             this.printoutTextBox = this.heuristicPrintoutTextBox;
         }
@@ -64,6 +70,7 @@ namespace antico
         public void CreateNewConsoleForm(CreateNewModelForm newModelForm) 
         {
             Application.DoEvents();
+            this.shouldExist = true;
             // Set location of the frame.
             this.Location = new Point(newModelForm.DesktopLocation.X + newModelForm.Size.Width, newModelForm.DesktopLocation.Y);
         }
@@ -262,8 +269,23 @@ namespace antico
 
         #endregion
 
+        #region Cancle closing the form.
+        /// <summary>
+        /// Cancle closing the form when form should exist.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ConsoleForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (this.shouldExist)
+            {
+                this.Hide();
+                e.Cancel = true;
+            }
+        }
         #endregion
 
+        #endregion
     }
     #endregion
 }

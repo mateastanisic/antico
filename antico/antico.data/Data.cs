@@ -7,11 +7,13 @@
 // mateastanisic@outlook.com                                                            //
 // Zagreb, Hrvatska                                                                     //
 //////////////////////////////////////////////////////////////////////////////////////////
+using CsvHelper;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
+using System.IO;
 using System.Linq;
-using Npgsql;
 
 namespace antico.data
 {
@@ -175,16 +177,6 @@ namespace antico.data
 
         #region database
 
-        #region connection to database
-        // Variable for connection to POSTGRESQL database.
-        // ( PRIVATE ) used only in this class
-        private NpgsqlConnection connection;
-
-        // Connection string for connection to the database.
-        // ( PRIVATE ) used only in this class
-        private string connectionString = String.Format("Server={0};Port={1};User Id={2};Password={3};Database={4};", "localhost", "5432", "postgres", "postgres", "MalwareDetection");
-        #endregion
-
         #region database name
         // (READONLY - Setting only through constructor) 
         // String variable containing name of the database.
@@ -211,12 +203,20 @@ namespace antico.data
                 },
                 [3] = new List<string>()
                 {
-                    "clamp_folds1_train_80_20",
-                    "clamp_folds1_test_80_20",
-                    "clamp_folds2_train_80_20",
-                    "clamp_folds2_test_80_20",
-                    "clamp_folds3_train_80_20",
-                    "clamp_folds3_test_80_20"
+                    "clamp_fold1_train",
+                    "clamp_fold1_test",
+                    "clamp_fold2_train",
+                    "clamp_fold2_test",
+                    "clamp_fold3_train",
+                    "clamp_fold3_test"
+                }
+            },
+            ["ember"] = new Dictionary<int, List<string>>()
+            {
+                [0] = new List<string>()
+                {
+                    "ember_train_selected5_641f",
+                    "ember_test_selected5_641f"
                 }
             }
         };
@@ -253,9 +253,6 @@ namespace antico.data
         {
             // Deafult mathematical operations.
             this._mathOperators = new List<string>(this._mathOperationsArity.Keys);
-
-            // Defining connection.
-            this.connection = new NpgsqlConnection(this.connectionString);
 
             // Set up database name.
             this._databaseName = "clamp";
@@ -300,9 +297,6 @@ namespace antico.data
             // Deafult mathematical operations.
             this._mathOperators = new List<string>(mathOperators);
 
-            // Defining connection.
-            this.connection = new NpgsqlConnection(this.connectionString);
-
             // Set up database name.
             this._databaseName = databaseName;
 
@@ -328,7 +322,7 @@ namespace antico.data
 
                 // Check up number of features.
                 if (this._numberOfFeatures != this._testFeatures.Columns.Count - 1)
-                    throw new Exception("[Data basic constructor(1)] Number of features in train (" + this._numberOfFeatures + ") and test (" + (this._testFeatures.Columns.Count - 1) + ") set do not match.");
+                    throw new Exception("[Data basic constructor(2)] Number of features in train (" + this._numberOfFeatures + ") and test (" + (this._testFeatures.Columns.Count - 1) + ") set do not match.");
 
                 // Load feature names from database.
                 LoadFeatureNames(databaseFoldsNames[0]);
@@ -463,7 +457,7 @@ namespace antico.data
         /// 
         /// <param name="databaseNames">List of names of the databases. </param>
         /// <param name="index">Index of the database in the databaseNames list.</param>
-        /// <param name="flag">Flag to know if trainFeatures(0) should filled or trainFeaturesFold(1).</param>
+        /// <param name="flag">Flag to know if trainFeatures - 0 should filled or trainFeaturesFold - 1.</param>
         private void LoadTrain(List<string> databaseNames, int index, bool flag)
         {
             // Check if index is out of bounds for databaseNames.
@@ -473,39 +467,72 @@ namespace antico.data
             // Define train database name.
             string trainDatabaseName = databaseNames[index];
 
-            // Try loading data into train features DataTable from database.
-            try
+            // Load data to trainFeatures from database (.csv file).
+
+            if (flag == false)
             {
-                // Open connection.
-                this.connection.Open();
+                // Define path to database file.
+                string path_to_database = "../../../../[DATA]/database/" + this._databaseName + "/0/" + trainDatabaseName + ".csv";
 
-                // SQL query.
-                string sql_features = "SELECT * FROM " + trainDatabaseName;
-                NpgsqlCommand command = new NpgsqlCommand(sql_features, this.connection);
+                if (!File.Exists(Path.GetFullPath(path_to_database)))
+                    throw new Exception("[LoadTrain] File " + trainDatabaseName + ".csv on path " + path_to_database + " does not exists!");
 
-                if (flag == false)
+                // Load data into trainFeatures variable.
+                this._trainFeatures = new DataTable("Train Features.");
+
+                using (StreamReader sr = new StreamReader(path_to_database))
                 {
-                    // Load data into trainFeatures variable.
-                    this._trainFeatures = new DataTable();
-                    this._trainFeatures.Load(command.ExecuteReader());
+                    string[] headers = sr.ReadLine().Split(',');
+                    foreach (string header in headers)
+                    {
+                        this._trainFeatures.Columns.Add(header);
+                    }
+                    while (!sr.EndOfStream)
+                    {
+                        string[] rows = sr.ReadLine().Split(',');
+                        DataRow dr = this._trainFeatures.NewRow();
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            dr[i] = rows[i];
+                        }
+                        this._trainFeatures.Rows.Add(dr);
+                    }
                 }
-                else
-                {
-                    // Load data into trainFeaturesFolds variable.
-                    DataTable temp = new DataTable();
-                    temp.Load(command.ExecuteReader());
-                    this._trainFeaturesFolds.Add(temp.Copy());
-                }
-
-                // Close the connection.
-                this.connection.Close();
             }
-            catch
+            else
             {
-                // Could not open the database. Throw exception.
-                this.connection.Close();
-                throw new NpgsqlException("[LoadTrain] Failed loading data from database " + this._databaseName + " (" + trainDatabaseName + ")!");
+                // Define path to database file.
+                string path_to_database = "../../../../[DATA]/database/" + this._databaseName + "/" + this._numberOfFolds + "/" + trainDatabaseName + ".csv";
+
+                if (!File.Exists(Path.GetFullPath(path_to_database)))
+                    throw new Exception("[LoadTrain] File " + trainDatabaseName + ".csv on path " + path_to_database + " does not exists!");
+
+                // Load data into trainFeaturesFolds variable.
+                DataTable temp = new DataTable("Train Features Folds");
+
+                using (StreamReader sr = new StreamReader(path_to_database))
+                {
+                    string[] headers = sr.ReadLine().Split(',');
+                    foreach (string header in headers)
+                    {
+                        temp.Columns.Add(header);
+                    }
+                    while (!sr.EndOfStream)
+                    {
+                        string[] rows = sr.ReadLine().Split(',');
+                        DataRow dr = temp.NewRow();
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            dr[i] = rows[i];
+                        }
+                        temp.Rows.Add(dr);
+                    }
+
+                }
+
+                this._trainFeaturesFolds.Add(temp.Copy());
             }
+
         }
         #endregion
 
@@ -526,39 +553,70 @@ namespace antico.data
             // Define test database name.
             string testDatabaseName = databaseNames[index];
 
-            // Try loading data into test features DataTable from database.
-            try
+            // Load data to testFeatures from database (.csv file).
+            if (flag == false)
             {
-                // Open connection.
-                this.connection.Open();
+                // Define path to database file.
+                string path_to_database = "../../../../[DATA]/database/" + this._databaseName + "/0/" + testDatabaseName + ".csv";
 
-                // SQL query.
-                string sql_features = "SELECT * FROM " + testDatabaseName;
-                NpgsqlCommand command = new NpgsqlCommand(sql_features, this.connection);
+                if (!File.Exists(Path.GetFullPath(path_to_database)))
+                    throw new Exception("[LoadTest] File " + testDatabaseName + ".csv on path " + path_to_database + " does not exists!");
 
-                if (flag == false)
+                // Load data into testFeatures variable.
+                this._testFeatures = new DataTable();
+
+                using (StreamReader sr = new StreamReader(path_to_database))
                 {
-                    // Load data into testFeatures variable.
-                    this._testFeatures = new DataTable();
-                    this._testFeatures.Load(command.ExecuteReader());
+                    string[] headers = sr.ReadLine().Split(',');
+                    foreach (string header in headers)
+                    {
+                        this._testFeatures.Columns.Add(header);
+                    }
+                    while (!sr.EndOfStream)
+                    {
+                        string[] rows = sr.ReadLine().Split(',');
+                        DataRow dr = this._testFeatures.NewRow();
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            dr[i] = rows[i];
+                        }
+                        this._testFeatures.Rows.Add(dr);
+                    }
                 }
-                else
-                {
-                    // Load data into testFeaturesFolds variable.
-                    DataTable temp = new DataTable();
-                    temp.Load(command.ExecuteReader());
-                    this._testFeaturesFolds.Add(temp.Copy());
-                }
-
-                // Close the connection.
-                this.connection.Close();
             }
-            catch
+            else
             {
-                // Could not open the database. Throw exception.
-                this.connection.Close();
-                throw new NpgsqlException("[LoadTest] Failed loading data from database " + this._databaseName + " (" + testDatabaseName + ")!");
+                // Define path to database file.
+                string path_to_database = "../../../../[DATA]/database/" + this._databaseName + "/" + this._numberOfFolds + "/" + testDatabaseName + ".csv";
+
+                if (!File.Exists(Path.GetFullPath(path_to_database)))
+                    throw new Exception("[LoadTest] File " + testDatabaseName + ".csv on path " + path_to_database + " does not exists!");
+
+                // Load data into testFeaturesFolds variable.
+                DataTable temp = new DataTable();
+
+                using (StreamReader sr = new StreamReader(path_to_database))
+                {
+                    string[] headers = sr.ReadLine().Split(',');
+                    foreach (string header in headers)
+                    {
+                        temp.Columns.Add(header);
+                    }
+                    while (!sr.EndOfStream)
+                    {
+                        string[] rows = sr.ReadLine().Split(',');
+                        DataRow dr = temp.NewRow();
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            dr[i] = rows[i];
+                        }
+                        temp.Rows.Add(dr);
+                    }
+
+                }
+                this._testFeaturesFolds.Add(temp.Copy());
             }
+
         }
         #endregion
 
@@ -571,51 +629,36 @@ namespace antico.data
         private void LoadFeatureNames(string database)
         {
             // Try loading feature names from database.
-            try
+
+            // Initialize _featureNames.
+            this._featureNames = new List<string>();
+
+            // Define path to database file.
+            string path_to_database = "../../../../[DATA]/database/" + this._databaseName + "/" + this._numberOfFolds + "/" + database + ".csv";
+
+            if (!File.Exists(Path.GetFullPath(path_to_database)))
+                throw new Exception("[LoadFeatureNames] File " + database + ".csv on path " + path_to_database + " does not exists!");
+
+            using (StreamReader sr = new StreamReader(path_to_database))
             {
-                // Open connection.
-                this.connection.Open();
-
-                // SQL query.
-                string sql_feature_names = "SELECT column_name FROM information_schema.columns WHERE TABLE_NAME = '" + database + "'";
-                NpgsqlCommand command2 = new NpgsqlCommand(sql_feature_names, this.connection);
-
-                // Loading feature names into _featureNames variable variable.
-                DataTable featureNamesDataTable = new DataTable();
-                featureNamesDataTable.Load(command2.ExecuteReader());
-
-                // Initialize _featureNames.
-                this._featureNames = new List<string>();
-
-                // Fill string array with feature names from DataTable.
-                foreach (DataRow row in featureNamesDataTable.Rows)
+                string[] headers = sr.ReadLine().Split(',');
+                foreach (string header in headers)
                 {
-                    foreach (var item in row.ItemArray)
-                    {
-                        // (TODO: HARDCODED) Column "label" is not a feature!
-                        if (item.ToString() == "label")
-                            continue;
+                    // (TODO: HARDCODED) Column "label" is not a feature!
+                    if (header.ToString() == "label")
+                        continue;
 
-                        this._featureNames.Add(item.ToString());
-                    }
+                    this._featureNames.Add(header.ToString());
                 }
 
-                // Close the connection.
-                this.connection.Close();
             }
-            catch
-            {
-                // Could not open the database. Throw exception.
-                this.connection.Close();
-                throw new NpgsqlException("[Data basic constructor(1)] Failed loading data from database " + this._databaseName + " (" + database + ")!");
-            }
+
         }
         #endregion
 
         #endregion
 
         #endregion
-
     }
     #endregion
 }

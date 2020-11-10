@@ -1237,6 +1237,18 @@ namespace antico.abcp
         }
         #endregion
 
+        #region Real accuracy of fold.
+        // Variable that represents average (real) accuracy of the folds (if it is the case).
+        private double _realFoldAccuraccy;
+
+        // Property for the _realFoldAccuraccy variable.
+        public double realFoldAccuraccy
+        {
+            get { return _realFoldAccuraccy; }
+            set { _realFoldAccuraccy = value; }
+        }
+        #endregion
+
         #region (root node of) symbolic tree
         // Variable that represents root of the Symbolic Tree that represents the solution.
         private SymbolicTreeNode _symbolicTree;
@@ -1308,6 +1320,9 @@ namespace antico.abcp
 
                 // Copy test fitness from this chromosome to chromosome c.
                 _testFitness = this._testFitness,
+
+                // Copy real fold accuracy from this chromosome to chromosome c.
+                _realFoldAccuraccy = this._realFoldAccuraccy,
 
                 // Copy TN/TP/FN/FP values from this chromosome to chromosome c.
                 TP_TN_FP_FN_train = new Dictionary<string, int>(this.TP_TN_FP_FN_train),
