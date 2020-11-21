@@ -7,11 +7,9 @@
 // mateastanisic@outlook.com                                                            //
 // Zagreb, Hrvatska                                                                     //
 //////////////////////////////////////////////////////////////////////////////////////////
-using CsvHelper;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -218,6 +216,34 @@ namespace antico.data
                     "ember_train_selected5_641f",
                     "ember_test_selected5_641f"
                 }
+            },
+            ["android"] = new Dictionary<int, List<string>>()
+            {
+                [0] = new List<string>()
+                {
+                    "android_train_80",
+                    "android_test_20",
+                    "android_train_70",
+                    "android_test_30",
+                    "android_train_selected_80",
+                    "android_test_selected_20",
+                    "android_train_selected_70",
+                    "android_test_selected_30",
+                    "android_train_selected_rfecv_80",
+                    "android_test_selected_rfecv_20",
+                    "android_train_selected_rfecv_70",
+                    "android_test_selected_rfecv_30"
+
+                },
+                [3] = new List<string>()
+                {
+                    "android_train_fold1",
+                    "android_test_fold1",
+                    "android_train_fold2",
+                    "android_test_fold2",
+                    "android_train_fold3",
+                    "android_test_fold3"
+                }
             }
         };
 
@@ -307,7 +333,7 @@ namespace antico.data
             // Setting up the variables based on number of folds.
             if (this._numberOfFolds == 0)
             {
-                if (databaseFoldsNames.Count != 2)
+                if (databaseFoldsNames.Count < 2)
                     throw new Exception("[Data constructor(2)] Number of database names (" + databaseFoldsNames.Count + ") is not maching desired (2).");
 
                 // Load data to _trainFeatures from database with name databaseFoldsNames[0].
@@ -336,7 +362,7 @@ namespace antico.data
                 // For setting trainFeatures i testFeatures variables.
                 List<string> databaseZeroFolds = databaseFoldsAndNames[this._databaseName][0];
 
-                if (databaseZeroFolds.Count != 2)
+                if (databaseZeroFolds.Count < 2)
                     throw new Exception("[Data constructor(2)] Number of database names (" + databaseZeroFolds.Count + ") is not maching desired (2).");
 
                 // Load data to _trainFeatures from database with name databaseZeroFolds[0].
@@ -388,7 +414,6 @@ namespace antico.data
                 LoadFeatureNames(databaseFoldsNames[0]);
             }
         }
-
         #endregion
 
         #endregion

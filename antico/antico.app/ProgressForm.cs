@@ -448,7 +448,7 @@ namespace antico
 
         #endregion
 
-        #region Methods for enabling moving ConsoleForm on user screen.
+        #region Methods for enabling moving ProgressForm on user screen.
         /// <summary>
         /// Flag the wariable dragging false since user pressed mouse button initiating end of moving frame.
         /// </summary>

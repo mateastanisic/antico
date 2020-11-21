@@ -373,7 +373,7 @@ namespace antico.abcp
             // Update depth of child solution.
             child.depth = child.symbolicTree.DepthOfSymbolicTree();
             // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-            child.UpdateAccuracy(trainData, testData);
+            child.UpdateTNTPFNFP(trainData, testData);
             #endregion
 
             return child;
@@ -803,7 +803,17 @@ namespace antico.abcp
             }
 
         }
-        
+
+        /// <summary>
+        /// Mehod for choosing points of crossover in parents. 
+        /// In other words, choosing subtrees of parents for crossover.
+        /// </summary>
+        /// 
+        /// <param name="primaryParent">Primary parent.</param>
+        /// <param name="secundaryParent">Secundary parent.</param>
+        /// <param name="chooseNonTerminalPointProbability">Probability for choosing non-terminal as point of crossover.</param>
+        /// <param name="maxDepth">Maximal depth of trees in population.</param>
+        /// <returns>Tuple of node index of primaryParent and node of secundaryParent that will be points for crossover. </returns>
         public Tuple<int, SymbolicTreeNode> ChooseSubtrees(Chromosome primaryParent, Chromosome secundaryParent, double chooseNonTerminalPointProbability, int maxDepth)
         {
             // Index of crossover point in primary parent.
@@ -1051,24 +1061,20 @@ namespace antico.abcp
             //
 
             #region neighbours
-            // TODO: Should x_i also be added to list of neighbours of x_i?
+            // Find all neighbours.
             for (var j = 0; j < this._populationSize; j++)
             {
-                // Skip if j == i.
+                // Add itself to neighbour list.
                 if (j == i)
-                    continue;
+                {
+                    this._neighbors[i].Add(i);
+                }
 
                 if (d[j] <= radius * mdi)
                 {
                     // Add neighbour.
                     this._neighbors[i].Add(j);
                 }
-            }
-
-            // If solution has no neighbours, add itself to neighborhood list.
-            if (this._neighbors[i].Count == 0)
-            {
-                this._neighbors[i].Add(i);
             }
             #endregion
 

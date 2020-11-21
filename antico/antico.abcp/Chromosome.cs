@@ -1476,7 +1476,7 @@ namespace antico.abcp
                     this._depth = maxDepth;
 
                     // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-                    this.UpdateAccuracy(trainData, testData);
+                    this.UpdateTNTPFNFP(trainData, testData);
 
                     break;
 
@@ -1494,7 +1494,7 @@ namespace antico.abcp
                     this._depth = this._symbolicTree.DepthOfSymbolicTree();
 
                     // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-                    this.UpdateAccuracy(trainData, testData);
+                    this.UpdateTNTPFNFP(trainData, testData);
 
                     break;
 
@@ -1622,7 +1622,7 @@ namespace antico.abcp
         /// 
         /// <param name="trainData">Features values from train set.</param>
         /// <param name="testData">Features values from test set.</param>
-        public void UpdateAccuracy(DataTable trainData, DataTable testData)
+        public void UpdateTNTPFNFP(DataTable trainData, DataTable testData)
         {
             this.TP_TN_FP_FN_train = CalculateTNTPFNFP(trainData);
             this.TP_TN_FP_FN_test = CalculateTNTPFNFP(testData);
