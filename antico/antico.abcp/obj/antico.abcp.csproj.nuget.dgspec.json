@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\[DIPLOMSKI]\\antico\\antico\\antico.abcp\\antico.abcp.csproj": {}
+    "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.abcp\\antico.abcp.csproj": {}
   },
   "projects": {
-    "D:\\[DIPLOMSKI]\\antico\\antico\\antico.abcp\\antico.abcp.csproj": {
+    "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.abcp\\antico.abcp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.abcp\\antico.abcp.csproj",
+        "projectUniqueName": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.abcp\\antico.abcp.csproj",
         "projectName": "antico.abcp",
-        "projectPath": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.abcp\\antico.abcp.csproj",
+        "projectPath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.abcp\\antico.abcp.csproj",
         "packagesPath": "C:\\Users\\Matea\\.nuget\\packages\\",
-        "outputPath": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.abcp\\obj\\",
+        "outputPath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.abcp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"
@@ -31,8 +31,8 @@
         "frameworks": {
           "netstandard2.0": {
             "projectReferences": {
-              "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\antico.data.csproj": {
-                "projectPath": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\antico.data.csproj"
+              "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\antico.data.csproj": {
+                "projectPath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\antico.data.csproj"
               }
             }
           }
@@ -75,14 +75,14 @@
         }
       }
     },
-    "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\antico.data.csproj": {
+    "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\antico.data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\antico.data.csproj",
+        "projectUniqueName": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\antico.data.csproj",
         "projectName": "antico.data",
-        "projectPath": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\antico.data.csproj",
+        "projectPath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\antico.data.csproj",
         "packagesPath": "C:\\Users\\Matea\\.nuget\\packages\\",
-        "outputPath": "D:\\[DIPLOMSKI]\\antico\\antico\\antico.data\\obj\\",
+        "outputPath": "C:\\Users\\Matea\\OneDrive - Prirodoslovno-matematički fakultet\\Dokumenti\\fax\\[DIPLOMSKI RAD]\\[CODE]\\antico\\antico\\antico.data\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"

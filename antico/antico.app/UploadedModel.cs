@@ -7,11 +7,9 @@
 // mateastanisic@outlook.com                                                            //
 // Zagreb, Hrvatska                                                                     //
 //////////////////////////////////////////////////////////////////////////////////////////
-
 using antico.abcp;
 using System;
 using System.Collections.Generic;
-using System.Windows;
 
 namespace antico
 {
@@ -33,6 +31,7 @@ namespace antico
     ///     - TN, TP, FN, FP points over iterations (and together)
     ///     - depths points over iterations
     ///     - console output during search
+    ///     - choosen run (for saved solution) of all runs in that search
     ///     
     /// 
     /// </summary>

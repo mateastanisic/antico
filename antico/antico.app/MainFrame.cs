@@ -99,7 +99,7 @@ namespace antico
 
             // Upload model for detection.
             // TODO: hardcoded
-            LoadFile(@"../../../../[DATA]/saved/4_RUN1_best_solution_0.955__21_10_2020.dat");
+            LoadFile(@"../../../../[DATA]/saved/clamp_best.dat");
 
         }
         #endregion

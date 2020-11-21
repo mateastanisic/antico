@@ -1454,7 +1454,6 @@ namespace antico
             }
             else if (!this.consoleForm.Visible && this.uploaded)
             {
-                MessageBox.Show("Console output " + this.upload.consoleOutput.Substring(0, 10));
                 // If model was uploaded, show form with console output loaded from file.
                 this.consoleForm.Visible = true;
                 this.consoleForm.printoutTextBox.Text = this.upload.consoleOutput;
@@ -1490,6 +1489,11 @@ namespace antico
                 string file = this.uploadFileDialog.FileName;
                 try
                 {
+                    // Clean progress form.
+                    this.progressForm = new ProgressForm(mainForm.Location);
+                    this.progressForm.Visible = false;
+                    this.progressForm.VisibleChanged += new EventHandler(this.ProgressForm_VisibilityChanged);
+
                     // Load file.
                     LoadFile(file);
 
@@ -1620,8 +1624,14 @@ namespace antico
         {
             // Show progress form only if previously not opened and if best model in form is not null or
             // if search is still ongoing or if the model was uploaded via file.
-            if (this.progressForm.Visible == false && (this.forbid || this.bestModelInForm != null || this.uploaded))
+            if (this.progressForm.Visible == false && (this.forbid || this.bestModelInForm != null) && !this.uploaded)
             {
+                this.progressForm.Visible = true;
+                this.showSolutionsProgressSign.BackgroundImage = antico.Properties.Resources.progress_chart_darker;
+            }
+            else if (!this.progressForm.Visible && this.uploaded)
+            {
+                // If model was uploaded, show form with console output loaded from file.
                 this.progressForm.Visible = true;
                 this.showSolutionsProgressSign.BackgroundImage = antico.Properties.Resources.progress_chart_darker;
             }
@@ -2215,7 +2225,7 @@ namespace antico
                     allFoldModelsInThisRun.Add(new ABCP(this.formParameters, this.formData, this.formData.trainFeaturesFolds[f], this.formData.testFeaturesFolds[f], this, this.consoleForm.printoutTextBox));
 
                     // Search for best model.
-                    allFoldModelsInThisRun[f].basicABCP(this, this.consoleForm.printoutTextBox, dictKey, this.progressBar);
+                    allFoldModelsInThisRun[f].qsABCP(this, this.consoleForm.printoutTextBox, dictKey, this.progressBar);
 
                     // Input for the printout to console.
                     string input = "";
@@ -2336,7 +2346,7 @@ namespace antico
         /// <param name="e"></param>
         private void ConsoleForm_VisibilityChanged(object sender, EventArgs e)
         {
-            if (this.consoleForm.Visible == false && this.allModelsInForm != null)
+            if (this.consoleForm.Visible == false)
             {
                 this.lookupConsoleFormSign.BackgroundImage = antico.Properties.Resources.console_lookup;
             }
@@ -2352,7 +2362,7 @@ namespace antico
         /// <param name="e"></param>
         private void ProgressForm_VisibilityChanged(object sender, EventArgs e)
         {
-            if (this.progressForm.Visible == false && this.allModelsInForm != null)
+            if (this.progressForm.Visible == false)
             {
                 this.showSolutionsProgressSign.BackgroundImage = antico.Properties.Resources.progress_chart;
             }

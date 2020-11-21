@@ -715,7 +715,7 @@ namespace antico
                     // Considering the cost values, apply the greedy selection between OldSolution and NewSolution. 
 
                     // Update solution if better.
-                    if (NewFitnessOnlook > OldFitnessOnlook)
+                    if (NewFitnessOnlook > BestNeighbourOnlook.trainFitness)
                     {
                         this._population[f] = NewSolutionOnlook;
 
@@ -757,7 +757,7 @@ namespace antico
 
                     // Check if 'limit' number of iterations in a row this solution is not improved.
                     // TODO: change best after limit?
-                    if (Limits[s] >= this._parameters.limit && s != this.bestTrainIndex)
+                    if (Limits[s] >= this._parameters.limit)
                     {
                         #region generate new solution with difference control
                         // If that is so, generate new solution using "grow" method.
@@ -963,7 +963,7 @@ namespace antico
             // Update depth of child solution.
             child.depth = child.symbolicTree.DepthOfSymbolicTree();
             // Update accuracy (train+test) (fitness+tn/tp/fn/fp)
-            child.UpdateAccuracy(this._train, this._test);
+            child.UpdateTNTPFNFP(this._train, this._test);
             #endregion
 
             #region check if child is unique

@@ -266,8 +266,8 @@ namespace antico
             this.databaseComboBox.Font = new System.Drawing.Font("Source Sans Pro", 9.749999F);
             this.databaseComboBox.FormattingEnabled = true;
             this.databaseComboBox.Items.AddRange(new object[] {
-            "ClaMP",
-            "ember"});
+            "clamp",
+            "android"});
             this.databaseComboBox.Location = new System.Drawing.Point(76, 3);
             this.databaseComboBox.Name = "databaseComboBox";
             this.databaseComboBox.Size = new System.Drawing.Size(133, 25);
