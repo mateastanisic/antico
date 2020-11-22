@@ -476,14 +476,11 @@ namespace antico
                 string script = "../../../../[PYTHON]/extractFeatures.py";
 
                 #region handle non-english charachters in path
-                if (!File.Exists(downloadsPath + @"\\" + Path.GetFileName(script)))
-                {
-                    // Move script to \Downloads.
-                    File.Copy(Path.GetFullPath(script).Replace("/", @"\\"), downloadsPath + @"\\" + Path.GetFileName(script));
-                }
+                // Move script to \Downloads.
+                File.Copy(Path.GetFullPath(script).Replace("/", @"\\"), downloadsPath + @"\\" + Path.GetFileName(script), true);
 
                 // Move file to \Downloads.
-                File.Copy(file, downloadsPath + @"\\" + Path.GetFileName(file));
+                File.Copy(file, downloadsPath + @"\\" + Path.GetFileName(file), true);
 
                 var targetDirPath = new DirectoryInfo(downloadsPath + @"\\Python");
                 var sourceDirPath = new DirectoryInfo(Path.GetFullPath("../../../../[PYTHON]/Python/"));
